@@ -14,7 +14,7 @@ INCLUDE  := include
 BUILD    := build
 FERRAMENTA := $(BUILD)/basicgolc
 
-.PHONY: all test test-v exemplos cobertura limpar ajuda
+.PHONY: all test test-v smoke smoke-v exemplos cobertura limpar ajuda
 
 all: $(FERRAMENTA)
 
@@ -29,6 +29,16 @@ test: $(FERRAMENTA)
 
 test-v: $(FERRAMENTA)
 	@./tests/run.sh -v
+
+# -------------------------------------------------------------- teste de fumaça
+
+# smoke: compila o transpilador e roda a suíte completa de compile-e-rodar
+# (casos de testes, exemplos, negativos, avisos W-01..W-07, transpilador M1,
+# equivalência M0 × M1 e estresse). Um caso só passa se os dois caminhos
+# (macros e transpilador) produzirem exatamente a mesma saída.
+smoke: test
+
+smoke-v: test-v
 
 # ---------------------------------------------------------------- exemplos
 
