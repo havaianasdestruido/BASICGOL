@@ -30,7 +30,7 @@ t_titulo() {
 # ---------------------------------------------------------------- compilação M0
 
 # compila_m0 <dir> <bin>
-# Compila todos os .bg e .c do diretório como um programa C11.
+# Compila todos os .c do diretório como um programa C11 (a fonte BG é .c mesmo).
 # stderr vai para $T_TMP/err.log; devolve 0/1.
 compila_m0() {
     local dir="$1" bin="$2"
@@ -38,10 +38,6 @@ compila_m0() {
 
     [ -f "$dir/cflags.txt" ] && extras="$(cat "$dir/cflags.txt")"
 
-    for f in "$dir"/*.bg; do
-        [ -e "$f" ] || continue
-        fontes+=("$f")
-    done
     for f in "$dir"/*.c; do
         [ -e "$f" ] || continue
         fontes+=("$f")
@@ -51,7 +47,7 @@ compila_m0() {
         echo "nenhum fonte em $dir" > "$T_TMP/err.log"
         return 1
     fi
-    "$T_CC" $T_CFLAGS $extras -I "$T_INCLUDE" -I "$dir" -x c "${fontes[@]}" \
+    "$T_CC" $T_CFLAGS $extras -I "$T_INCLUDE" -I "$dir" "${fontes[@]}" \
         -o "$bin" -lm 2> "$T_TMP/err.log"
 }
 
@@ -63,10 +59,10 @@ compila_objetos() {
     local objs=() f base
 
     : > "$T_TMP/err.log"
-    for f in "$dir"/*.bg "$dir"/*.c; do
+    for f in "$dir"/*.c; do
         [ -e "$f" ] || continue
         base="$T_TMP/obj_$(basename "$f").o"
-        if ! "$T_CC" $T_CFLAGS -I "$T_INCLUDE" -I "$dir" -x c -c "$f" -o "$base" \
+        if ! "$T_CC" $T_CFLAGS -I "$T_INCLUDE" -I "$dir" -c "$f" -o "$base" \
              2>> "$T_TMP/err.log"; then
             return 1
         fi
@@ -77,15 +73,15 @@ compila_objetos() {
 
 # ---------------------------------------------------------------- compilação M1
 
-# transpila <dir> <outdir>  -> gera os .c de cada .bg
+# transpila <dir> <outdir>  -> gera o C de cada fonte
 transpila() {
     local dir="$1" saida="$2" f base
 
     mkdir -p "$saida"
     : > "$T_TMP/err.m1"
-    for f in "$dir"/*.bg; do
+    for f in "$dir"/*.c; do
         [ -e "$f" ] || continue
-        base="$(basename "$f" .bg).c"
+        base="$(basename "$f")"
         if ! "$T_BASICGOLC" "$f" -o "$saida/$base" 2>> "$T_TMP/err.m1"; then
             return 1
         fi
@@ -94,7 +90,7 @@ transpila() {
 }
 
 # compila_m1 <dir> <bin>
-# Transpila cada .bg e compila o C gerado (+ .c originais do caso).
+# Transpila cada .c do caso e compila o C gerado (a fonte BG já é .c).
 compila_m1() {
     local dir="$1" bin="$2"
     local gdir="$T_TMP/m1_$(echo "$dir" | tr '/' '_')"
@@ -106,10 +102,8 @@ compila_m1() {
     if ! transpila "$dir" "$gdir"; then
         return 1
     fi
+    # no caminho M1 compila-se SÓ o C gerado: a fonte já foi traduzida
     for f in "$gdir"/*.c; do
-        [ -e "$f" ] && fontes+=("$f")
-    done
-    for f in "$dir"/*.c; do
         [ -e "$f" ] && fontes+=("$f")
     done
     : > "$T_TMP/err.log"
@@ -146,7 +140,7 @@ mostra_diff() {
 
 # caso_execucao <caminho-do-caso>
 # Convenção de arquivos do caso:
-#   *.bg, *.c          fontes
+#   *.c, *.h           fontes (a fonte BG é um .c com #include <basicgol.h>)
 #   entrada.txt        stdin (opcional)
 #   esperado.txt       stdout esperado (obrigatório neste tipo)
 #   esperado_rc.txt    código de saída esperado (padrão 0)
@@ -202,7 +196,7 @@ caso_execucao() {
 }
 
 # caso_erro_compilacao <caminho-do-caso>
-#   *.bg + esperado_erro.txt (trecho que deve aparecer no erro de compilação M0)
+#   programa.c + esperado_erro.txt (trecho do erro de compilação M0)
 caso_erro_compilacao() {
     local dir="$1" nome trecho
 
@@ -225,7 +219,7 @@ caso_aviso() {
     local dir="$1" codigo="$2" nome
 
     nome="$(echo "$dir" | sed "s|^$T_CASOS/||") [aviso $codigo]"
-    if ! "$T_BASICGOLC" "$dir/programa.bg" -o /dev/null 2> "$T_TMP/err.aviso"; then
+    if ! "$T_BASICGOLC" "$dir/programa.c" -o /dev/null 2> "$T_TMP/err.aviso"; then
         t_falhou "$nome" "basicgolc falhou: $(head -2 "$T_TMP/err.aviso" | tr '\n' ' ')"
         return
     fi
@@ -237,13 +231,13 @@ caso_aviso() {
 }
 
 # caso_erro_transpilacao <caminho-do-caso>
-#   *.bg + esperado_erro.txt (trecho que o basicgolc deve reportar)
+#   programa.c + esperado_erro.txt (trecho que o basicgolc deve reportar)
 caso_erro_transpilacao() {
     local dir="$1" nome trecho
 
     nome="$(echo "$dir" | sed "s|^$T_CASOS/||")"
     trecho="$(cat "$dir/esperado_erro.txt")"
-    if "$T_BASICGOLC" "$dir/programa.bg" -o "$T_TMP/neg_m1.c" 2> "$T_TMP/err.m1"; then
+    if "$T_BASICGOLC" "$dir/programa.c" -o "$T_TMP/neg_m1.c" 2> "$T_TMP/err.m1"; then
         t_falhou "$nome" "transpilou, mas deveria falhar"
         return
     fi

@@ -7,7 +7,7 @@
 | Versão da especificação | `0.1` (Fase 1 — pré-1.0) |
 | Modelo de execução | C (nenhuma máquina virtual, nenhum interpretador) |
 | Dialeto de origem | C11 (obrigatório), C23 (aceito) |
-| Extensão de arquivo | `.bg` (UTF-8) |
+| Extensão de arquivo | `.c` (UTF-8) |
 | Cabeçalho de linguagem | `<basicgol.h>` (entrega da Fase 2) |
 | Licença | Apache-2.0 |
 
@@ -33,11 +33,11 @@ biblioteca é a biblioteca C.
 
 | ID | Objetivo | Como se verifica |
 |---|---|---|
-| O-1 | Um programa BG é compilável por um compilador C11 comum, sem ferramenta própria | `cc -std=c11 -x c prog.bg` funciona no caminho M0 |
+| O-1 | Um programa BG é compilável por um compilador C11 comum, sem ferramenta própria | `cc -std=c11 prog.c` funciona no caminho M0 (a fonte já é `.c`) |
 | O-2 | Nenhum construtor especificado depende de transformação impossível ao pré-processador | todo construtor tem linha na tabela de mapeamento com expansão verificada |
 | O-3 | Vocabulário em português para 100% do fluxo de controle, tipos, E/S básica e declarações | nenhum `if`/`while`/`for` obrigatório no material didático |
-| O-4 | Interoperabilidade total com C: qualquer código C é aceito dentro do programa | exemplo `interop_c.bg` mistura BG e C no mesmo arquivo |
-| O-5 | Mensagens de erro apontam para a linha do `.bg` | compiladores mostram `arquivo:linha` do fonte original |
+| O-4 | Interoperabilidade total com C: qualquer código C é aceito dentro do programa | exemplo `interop_c.c` mistura BG e C no mesmo arquivo |
+| O-5 | Mensagens de erro apontam para a linha do `.c` | compiladores mostram `arquivo:linha` do fonte original |
 | O-6 | Um aluno que sabe BG consegue ler C com pouco esforço | tabela de mapeamento é 1:1 e ensinável em uma página |
 
 ### 1.3 Não-objetivos
@@ -118,10 +118,10 @@ explica por que essa restrição é mais forte do que parece.
 
 ### 4.1 Caminho M0 (macros)
 
-O arquivo `.bg` é compilado **como C**, com o cabeçalho da linguagem forçado:
+O arquivo `.c` é compilado **como C**, sem nenhuma flag especial:
 
 ```sh
-cc -std=c11 -Wall -Wextra -x c programa.bg -o programa -lm
+cc -std=c11 -Wall -Wextra programa.c -o programa -lm -I caminho/para/include
 ```
 
 O cabeçalho define cada palavra-chave como macro (objeto ou função). Não há etapa
@@ -130,8 +130,11 @@ intermediária: o texto que o compilador analisa é o resultado do pré-processa
 ### 4.2 Caminho M1 (transpilador `basicgolc`, Fase 2)
 
 ```
-programa.bg  ──basicgolc──►  programa.c  ──cc──►  executável
+programa.c  ──basicgolc──►  programa.gerado.c  ──cc──►  executável
 ```
+
+A fonte e o C gerado são os dois `.c`: o `-o` escolhe onde o C gerado é escrito (nunca
+sobre a fonte). O que muda é o conteúdo — o gerado não tem macros de palavra-chave.
 
 `basicgolc` é um **reescritor de tokens**, não um compilador: ele mantém um pequeno
 autômato (fora de bloco / cabeçalho de `PARA` / corpo) e faz quatro coisas:
@@ -139,7 +142,7 @@ autômato (fora de bloco / cabeçalho de `PARA` / corpo) e faz quatro coisas:
 1. troca palavras-chave pelos tokens C correspondentes;
 2. insere `{` `}` onde as palavras-chave de bloco os exigem;
 3. converte `PARA i DE a ATE b [PASSO p] FACA` em um `for` C equivalente (§11.5);
-4. emite diagnósticos de estilo/armadilha (W-01…W-05, §12.4).
+4. emite diagnósticos de estilo/armadilha (W-01…W-07, §12.4) e erros estruturais (§12.5).
 
 Ele **não** faz análise semântica, não valida tipos, não resolve nomes. Se ele não
 reconhece algo, repassa o texto sem tocar (o compilador C decide).
@@ -163,10 +166,12 @@ comparação em todos os exemplos.
 
 * Codificação **UTF-8** obrigatória. Byte order mark é tolerado e ignorado.
 * Fim de linha: `LF`, `CRLF` ou `CR` (todos aceitos).
-* Extensão `.bg`. Um arquivo pode começar com `#include <basicgol.h>`, que é o único
-  pré-requisito textual da linguagem.
-* Um arquivo `.bg` **é** uma unidade de tradução C. Não há sistema de módulos em v1.0:
-  usa-se `#include` e `EXTERNO` (ver §13.3).
+* Extensão **`.c`** (D-14): o fonte BG é um C comum, com `#include <basicgol.h>` no topo,
+  e por isso `cc programa.c` funciona sem `-x c`, `make` e editores o reconhecem de
+  imediato. Não existe extensão própria da linguagem.
+* Um arquivo `.c` **é** uma unidade de tradução C. Não há sistema de módulos em v1.0:
+  usa-se `#include` e `EXTERNO` (ver §13.3). A distinção "fonte BG" × "módulo C puro" é
+  de conteúdo, não de nome: o módulo C puro simplesmente não inclui `basicgol.h`.
 
 ### 5.2 Comentários
 
@@ -599,7 +604,7 @@ execução, não do programador (ver C-20 em [04](04-restricoes-e-decisoes.md)).
 Consequência importante para quem implementa: o contrato é condicional — *consome se
 houver, sem descartar conteúdo*. Uma implementação ingênua que “sempre descarta até o fim
 da linha” engole a primeira linha do programa quando não há nada pendente, e é
-considerada **incorreta** (o exemplo `contador_vogais.bg` é o teste desse caso).
+considerada **incorreta** (o exemplo `contador_vogais.c` é o teste desse caso).
 
 ### 10.3 Saída de exemplo
 
@@ -869,7 +874,7 @@ por três mecanismos, todos explícitos:
 * Mensagens de erro em tempo de execução são em **português**, sem acento por padrão
   (`"divisao por zero"`), para não depender da codificação do terminal. O programa pode
   usar acentos em mensagens próprias.
-* Formato de `ERRO`: `arquivo.bg:linha: erro: mensagem`.
+* Formato de `ERRO`: `arquivo.c:linha: erro: mensagem`.
 * Códigos de saída: `0` sucesso; `1` erro fatal (`ERRO`/`AFIRME`); `2` erro de uso
   (definido pela aplicação, se houver).
 
@@ -900,7 +905,7 @@ suíte afirma, uma por uma, em `tests/casos/06_negativos/`.
 
 > **Nota de projeto (honesta):** mensagens de macro apontam para o cabeçalho e citam
 > `BG_*`, não o que o aluno escreveu. É exatamente para isso que existe o caminho M1: o C
-> gerado não tem macros de palavra-chave, então a mensagem aponta para o `programa.bg` e
+> gerado não tem macros de palavra-chave, então a mensagem aponta para o `programa.c` e
 > para a linha certa. O que o M1 resolve sozinho, sem esperar o compilador, está em §12.5.
 
 > **Nota de projeto (honesta):** mensagens de macro são piores que mensagens de C nativo.
@@ -982,17 +987,17 @@ FIM
 Sem sistema de módulos. O idioma é:
 
 ```c
-/* biblioteca.bg — sem INICIO */
+/* biblioteca.c — sem INICIO */
 FUNCAO REAL media(REAL a, REAL b) { RETORNE (a + b) / 2.0; }
 ```
 
 ```c
-/* principal.bg */
+/* principal.c */
 #include <basicgol.h>
 EXTERNO FUNCAO REAL media(REAL, REAL);   /* ou: #include "biblioteca.h" gerado à mão */
 ```
 
-Compilação: `cc -std=c11 principal.bg biblioteca.bg -o app -lm` (o `.bg` é C).
+Compilação: `cc -std=c11 principal.c biblioteca.c -o app -lm` (o `.c` é C).
 
 ---
 
@@ -1050,7 +1055,7 @@ Compilação: `cc -std=c11 principal.bg biblioteca.bg -o app -lm` (o `.bg` é C)
 | PT-F | Nenhuma dependência de sistema operacional nas construções da linguagem. Console é `stdio`; `LIMPA_TELA` e cores **não** existem em v1.0. |
 | PT-G | Sem `#pragma` obrigatório, sem atributos de compilador, sem `__attribute__`. |
 | PT-H | Avisos recomendados: `-Wall -Wextra -Wformat=2`. Recomenda-se **não** usar `-Wpedantic` no caminho M0 em código que usa `INICIO` (o `main` gerado por macro pode gerar ruído em algumas combinações). |
-| PT-I | Windows: compilar `.bg` exige `/TC` (tratar como C) e `/FIbasicgol.h`; ou renomear para `.c`. Documentar no manual da Fase 2. |
+| PT-I | Windows/MSVC: como a fonte já é `.c`, basta `/I` apontando para `include`; se o arquivo for tratado como C++ por algum projeto, force `/TC`. Nada de renomear arquivos (era o custo da extensão `.bg`, descartada em D-14). |
 
 ---
 
@@ -1199,18 +1204,18 @@ verificadas em [`exemplos/README.md`](exemplos/README.md)):
 
 | Arquivo | Demonstra |
 |---|---|
-| [`ola_mundo.bg`](exemplos/ola_mundo.bg) | mínimo: `INICIO`, `ESCREVAL`, `FIM` |
-| [`media_notas.bg`](exemplos/media_notas.bg) | `FUNCAO`, `SE`/`SENAO_SE`, `ESCREVA_FMT` |
-| [`tabuada.bg`](exemplos/tabuada.bg) | `PARA`, laços aninhados, `PARA_PASSO` |
-| [`primos.bg`](exemplos/primos.bg) | `ENQUANTO`, `PARE`, `MOD`, funções auxiliares |
-| [`vetores.bg`](exemplos/vetores.bg) | `VETOR`, `TAMANHO_VETOR`, passagem vetor+tamanho |
-| [`cadastro.bg`](exemplos/cadastro.bg) | `REGISTRO`, `VETOR` de registros, busca |
-| [`adivinha.bg`](exemplos/adivinha.bg) | `REPITA`/`ATE_QUE`, `SORTEIA`, `LEIA_OK`, `ESCOLHA` |
-| [`contador_vogais.bg`](exemplos/contador_vogais.bg) | `TEXTO`/`TEXTO_FIXO`, `LEIA_TEXTO`, laço sobre caracteres |
-| [`interop_c.bg`](exemplos/interop_c.bg) | BG e C no mesmo arquivo, `#include`, `struct`, ponteiros |
-| [`fatorial_recursivo.bg`](exemplos/fatorial_recursivo.bg) | recursão, `RETORNE`, `INTEIRO64` |
-| [`utilidades.bg`](exemplos/utilidades.bg) | catálogo: todos os tipos, matemática, texto, `ENUMERACAO`, `AFIRME`, `ESCREVA_ERRO` |
-| [`para_contado.bg`](exemplos/para_contado.bg) | forma açucarada do laço contado (**M1**) e sua equivalência em M0 |
+| [`ola_mundo.c`](exemplos/ola_mundo.c) | mínimo: `INICIO`, `ESCREVAL`, `FIM` |
+| [`media_notas.c`](exemplos/media_notas.c) | `FUNCAO`, `SE`/`SENAO_SE`, `ESCREVA_FMT` |
+| [`tabuada.c`](exemplos/tabuada.c) | `PARA`, laços aninhados, `PARA_PASSO` |
+| [`primos.c`](exemplos/primos.c) | `ENQUANTO`, `PARE`, `MOD`, funções auxiliares |
+| [`vetores.c`](exemplos/vetores.c) | `VETOR`, `TAMANHO_VETOR`, passagem vetor+tamanho |
+| [`cadastro.c`](exemplos/cadastro.c) | `REGISTRO`, `VETOR` de registros, busca |
+| [`adivinha.c`](exemplos/adivinha.c) | `REPITA`/`ATE_QUE`, `SORTEIA`, `LEIA_OK`, `ESCOLHA` |
+| [`contador_vogais.c`](exemplos/contador_vogais.c) | `TEXTO`/`TEXTO_FIXO`, `LEIA_TEXTO`, laço sobre caracteres |
+| [`interop_c.c`](exemplos/interop_c.c) | BG e C no mesmo arquivo, `#include`, `struct`, ponteiros |
+| [`fatorial_recursivo.c`](exemplos/fatorial_recursivo.c) | recursão, `RETORNE`, `INTEIRO64` |
+| [`utilidades.c`](exemplos/utilidades.c) | catálogo: todos os tipos, matemática, texto, `ENUMERACAO`, `AFIRME`, `ESCREVA_ERRO` |
+| [`para_contado.c`](exemplos/para_contado.c) | forma açucarada do laço contado (**M1**) e sua equivalência em M0 |
 
 Cada exemplo abre com um comentário que declara o perfil exigido (`M0` ou `M0+M1`) e o
 comando de compilação.

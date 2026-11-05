@@ -1,4 +1,4 @@
-// matematica.bg — modulo de funcoes puras (sem E/S)
+// matematica.c — modulo de funcoes puras (sem E/S)
 #include "comum.h"
 
 FUNCAO INTEIRO mdc(INTEIRO a, INTEIRO b) {

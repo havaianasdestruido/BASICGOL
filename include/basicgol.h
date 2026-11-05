@@ -5,9 +5,9 @@
  *
  * Este cabeçalho é a implementação normativa da §3 de
  * docs/03-mapeamento-para-c.md. Ele é header-only: basta incluí-lo e compilar
- * o arquivo .bg como C11.
+ * o arquivo .c como C11 (a fonte BG é um .c comum, com este cabeçalho).
  *
- *   cc -std=c11 -Wall -Wextra -Wformat=2 -x c programa.bg -o programa -lm
+ *   cc -std=c11 -Wall -Wextra -Wformat=2 programa.c -o programa -lm
  *
  * Configuração (definir ANTES do #include):
  *   BG_SEM_APELIDOS  — não define os nomes curtos (SE, ENQUANTO, ...),

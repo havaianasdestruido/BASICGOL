@@ -1,4 +1,4 @@
-// principal.bg — junta os modulos num programa
+// principal.c — junta os modulos num programa
 #include "comum.h"
 
 INICIO

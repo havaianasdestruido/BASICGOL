@@ -1,7 +1,7 @@
-// para_contado.bg — forma acucarada do laco contado.
+// para_contado.c — forma acucarada do laco contado.
 // Perfil: M1 (exige basicgolc). O caminho M0 usa PARA (i, a, b) { ... }.
-// Compilar: basicgolc para_contado.bg -o para_contado.c
-//           cc -std=c11 -Wall -Wextra para_contado.c -o para_contado -lm
+// Compilar: basicgolc para_contado.c -o para_contado.gerado.c
+//           cc -std=c11 -Wall -Wextra para_contado.gerado.c -o para_contado -lm -I ../include
 #include <basicgol.h>
 
 INICIO

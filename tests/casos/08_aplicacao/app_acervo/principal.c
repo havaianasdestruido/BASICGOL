@@ -1,4 +1,4 @@
-// principal.bg — lê a configuração, monta o acervo e atende comandos
+// principal.c — lê a configuração, monta o acervo e atende comandos
 #include "acervo.h"
 
 // Extrai o primeiro número que aparece no comando ("e 3" -> 3); -1 se não houver.

@@ -40,7 +40,7 @@ tests/
 
 | Arquivo | Papel |
 |---|---|
-| `programa.bg`, `*.c`, `*.h` | fontes do caso (todos compilados juntos) |
+| `programa.c`, `*.c`, `*.h` | fontes do caso — a fonte BG é `.c` (todos compilados juntos) |
 | `entrada.txt` | o que vai para o `stdin` (ausente = `/dev/null`) |
 | `esperado.txt` | saída esperada em `stdout` (obrigatório em caso de execução) |
 | `esperado_rc.txt` | código de saída esperado (padrão `0`) |
@@ -55,7 +55,7 @@ por exemplo, significa "sem entrada".
 
 ## Como adicionar um caso
 
-1. Crie `tests/casos/<suíte>/<nome>/programa.bg`.
+1. Crie `tests/casos/<suíte>/<nome>/programa.c`.
 2. Rode o programa uma vez e confira **à mão** a saída (nunca aceite a saída só porque o
    programa a produziu: o teste existe para pegar erro, não para congelar erro).
 3. Salve como `esperado.txt` e rode `./tests/run.sh <suíte>`.

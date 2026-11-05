@@ -1,6 +1,6 @@
-// primos.bg — ENQUANTO, PARE, MOD e funcoes auxiliares.
+// primos.c — ENQUANTO, PARE, MOD e funcoes auxiliares.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra -x c primos.bg -o primos
+// Compilar: cc -std=c11 -Wall -Wextra primos.c -o primos
 #include <basicgol.h>
 
 // Testa se n e primo. 0 e 1 nao sao primos; 2 e o unico par primo.

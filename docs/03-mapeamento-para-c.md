@@ -15,7 +15,7 @@ Antes de congelar a especificação, cada construtor foi reduzido a macros em um
 descartável** (não versionada: a implementação é entrega da Fase 2) e compilada com:
 
 ```sh
-gcc 12.2 -std=c11 -Wall -Wextra -Wformat=2 -x c programa.bg -I <sonda> -lm
+gcc 12.2 -std=c11 -Wall -Wextra -Wformat=2 programa.c -I <sonda> -lm
 ```
 
 Resultado: compilação limpa (zero avisos) e comportamento esperado para todos os

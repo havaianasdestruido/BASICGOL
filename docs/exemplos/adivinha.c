@@ -1,6 +1,6 @@
-// adivinha.bg — REPITA/ATE_QUE, sorteio, LEIA_OK e ESCOLHA.
+// adivinha.c — REPITA/ATE_QUE, sorteio, LEIA_OK e ESCOLHA.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra -x c adivinha.bg -o adivinha
+// Compilar: cc -std=c11 -Wall -Wextra adivinha.c -o adivinha
 #include <basicgol.h>
 
 CONSTANTE INTEIRO k_limite = 100;

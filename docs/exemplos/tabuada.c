@@ -1,6 +1,6 @@
-// tabuada.bg — laco contado, lacos aninhados e alinhamento de colunas.
+// tabuada.c — laco contado, lacos aninhados e alinhamento de colunas.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra -x c tabuada.bg -o tabuada
+// Compilar: cc -std=c11 -Wall -Wextra tabuada.c -o tabuada
 #include <basicgol.h>
 
 INICIO

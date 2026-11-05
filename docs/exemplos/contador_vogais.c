@@ -1,6 +1,6 @@
-// contador_vogais.bg — TEXTO_FIXO, LEIA_TEXTO e percurso caractere a caractere.
+// contador_vogais.c — TEXTO_FIXO, LEIA_TEXTO e percurso caractere a caractere.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra -x c contador_vogais.bg -o contador_vogais
+// Compilar: cc -std=c11 -Wall -Wextra contador_vogais.c -o contador_vogais
 #include <basicgol.h>
 
 // Conta vogais minusculas e maiusculas da frase.

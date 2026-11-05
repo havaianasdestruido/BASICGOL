@@ -63,7 +63,7 @@ if selecionado 01_sanidade; then
 
     # -pedantic também limpo
     printf '#include <basicgol.h>\nINICIO\n  ESCREVAL("x");\nFIM\n' > "$T_TMP/h3.c"
-    if $T_CC -std=c11 -Wall -Wextra -Wpedantic -Werror -I "$T_INCLUDE" -x c \
+    if $T_CC -std=c11 -Wall -Wextra -Wpedantic -Werror -I "$T_INCLUDE" \
          -o "$T_TMP/h3" "$T_TMP/h3.c" -lm 2> "$T_TMP/e"; then
         t_ok "compila limpo com -Wpedantic"
     else
@@ -105,7 +105,7 @@ if selecionado 01_sanidade; then
     fi
 
     # AC-26 — também em C17 (e em clang, quando existir no sistema)
-    if $T_CC -std=c17 $T_CFLAGS -I "$T_INCLUDE" -x c -o "$T_TMP/h9" "$T_TMP/h3.c" -lm \
+    if $T_CC -std=c17 $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h9" "$T_TMP/h3.c" -lm \
        2> "$T_TMP/e"; then
         t_ok "compila limpo em -std=c17"
     else
@@ -113,7 +113,7 @@ if selecionado 01_sanidade; then
     fi
 
     if command -v clang > /dev/null 2>&1; then
-        if clang $T_CFLAGS -I "$T_INCLUDE" -x c -o "$T_TMP/h10" "$T_TMP/h3.c" -lm \
+        if clang $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h10" "$T_TMP/h3.c" -lm \
            2> "$T_TMP/e"; then
             t_ok "compila limpo com clang"
         else
@@ -125,8 +125,8 @@ if selecionado 01_sanidade; then
 
     # AC-29 — compilar um exemplo pequeno leva menos de 1 s
     tempo_ini=$(date +%s%N)
-    if $T_CC -std=c11 -I "$T_INCLUDE" -x c -o "$T_TMP/h11" \
-         "$RAIZ/docs/exemplos/ola_mundo.bg" -lm 2> "$T_TMP/e"; then
+    if $T_CC -std=c11 -I "$T_INCLUDE" -o "$T_TMP/h11" \
+         "$RAIZ/docs/exemplos/ola_mundo.c" -lm 2> "$T_TMP/e"; then
         tempo_fim=$(date +%s%N)
         ms=$(( (tempo_fim - tempo_ini) / 1000000 ))
         if [ "$ms" -lt 1000 ]; then
@@ -150,7 +150,7 @@ BG_INICIO
     BG_FIM_SE
 BG_FIM
 EOF
-    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -x c -o "$T_TMP/h5" "$T_TMP/h5.c" -lm 2> "$T_TMP/e" \
+    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h5" "$T_TMP/h5.c" -lm 2> "$T_TMP/e" \
        && [ "$("$T_TMP/h5" | tr '\n' '|')" = "prefixado ok|se ok|" ]; then
         t_ok "BG_SEM_APELIDOS: forma prefixada funciona"
     else
@@ -184,7 +184,7 @@ INICIO
     ESCREVA("."); ESCREVAL(BG_VERSAO_CORRECAO);
 FIM
 EOF
-    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -x c -o "$T_TMP/h7" "$T_TMP/h7.c" -lm 2> "$T_TMP/e" \
+    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h7" "$T_TMP/h7.c" -lm 2> "$T_TMP/e" \
        && [ "$("$T_TMP/h7")" = "1.0.0" ]; then
         t_ok "macros de versao consistentes"
     else
@@ -205,7 +205,7 @@ INICIO
     ESCREVA(i++); ESCREVA(" "); ESCREVAL(i);   /* imprime 0 e depois 1 */
 FIM
 EOF
-    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -x c -o "$T_TMP/h8" "$T_TMP/h8.c" -lm 2> "$T_TMP/e" \
+    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h8" "$T_TMP/h8.c" -lm 2> "$T_TMP/e" \
        && [ "$("$T_TMP/h8" | tr '\n' '|')" = "2 1 2|0 1|" ]; then
         t_ok "avaliacao unica de argumentos (P-11)"
     else
@@ -221,7 +221,7 @@ EOF
     [ $? -eq 2 ] && t_ok "basicgolc sem argumento sai 2" || t_falhou "basicgolc sem argumento sai 2"
     "$T_BASICGOLC" --opcao-que-nao-existe x > /dev/null 2>&1
     [ $? -eq 2 ] && t_ok "basicgolc opcao invalida sai 2" || t_falhou "basicgolc opcao invalida sai 2"
-    "$T_BASICGOLC" /caminho/inexistente.bg > /dev/null 2>&1
+    "$T_BASICGOLC" /caminho/inexistente.c > /dev/null 2>&1
     [ $? -eq 70 ] && t_ok "basicgolc arquivo inexistente falha" || t_falhou "basicgolc arquivo inexistente falha"
 fi
 
@@ -277,7 +277,7 @@ if selecionado 09_m1; then
     t_titulo "09 — transpilador M1"
 
     # 9.1 tradução de cada construtor de bloco
-    cat > "$T_TMP/g1.bg" <<'EOF'
+    cat > "$T_TMP/g1.gerado.c" <<'EOF'
 #include <basicgol.h>
 INICIO
     SE 1 ENTAO
@@ -296,13 +296,13 @@ INICIO
     FIM_PARA
 FIM
 EOF
-    if "$T_BASICGOLC" "$T_TMP/g1.bg" -o "$T_TMP/g1.c" -w 2> "$T_TMP/e"; then
+    if "$T_BASICGOLC" "$T_TMP/g1.gerado.c" -o "$T_TMP/g1.gerado.c" -w 2> "$T_TMP/e"; then
         esperados=("if (" ") {" "} else if (" "} else {" "while (" "do {" "} while (!(1));" \
                    "switch (1) {" "case " "default" "int main(void) {" \
                    "for (i = (1); (1) > 0 ? (i <= (3)) : (i >= (3)); i += (1)) {")
         faltando=""
         for trecho in "${esperados[@]}"; do
-            grep -qF -- "$trecho" "$T_TMP/g1.c" || faltando="$faltando [$trecho]"
+            grep -qF -- "$trecho" "$T_TMP/g1.gerado.c" || faltando="$faltando [$trecho]"
         done
         if [ -z "$faltando" ]; then
             t_ok "M1 traduz todos os construtores de bloco"
@@ -314,14 +314,14 @@ EOF
     fi
 
     # 9.2 nenhuma palavra-chave de bloco sobra no C gerado (RG-10 / AC-31)
-    if grep -Eq '\b(SE|ENTAO|SENAO_SE|SENAO|FIM_SE|ENQUANTO|FACA|FIM_ENQUANTO|REPITA|ESCOLHA|CASO|CONTRARIO|FIM_ESCOLHA|PARE|PROSSIGA|INICIO|FIM|FIM_PARA|ATE)\b' "$T_TMP/g1.c"; then
-        t_falhou "C gerado nao contem palavras-chave de bloco" "$(grep -Eo '\b(SE|ENTAO|SENAO|FIM_SE|ENQUANTO|FACA|REPITA|ESCOLHA|CASO|CONTRARIO|PARE|PROSSIGA|INICIO|FIM|FIM_PARA|ATE)\b' "$T_TMP/g1.c" | sort -u | tr '\n' ' ')"
+    if grep -Eq '\b(SE|ENTAO|SENAO_SE|SENAO|FIM_SE|ENQUANTO|FACA|FIM_ENQUANTO|REPITA|ESCOLHA|CASO|CONTRARIO|FIM_ESCOLHA|PARE|PROSSIGA|INICIO|FIM|FIM_PARA|ATE)\b' "$T_TMP/g1.gerado.c"; then
+        t_falhou "C gerado nao contem palavras-chave de bloco" "$(grep -Eo '\b(SE|ENTAO|SENAO|FIM_SE|ENQUANTO|FACA|REPITA|ESCOLHA|CASO|CONTRARIO|PARE|PROSSIGA|INICIO|FIM|FIM_PARA|ATE)\b' "$T_TMP/g1.gerado.c" | sort -u | tr '\n' ' ')"
     else
         t_ok "C gerado nao contem palavras-chave de bloco"
     fi
 
     # 9.3 apelidos acentuados (D-03)
-    cat > "$T_TMP/g2.bg" <<'EOF'
+    cat > "$T_TMP/g2.c" <<'EOF'
 #include <basicgol.h>
 INÍCIO
     LÓGICO pronto = FALSO;
@@ -337,8 +337,8 @@ INÍCIO
     ESCREVAL(n);
 FIM
 EOF
-    if "$T_BASICGOLC" "$T_TMP/g2.bg" -o "$T_TMP/g2.c" -w 2> "$T_TMP/e" \
-       && $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/g2" "$T_TMP/g2.c" -lm 2>> "$T_TMP/e" \
+    if "$T_BASICGOLC" "$T_TMP/g2.c" -o "$T_TMP/g2.gerado.c" -w 2> "$T_TMP/e" \
+       && $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/g2" "$T_TMP/g2.gerado.c" -lm 2>> "$T_TMP/e" \
        && [ "$("$T_TMP/g2")" = "2" ]; then
         t_ok "M1 aceita palavras-chave acentuadas"
     else
@@ -346,7 +346,7 @@ EOF
     fi
 
     # 9.4 --checar: arquivo bom e arquivo com bloco sem fechamento
-    cat > "$T_TMP/g3.bg" <<'EOF'
+    cat > "$T_TMP/g3.c" <<'EOF'
 #include <basicgol.h>
 INICIO
     SE 1 ENTAO
@@ -355,17 +355,17 @@ INICIO
     FIM_ENQUANTO
 FIM
 EOF
-    "$T_BASICGOLC" --checar "$T_TMP/g3.bg" > /dev/null 2>&1 \
+    "$T_BASICGOLC" --checar "$T_TMP/g3.c" > /dev/null 2>&1 \
         && t_ok "M1 --checar aprova arquivo bem formado" \
         || t_falhou "M1 --checar aprova arquivo bem formado"
 
-    cat > "$T_TMP/g4.bg" <<'EOF'
+    cat > "$T_TMP/g4.c" <<'EOF'
 #include <basicgol.h>
 INICIO
     SE 1 ENTAO
         ESCREVAL("sem fim");
 EOF
-    if "$T_BASICGOLC" --checar "$T_TMP/g4.bg" > /dev/null 2> "$T_TMP/e"; then
+    if "$T_BASICGOLC" --checar "$T_TMP/g4.c" > /dev/null 2> "$T_TMP/e"; then
         t_falhou "M1 --checar reprova bloco sem fechamento" "saiu 0"
     elif grep -q "nao foi fechado" "$T_TMP/e"; then
         t_ok "M1 --checar reprova bloco sem fechamento"
@@ -374,14 +374,14 @@ EOF
     fi
 
     # 9.5 fechamento errado
-    cat > "$T_TMP/g5.bg" <<'EOF'
+    cat > "$T_TMP/g5.c" <<'EOF'
 #include <basicgol.h>
 INICIO
     ENQUANTO 0 FACA
     FIM_SE
 FIM
 EOF
-    if "$T_BASICGOLC" --checar "$T_TMP/g5.bg" > /dev/null 2> "$T_TMP/e"; then
+    if "$T_BASICGOLC" --checar "$T_TMP/g5.c" > /dev/null 2> "$T_TMP/e"; then
         t_falhou "M1 detecta fechamento errado" "saiu 0"
     elif grep -q "fecha o bloco errado" "$T_TMP/e"; then
         t_ok "M1 detecta fechamento errado"
@@ -390,13 +390,13 @@ EOF
     fi
 
     # 9.6 ATE sem REPITA
-    cat > "$T_TMP/g6.bg" <<'EOF'
+    cat > "$T_TMP/g6.c" <<'EOF'
 #include <basicgol.h>
 INICIO
     ATE 1;
 FIM
 EOF
-    if "$T_BASICGOLC" "$T_TMP/g6.bg" -o /dev/null > /dev/null 2> "$T_TMP/e"; then
+    if "$T_BASICGOLC" "$T_TMP/g6.c" -o /dev/null > /dev/null 2> "$T_TMP/e"; then
         t_falhou "M1 rejeita ATE sem REPITA" "saiu 0"
     elif grep -q "sem 'REPITA'" "$T_TMP/e"; then
         t_ok "M1 rejeita ATE sem REPITA"
@@ -405,20 +405,20 @@ EOF
     fi
 
     # 9.7 cabecalho de PARA incompleto
-    printf '#include <basicgol.h>\nINICIO\n  PARA i DE 1 FACA\n  FIM_PARA\nFIM\n' > "$T_TMP/g7.bg"
-    "$T_BASICGOLC" "$T_TMP/g7.bg" -o /dev/null > /dev/null 2> "$T_TMP/e" \
+    printf '#include <basicgol.h>\nINICIO\n  PARA i DE 1 FACA\n  FIM_PARA\nFIM\n' > "$T_TMP/g7.c"
+    "$T_BASICGOLC" "$T_TMP/g7.c" -o /dev/null > /dev/null 2> "$T_TMP/e" \
         && t_falhou "M1 rejeita PARA sem ATE" "saiu 0" \
         || { grep -q "faltou 'ATE'" "$T_TMP/e" && t_ok "M1 rejeita PARA sem ATE" \
              || t_falhou "M1 rejeita PARA sem ATE" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"; }
 
-    printf '#include <basicgol.h>\nINICIO\n  PARA i 1 ATE 2 FACA\n  FIM_PARA\nFIM\n' > "$T_TMP/g8.bg"
-    "$T_BASICGOLC" "$T_TMP/g8.bg" -o /dev/null > /dev/null 2> "$T_TMP/e" \
+    printf '#include <basicgol.h>\nINICIO\n  PARA i 1 ATE 2 FACA\n  FIM_PARA\nFIM\n' > "$T_TMP/g8.c"
+    "$T_BASICGOLC" "$T_TMP/g8.c" -o /dev/null > /dev/null 2> "$T_TMP/e" \
         && t_falhou "M1 rejeita PARA sem DE" "saiu 0" \
         || { grep -q "esperado 'DE'" "$T_TMP/e" && t_ok "M1 rejeita PARA sem DE" \
              || t_falhou "M1 rejeita PARA sem DE" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"; }
 
     # 9.8 avisos
-    cat > "$T_TMP/w1.bg" <<'EOF'
+    cat > "$T_TMP/w1.c" <<'EOF'
 #include <basicgol.h>
 INICIO
     INTEIRO x = 0;
@@ -427,21 +427,21 @@ INICIO
     FIM_SE
 FIM
 EOF
-    "$T_BASICGOLC" "$T_TMP/w1.bg" -o /dev/null 2> "$T_TMP/e"
+    "$T_BASICGOLC" "$T_TMP/w1.c" -o /dev/null 2> "$T_TMP/e"
     grep -q "\[W-01\]" "$T_TMP/e" && t_ok "M1 emite W-01 (= em condicao)" \
         || t_falhou "M1 emite W-01 (= em condicao)"
 
-    printf '#include <basicgol.h>\nINICIO\n  INTEIRO y;\n  y = 1;\n  ESCREVAL(y);\nFIM\n' > "$T_TMP/w2.bg"
-    "$T_BASICGOLC" "$T_TMP/w2.bg" -o /dev/null 2> "$T_TMP/e"
+    printf '#include <basicgol.h>\nINICIO\n  INTEIRO y;\n  y = 1;\n  ESCREVAL(y);\nFIM\n' > "$T_TMP/w2.c"
+    "$T_BASICGOLC" "$T_TMP/w2.c" -o /dev/null 2> "$T_TMP/e"
     grep -q "\[W-02\]" "$T_TMP/e" && t_ok "M1 emite W-02 (sem inicializador)" \
         || t_falhou "M1 emite W-02 (sem inicializador)"
 
-    printf '#include <basicgol.h>\nINICIO\n  INTEIRO TOTAL = 0;\n  ESCREVAL(TOTAL);\nFIM\n' > "$T_TMP/w5.bg"
-    "$T_BASICGOLC" "$T_TMP/w5.bg" -o /dev/null 2> "$T_TMP/e"
+    printf '#include <basicgol.h>\nINICIO\n  INTEIRO TOTAL = 0;\n  ESCREVAL(TOTAL);\nFIM\n' > "$T_TMP/w5.c"
+    "$T_BASICGOLC" "$T_TMP/w5.c" -o /dev/null 2> "$T_TMP/e"
     grep -q "\[W-05\]" "$T_TMP/e" && t_ok "M1 emite W-05 (identificador maiusculo)" \
         || t_falhou "M1 emite W-05 (identificador maiusculo)"
 
-    cat > "$T_TMP/w7.bg" <<'EOF'
+    cat > "$T_TMP/w7.c" <<'EOF'
 #include <basicgol.h>
 CONSTANTE INTEIRO k_n = 4;
 INICIO
@@ -450,12 +450,12 @@ INICIO
     ESCREVAL(v[0]);
 FIM
 EOF
-    "$T_BASICGOLC" "$T_TMP/w7.bg" -o /dev/null 2> "$T_TMP/e"
+    "$T_BASICGOLC" "$T_TMP/w7.c" -o /dev/null 2> "$T_TMP/e"
     grep -q "\[W-07\]" "$T_TMP/e" && t_ok "M1 emite W-07 (tamanho de vetor com CONSTANTE)" \
         || t_falhou "M1 emite W-07 (tamanho de vetor com CONSTANTE)"
 
     # -w suprime
-    "$T_BASICGOLC" "$T_TMP/w1.bg" -o /dev/null -w 2> "$T_TMP/e"
+    "$T_BASICGOLC" "$T_TMP/w1.c" -o /dev/null -w 2> "$T_TMP/e"
     if [ -s "$T_TMP/e" ]; then
         t_falhou "M1 -w suprime avisos" "$(head -1 "$T_TMP/e")"
     else
@@ -463,7 +463,7 @@ EOF
     fi
 
     # 9.9 avisos não são erros: sai 0
-    "$T_BASICGOLC" "$T_TMP/w1.bg" -o /dev/null 2> /dev/null
+    "$T_BASICGOLC" "$T_TMP/w1.c" -o /dev/null 2> /dev/null
     [ $? -eq 0 ] && t_ok "M1 avisos nao mudam o codigo de saida" \
         || t_falhou "M1 avisos nao mudam o codigo de saida"
 fi
@@ -475,8 +475,8 @@ if selecionado 10_exemplos; then
     t_titulo "10 — exemplos do repositorio (M0 e M1 contra a saida dourada)"
     EX="$RAIZ/docs/exemplos"
 
-    for arq in "$EX"/*.bg; do
-        nome=$(basename "$arq" .bg)
+    for arq in "$EX"/*.c; do
+        nome=$(basename "$arq" .c)
         entrada="/dev/null"
         [ -f "$EX/$nome.entrada.txt" ] && entrada="$EX/$nome.entrada.txt"
         bin0="$T_TMP/ex_m0_$nome"
@@ -486,7 +486,7 @@ if selecionado 10_exemplos; then
 
         # caminho M0 (todos, menos o exemplo que so existe em M1)
         if [ "$nome" != "para_contado" ]; then
-            if $T_CC $T_CFLAGS -I "$T_INCLUDE" -x c "$arq" -o "$bin0" -lm 2> "$T_TMP/e"; then
+            if $T_CC $T_CFLAGS -I "$T_INCLUDE" "$arq" -o "$bin0" -lm 2> "$T_TMP/e"; then
                 ok_m0=1
             else
                 t_falhou "exemplo $nome (M0)" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"
@@ -494,8 +494,8 @@ if selecionado 10_exemplos; then
         fi
 
         # caminho M1 (todos)
-        if "$T_BASICGOLC" "$arq" -o "$T_TMP/$nome.c" 2> "$T_TMP/e" \
-           && $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$bin1" "$T_TMP/$nome.c" -lm 2>> "$T_TMP/e"; then
+        if "$T_BASICGOLC" "$arq" -o "$T_TMP/$nome.gerado.c" 2> "$T_TMP/e" \
+           && $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$bin1" "$T_TMP/$nome.gerado.c" -lm 2>> "$T_TMP/e"; then
             ok_m1=1
         else
             t_falhou "exemplo $nome (M1)" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"
@@ -566,9 +566,9 @@ if selecionado 11_estresse; then
         done
         echo '    ESCREVAL(n);'
         echo 'FIM'
-    } > "$T_TMP/deep.bg"
-    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -x c "$T_TMP/deep.bg" -o "$T_TMP/deep0" -lm 2> "$T_TMP/e" \
-       && "$T_BASICGOLC" "$T_TMP/deep.bg" -o "$T_TMP/deep.c" 2>> "$T_TMP/e" \
+    } > "$T_TMP/deep.c"
+    if $T_CC $T_CFLAGS -I "$T_INCLUDE" "$T_TMP/deep.c" -o "$T_TMP/deep0" -lm 2> "$T_TMP/e" \
+       && "$T_BASICGOLC" "$T_TMP/deep.c" -o "$T_TMP/deep.gerado.c" 2>> "$T_TMP/e" \
        && $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/deep1" "$T_TMP/deep.c" -lm 2>> "$T_TMP/e" \
        && [ "$("$T_TMP/deep0")" = "1" ] && [ "$("$T_TMP/deep1")" = "1" ]; then
         t_ok "40 niveis de SE aninhados (M0 e M1)"
@@ -588,8 +588,8 @@ if selecionado 11_estresse; then
         while [ $i -le 20 ]; do printf '    FIM_ENQUANTO\n'; i=$((i + 1)); done
         echo '    ESCREVAL(i);'
         echo 'FIM'
-    } > "$T_TMP/deepw.bg"
-    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -x c "$T_TMP/deepw.bg" -o "$T_TMP/deepw0" -lm 2> "$T_TMP/e" \
+    } > "$T_TMP/deepw.c"
+    if $T_CC $T_CFLAGS -I "$T_INCLUDE" "$T_TMP/deepw.c" -o "$T_TMP/deepw0" -lm 2> "$T_TMP/e" \
        && [ "$("$T_TMP/deepw0")" = "100" ]; then
         t_ok "20 niveis de ENQUANTO aninhados"
     else
@@ -613,9 +613,9 @@ if selecionado 11_estresse; then
         echo '    ESCREVAL(total);'
         echo '    ESCREVAL(f300(0));'
         echo 'FIM'
-    } > "$T_TMP/many.bg"
-    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -x c "$T_TMP/many.bg" -o "$T_TMP/many0" -lm 2> "$T_TMP/e" \
-       && "$T_BASICGOLC" "$T_TMP/many.bg" -o "$T_TMP/many.c" 2>> "$T_TMP/e" \
+    } > "$T_TMP/many.c"
+    if $T_CC $T_CFLAGS -I "$T_INCLUDE" "$T_TMP/many.c" -o "$T_TMP/many0" -lm 2> "$T_TMP/e" \
+       && "$T_BASICGOLC" "$T_TMP/many.c" -o "$T_TMP/many.gerado.c" 2>> "$T_TMP/e" \
        && $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/many1" "$T_TMP/many.c" -lm 2>> "$T_TMP/e" \
        && [ "$("$T_TMP/many0")" = "$("$T_TMP/many1")" ]; then
         t_ok "300 funcoes + 5000 iteracoes (M0 == M1)"
@@ -634,8 +634,8 @@ if selecionado 11_estresse; then
         echo ''
         echo '    ESCREVA_LINHA();'
         echo 'FIM'
-    } > "$T_TMP/grande.bg"
-    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -x c "$T_TMP/grande.bg" -o "$T_TMP/grande0" -lm 2> "$T_TMP/e" \
+    } > "$T_TMP/grande.c"
+    if $T_CC $T_CFLAGS -I "$T_INCLUDE" "$T_TMP/grande.c" -o "$T_TMP/grande0" -lm 2> "$T_TMP/e" \
        && [ "$("$T_TMP/grande0" | wc -c)" -eq 4001 ]; then
         t_ok "literal de 4000 caracteres"
     else

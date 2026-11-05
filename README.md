@@ -57,18 +57,19 @@ FIM
 A fonte é a mesma nos dois caminhos; a semântica é a mesma; o resultado do
 pré-processamento (M0) e o C emitido (M1) são equivalentes.
 
-Comando do caminho M0 (só precisa de um compilador C11):
+O fonte é um **`.c` comum** — a linguagem é uma camada de macros sobre C, então não há
+extensão própria (D-14). Comando do caminho M0:
 
 ```sh
-cc -std=c11 -Wall -Wextra -x c programa.bg -o programa -lm -I include
+cc -std=c11 -Wall -Wextra programa.c -o programa -lm -I include
 ```
 
 Caminho M1 (transpilador):
 
 ```sh
-make                                       # constrói build/basicgolc
-build/basicgolc programa.bg -o programa.c  # translate para C
-cc -std=c11 programa.c -o programa -lm -I include
+make                                            # constrói build/basicgolc
+build/basicgolc programa.c -o programa.gerado.c # traduz para C "puro"
+cc -std=c11 programa.gerado.c -o programa -lm -I include
 ```
 
 ## Repositório

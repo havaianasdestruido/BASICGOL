@@ -1,6 +1,6 @@
-// utilidades.bg — catalogo das funcoes e tipos de conveniencia da biblioteca.
+// utilidades.c — catalogo das funcoes e tipos de conveniencia da biblioteca.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra -x c utilidades.bg -o utilidades -lm
+// Compilar: cc -std=c11 -Wall -Wextra utilidades.c -o utilidades -lm
 //
 // Serve como folha de referencia executavel: cada bloco imprime o resultado de
 // um grupo de funcoes. Os valores sao fixos, entao a saida e reproduzivel.

@@ -1,6 +1,6 @@
-// cadastro.bg — REGISTRO, vetor de registros, LEIA_TEXTO e busca.
+// cadastro.c — REGISTRO, vetor de registros, LEIA_TEXTO e busca.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra -x c cadastro.bg -o cadastro
+// Compilar: cc -std=c11 -Wall -Wextra cadastro.c -o cadastro
 #include <basicgol.h>
 
 CONSTANTE INTEIRO k_max_alunos = 30;

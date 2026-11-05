@@ -36,7 +36,7 @@ def arquivos_com(nome: str) -> list[str]:
     padrao = re.compile(r"\b" + re.escape(nome) + r"\b")
     achados = []
     for arq in sorted(RAIZ.joinpath("tests").rglob("*")):
-        if not arq.is_file() or arq.suffix not in {".bg", ".c", ".h", ".sh", ".txt"}:
+        if not arq.is_file() or arq.suffix not in {".c", ".h", ".sh", ".txt"}:
             continue
         if padrao.search(arq.read_text(encoding="utf-8", errors="ignore")):
             achados.append(str(arq.relative_to(RAIZ)))
@@ -188,7 +188,7 @@ def main() -> None:
     w("  afirmando um trecho exato da mensagem (o catálogo humano está em")
     w("  [01 §12.3](docs/01-especificacao.md)).")
     w(f"* **{n_m1} casos** de erro do transpilador (`tests/casos/12_negativos_m1/`), que")
-    w("  acusa antes do C e com a linha do fonte `.bg`.")
+    w("  acusa antes do C e com a linha do fonte.")
     w("")
     w("## 3. Suítes e casos em disco")
     w("")

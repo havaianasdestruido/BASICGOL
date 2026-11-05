@@ -18,20 +18,20 @@ todos os exemplos são compilados e executados pela suíte, nos dois perfis
 Perfil M0 (só precisa de um compilador C11):
 
 ```sh
-cc -std=c11 -Wall -Wextra -Wformat=2 -x c ola_mundo.bg -o ola_mundo -lm
+cc -std=c11 -Wall -Wextra -Wformat=2 ola_mundo.c -o ola_mundo -lm -I ../../include
 ```
 
 Com o transpilador (perfil M1 — todos os exemplos passam por aqui):
 
 ```sh
 make                                    # constrói build/basicgolc
-build/basicgolc para_contado.bg -o para_contado.c
+build/basicgolc para_contado.c -o para_contado.c
 cc -std=c11 -Wall -Wextra -Wformat=2 para_contado.c -o para_contado -lm -I ../../include
 ```
 
 ### Arquivos de ouro ao lado dos fontes
 
-Cada exemplo tem, ao lado do `.bg`, os arquivos que a suíte consome:
+Cada exemplo tem, ao lado do `.c`, os arquivos que a suíte consome:
 
 | Sufixo | Papel |
 |---|---|
@@ -49,27 +49,27 @@ Compilados com GCC 12.2, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror`: **ze
 
 | Arquivo | Perfil | Construtores demonstrados | Compila | Executa |
 |---|---|---|---|---|
-| `ola_mundo.bg` | M0 | `INICIO`, `ESCREVAL`, `FIM` | ok | ok |
-| `media_notas.bg` | M0 | `FUNCAO`, `TEXTO` como retorno, `SE`/`SENAO_SE`/`SENAO`, `LEIA_OK`, `ERRO`, `ESCREVA_FMT` | ok | ok |
-| `tabuada.bg` | M0 | `PARA`, `PARA_PASSO`, laços aninhados, `SE` com `OU`, `ESCREVA_FMT` | ok | ok |
-| `primos.bg` | M0 | `FUNCAO LOGICO`, `ENQUANTO`, `PARE`, `PROSSIGA`, `MOD`, retorno antecipado | ok | ok |
-| `vetores.bg` | M0 | `VETOR`, `TAMANHO_VETOR`, `INTEIRO v[]` + tamanho, `PROCEDIMENTO` | ok | ok |
-| `cadastro.bg` | M0 | `REGISTRO`/`FIM_REGISTRO`, vetor de registros, `TEXTO_FIXO`, `LEIA` + `LEIA_TEXTO` (C-20), `ESCREVA_FMT` com `%-20s` | ok | ok |
-| `adivinha.bg` | M0 | `REPITA`/`ATE_QUE`, `SORTEIA`, `INICIA_SORTEIO`, `ESCOLHA`/`CASO` agrupados | ok | ok |
-| `contador_vogais.bg` | M0 | `TEXTO_FIXO` em parâmetro como `CARACTERE destino[]`, `TAMANHO_TEXTO`, percurso de texto (entrada limpa) | ok | ok |
-| `interop_c.bg` | M0 + C | `#include <time.h>`, `struct`, função estática em C, ponteiro, `for`/`printf` misturados | ok | ok |
-| `fatorial_recursivo.bg` | M0 | recursão, `INTEIRO64`, `ESCREVA_FMT("%lld")` | ok | ok |
-| `utilidades.bg` | M0 | catálogo de tipos, `ABS`/`MINIMO`/`MAXIMO`/`POTENCIA`/`RAIZ`/`ARREDONDA`/`PISO`/`TETO`, `COPIA_TEXTO`/`JUNTA_TEXTO`, `TEXTO_PARA_INTEIRO`/`TEXTO_PARA_REAL`, `ENUMERACAO`, `AFIRME`, `ESCREVA_ERRO`, `ESTATICO`, `VAZIO` | ok | ok |
-| `para_contado.bg` | **M1** | `PARA … DE … ATE … PASSO … FACA` / `FIM_PARA` | ok | ok |
+| `ola_mundo.c` | M0 | `INICIO`, `ESCREVAL`, `FIM` | ok | ok |
+| `media_notas.c` | M0 | `FUNCAO`, `TEXTO` como retorno, `SE`/`SENAO_SE`/`SENAO`, `LEIA_OK`, `ERRO`, `ESCREVA_FMT` | ok | ok |
+| `tabuada.c` | M0 | `PARA`, `PARA_PASSO`, laços aninhados, `SE` com `OU`, `ESCREVA_FMT` | ok | ok |
+| `primos.c` | M0 | `FUNCAO LOGICO`, `ENQUANTO`, `PARE`, `PROSSIGA`, `MOD`, retorno antecipado | ok | ok |
+| `vetores.c` | M0 | `VETOR`, `TAMANHO_VETOR`, `INTEIRO v[]` + tamanho, `PROCEDIMENTO` | ok | ok |
+| `cadastro.c` | M0 | `REGISTRO`/`FIM_REGISTRO`, vetor de registros, `TEXTO_FIXO`, `LEIA` + `LEIA_TEXTO` (C-20), `ESCREVA_FMT` com `%-20s` | ok | ok |
+| `adivinha.c` | M0 | `REPITA`/`ATE_QUE`, `SORTEIA`, `INICIA_SORTEIO`, `ESCOLHA`/`CASO` agrupados | ok | ok |
+| `contador_vogais.c` | M0 | `TEXTO_FIXO` em parâmetro como `CARACTERE destino[]`, `TAMANHO_TEXTO`, percurso de texto (entrada limpa) | ok | ok |
+| `interop_c.c` | M0 + C | `#include <time.h>`, `struct`, função estática em C, ponteiro, `for`/`printf` misturados | ok | ok |
+| `fatorial_recursivo.c` | M0 | recursão, `INTEIRO64`, `ESCREVA_FMT("%lld")` | ok | ok |
+| `utilidades.c` | M0 | catálogo de tipos, `ABS`/`MINIMO`/`MAXIMO`/`POTENCIA`/`RAIZ`/`ARREDONDA`/`PISO`/`TETO`, `COPIA_TEXTO`/`JUNTA_TEXTO`, `TEXTO_PARA_INTEIRO`/`TEXTO_PARA_REAL`, `ENUMERACAO`, `AFIRME`, `ESCREVA_ERRO`, `ESTATICO`, `VAZIO` | ok | ok |
+| `para_contado.c` | **M1** | `PARA … DE … ATE … PASSO … FACA` / `FIM_PARA` | ok | ok |
 
 Todos os 12 exemplos compilam sem avisos com `-std=c11 -Wall -Wextra -Wformat=2 -Wvla
 -Werror` e produzem exatamente a saída registrada — nos dois perfis, exceto
-`para_contado.bg`, que é M1 puro por desenho. É o que a suíte verifica a cada `make test`.
+`para_contado.c`, que é M1 puro por desenho. É o que a suíte verifica a cada `make test`.
 
 A validação também forçou três ajustes de contrato, registrados em
 [04 §6](../04-restricoes-e-decisoes.md): o contrato de `LEIA_TEXTO` (C-20, corrigido duas
 vezes até ficar correto), a exigência de conversão de texto sem sobra (RB-7) e a
-descoberta de que `CONSTANTE` não serve como tamanho de vetor (C-23) — `cadastro.bg`
+descoberta de que `CONSTANTE` não serve como tamanho de vetor (C-23) — `cadastro.c`
 nasceu com um VLA silencioso até `-Wvla` ser ligado.
 
 ## Saídas esperadas (leitura humana)
@@ -79,17 +79,17 @@ que importa. A comparação automática é feita contra os arquivos `.esperado.t
 `.contem.txt` descritos acima (e não contra este documento, para não haver duas verdades).
 Espaços em branco fazem parte do teste.
 
-### `ola_mundo.bg`
+### `ola_mundo.c`
 ```
 Ola, mundo!
 ```
 
-### `media_notas.bg` — entrada `8.5`, `6`
+### `media_notas.c` — entrada `8.5`, `6`
 ```
 Nota 1: Nota 2: Media: 7.25  Situacao: Aprovado
 ```
 
-### `tabuada.bg` — entrada `3` (primeiras linhas)
+### `tabuada.c` — entrada `3` (primeiras linhas)
 ```
 3 x  1 =   3
 3 x  2 =   6
@@ -97,7 +97,7 @@ Nota 1: Nota 2: Media: 7.25  Situacao: Aprovado
 3 x 10 =  30
 ```
 
-### `primos.bg` — entrada `30`
+### `primos.c` — entrada `30`
 ```
 Primos ate qual valor? 2 3 5 7 11 13 17 19 23 29 
 
@@ -105,7 +105,7 @@ Total de primos: 10
 Primeiro multiplo de 7 acima de 100: 105
 ```
 
-### `vetores.bg` — sem entrada
+### `vetores.c` — sem entrada
 ```
 Vetor:    3  10   6   2   9   5   1   8
 Soma:   44
@@ -113,7 +113,7 @@ Media:  5.50
 Maior:  10
 ```
 
-### `cadastro.bg` — entrada `2 / 101 / Ana Silva / 9.5 / 102 / Bia Souza / 6.5 / 0`
+### `cadastro.c` — entrada `2 / 101 / Ana Silva / 9.5 / 102 / Bia Souza / 6.5 / 0`
 ```
 MATR.  NOME                   NOTA
 101    Ana Silva              9.50
@@ -123,7 +123,7 @@ Buscar matricula (0 encerra): Fim do cadastro.
 ```
 (com `102` como primeira busca: `Encontrado: Bia Souza  nota 6.50`)
 
-### `adivinha.bg` — semente fixa, alvo 38, entradas `50`, `25`, `38`
+### `adivinha.c` — semente fixa, alvo 38, entradas `50`, `25`, `38`
 ```
 Adivinhe o numero entre 1 e 100
 Seu palpite: Muito alto!
@@ -133,14 +133,14 @@ Tentativas: 3
 Muito bom.
 ```
 
-### `contador_vogais.bg` — entrada `Programacao em Portugol`
+### `contador_vogais.c` — entrada `Programacao em Portugol`
 ```
 Caracteres: 23
 Vogais: 9
 Mascarada: Pr*gr*m*c** *m P*rt*g*l
 ```
 
-### `interop_c.bg` — sem entrada
+### `interop_c.c` — sem entrada
 ```
 Aluno: Ana  nota: 9.5
 Distancia entre (0,0) e (3,4): 5.0
@@ -152,7 +152,7 @@ Letras em 'basico': 6
 Ano do sistema: <ano corrente>
 ```
 
-### `fatorial_recursivo.bg` — sem entrada (primeiras linhas)
+### `fatorial_recursivo.c` — sem entrada (primeiras linhas)
 ```
 fatorial( 0) = 1
 fatorial( 1) = 1
@@ -160,7 +160,7 @@ fatorial( 1) = 1
 fib( 0) = 0
 ```
 
-### `utilidades.bg` — sem entrada
+### `utilidades.c` — sem entrada
 Saída completa determinística; trechos que fazem parte do contrato:
 ```
 CONCEITO_B vale 11
@@ -170,7 +170,7 @@ AFIRME passou: contrato interno satisfeito.
 ```
 (mais a linha `(esta linha vai para stderr)` no fluxo de erro)
 
-### `para_contado.bg` — sem entrada
+### `para_contado.c` — sem entrada
 ```
 Contagem crescente:
 1 2 3 4 5 

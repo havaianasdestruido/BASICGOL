@@ -41,7 +41,7 @@ Legenda de status: **atendido** = existe no repositório e foi conferido.
 | AC-11 | Existe lista de restrições técnicas com consequência e mitigação | §1–§3 de 04 (C-01…C-22) | **atendido** |
 | AC-12 | Existe lista de decisões abertas com recomendação e critério de reabertura | §5 de 04 (D-01…D-18) | **atendido** |
 | AC-13 | Os exemplos são completos, compiláveis e cobrem todos os construtores do perfil N | `docs/exemplos/` (11 programas M0 + 1 M1) + tabela §18 de 01 + registro em `exemplos/README.md` | **atendido** (compilados sem avisos; saídas conferidas — §6 de 04) |
-| AC-14 | Cada exemplo começa declarando perfil exigido e comando de compilação | cabeçalho de cada `.bg` | **atendido** |
+| AC-14 | Cada exemplo começa declarando perfil exigido e comando de compilação | cabeçalho de cada `.c` | **atendido** |
 | AC-15 | Nenhum artefato de implementação é publicado na Fase 1 (sem `basicgol.h`, sem `basicgolc`, sem testes) | `git ls-files` não contém `.h`/`.c`/binários | **atendido** |
 | AC-16 | O mapeamento foi verificado empiricamente, não afirmado | §6 de 04 (sonda, 17 itens) + §4 de 03 (saída real de `-E`) | **atendido** |
 | AC-17 | Uma pessoa que só conhece C consegue prever o comportamento de um programa BG lendo a tabela de mapeamento | teste com revisor externo (não automatizável) | **pendente — revisão humana** |
@@ -65,7 +65,7 @@ leitor humano, e a revisão externa não aconteceu; o que foi feito, em vez de d
   exemplos procurando termos de C não traduzidos. Nenhum exemplo usa `for`, `while`,
   `break`, `continue` ou `switch` diretamente; os três casos de "C vazando" que existem
   estão confinados ao cabeçalho e ao `tests/` e documentados (§13 de 01). Veredito:
-  **atendido com ressalva** — o exemplo `interop_c.bg` é, por definição, C visível.
+  **atendido com ressalva** — o exemplo `interop_c.c` é, por definição, C visível.
 
 ---
 
@@ -104,9 +104,9 @@ A Fase 2b (transpilador) termina quando:
 
 | ID | Critério | Verificação |
 |---|---|---|
-| AC-30 | `basicgolc` traduz todos os construtores **X** conforme §2.3 de 03 | testes dourados (fonte `.bg` → C esperado) |
+| AC-30 | `basicgolc` traduz todos os construtores **X** conforme §2.3 de 03 | testes dourados (fonte `.c` → C esperado) |
 | AC-31 | O C emitido **não contém macros** de palavra-chave (RG-10) | `grep -E '\b(SE|ENTAO|FIM_SE)\b'` no C gerado → vazio |
-| AC-32 | Equivalência M0 × M1: mesma saída de programa nos 11 exemplos M0 e no M1 (`para_contado.bg`) | AC-06 (§4.3 de 01) automatizado |
+| AC-32 | Equivalência M0 × M1: mesma saída de programa nos 11 exemplos M0 e no M1 (`para_contado.c`) | AC-06 (§4.3 de 01) automatizado |
 | AC-33 | Emite W-01…W-07 corretamente (7 testes negativos, 7 positivos) | suíte de diagnóstico |
 | AC-34 | Falha com mensagem de linha/coluna correta em fonte malformada (10 casos) | suíte de erro |
 | AC-35 | Sai com código ≠ 0 em erro de sintaxe, 0 em sucesso | teste de CLI |

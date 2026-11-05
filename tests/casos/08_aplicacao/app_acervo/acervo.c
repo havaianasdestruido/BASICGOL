@@ -1,4 +1,4 @@
-// acervo.bg — dados e operações sobre o acervo (sem E/S, exceto ERRO)
+// acervo.c — dados e operações sobre o acervo (sem E/S, exceto ERRO)
 #include "acervo.h"
 
 ESTATICO VETOR(Livro, acervo, ACERVO_MAX);

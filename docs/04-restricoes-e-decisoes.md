@@ -178,15 +178,19 @@ depender de `_Generic`; a lista de formatos está documentada; C++ fora de escop
 **Consequência.** `ESCREVA_FMT(...)` repassa direto para `printf` (é a única macro
 variádica da linguagem). Nada de `SOMA(a,b,c)`.
 
-### C-13 — `.bg` não é reconhecido por compiladores
+### C-13 — Extensão de arquivo própria não é reconhecida por compiladores · **eliminada por D-14**
 
-**Fato.** `cc prog.bg` trata o arquivo como linker input (ou não sabe o que fazer).
+**Fato (quando a fonte tinha extensão própria, `.bg`).** `cc prog.bg` não reconhece a
+extensão: o compilador trata o arquivo como *linker input* ou reclama do formato, e era
+preciso `-x c` (GCC/Clang), `/TC` (MSVC) ou um `Makefile` distribuído.
 
-**Consequência.** Compilar exige `-x c` (GCC/Clang), `/TC` (MSVC) ou um `Makefile`
-distribuído. Documentado em PT-I.
+**Consequência.** Deixou de existir na Fase 2: a fonte é **`.c`** (D-14), então `cc
+programa.c` simplesmente funciona e nenhuma flag extra é necessária. A restrição fica
+registrada porque foi a razão original de se inventar uma extensão — e é justamente o
+custo que motivou revertê-la.
 
-**Mitigação.** O manual da Fase 2 deve trazer um `Makefile`/`CMakeLists.txt` de modelo e
-um script `bgcc` de uma linha.
+**Mitigação.** Nenhuma necessária. `make` e o `Makefile` do repositório continuam
+existindo por conveniência (compilar o transpilador), não por obrigação.
 
 ### C-14 — Blocos exigem fechamento manual
 
@@ -209,14 +213,14 @@ indentação mecânica (e automatizável por script).
 
 ### C-16 — Depuração aponta para o C expandido
 
-**Fato.** `gdb` mostra `main` e as linhas reais do `.bg` (as macros preservam a linha), mas
+**Fato.** `gdb` mostra `main` e as linhas reais do `.c` (as macros preservam a linha), mas
 um `break` em `FIM_SE` mostra `}`.
 
 **Consequência.** Aceitável; depuração em nível de linha continua funcionando porque as
 macros **não** movem linhas.
 
 **Mitigação.** Recomendação: no M1, compilar com `-g` sobre o C gerado e usar
-`#line` para mapear de volta ao `.bg`.
+`#line` para mapear de volta ao `.c`.
 
 ### C-17 — `TEXTO` é imutável
 
@@ -261,10 +265,10 @@ testes que misturam `LEIA` + `LEIA_TEXTO` e **falhou** no caso oposto: com `stdi
 o `getchar` de descarte consumiu a primeira linha digitada e o programa abortou com
 “falha ao ler a frase”. A versão correta usa espiada (`getchar` + `ungetc`) e só consome
 o terminador quando o próximo caractere **é** o terminador. O exemplo
-`contador_vogais.bg` (entrada limpa) e `cadastro.bg` (entrada numérica antes) são os dois
+`contador_vogais.c` (entrada limpa) e `cadastro.c` (entrada numérica antes) são os dois
 testes obrigatórios de regressão.
 
-**Mitigação.** Exemplo `cadastro.bg` e `contador_vogais.bg` exercitam exatamente esse
+**Mitigação.** Exemplo `cadastro.c` e `contador_vogais.c` exercitam exatamente esse
 caso; teste de regressão obrigatório na Fase 2.
 
 ### C-21 — Construtor de bloco não pode ser usado em expressão
@@ -295,7 +299,7 @@ uma função é um **VLA** — alocado na pilha em tempo de execução, sem avis
 (`k_pi`), mas não para dimensão de vetor.
 
 **Mitigação.** Documentado em [01 §7.2](01-especificacao.md) e em [03 §6](03-mapeamento-para-c.md);
-`cadastro.bg` usa `VETOR(Aluno, turma, 30)` com comentário explicando o motivo. A Fase 2
+`cadastro.c` usa `VETOR(Aluno, turma, 30)` com comentário explicando o motivo. A Fase 2
 pode emitir `W-07` quando `VETOR`/`TEXTO_FIXO` recebem um identificador `k_*` como
 tamanho (o transpilador vê os tokens e pode avisar).
 
@@ -315,7 +319,7 @@ tamanho (o transpilador vê os tokens e pode avisar).
 | C-08, C-09 | R-1/R-2, `BG_SEM_APELIDOS` |
 | C-10 | `ABS`/`MINIMO`/`MAXIMO` como funções `inline` |
 | C-11 | C11 obrigatório; `ESCREVA_TEXTO` como alternativa |
-| C-13 | documento de compilação obrigatório na Fase 2 |
+| C-13 | **eliminada**: a fonte já é `.c` (D-14), então `cc programa.c` funciona sem `-x c` |
 | C-14 | `FIM_*` (herança feliz do estilo VisuAlg) |
 | C-17, C-18 | `TEXTO`/`TEXTO_FIXO`; idioma vetor+tamanho |
 | C-20 | contrato de `LEIA_TEXTO` |
@@ -351,7 +355,7 @@ A especificação assume, e a Fase 2 deve verificar:
 | A-4 | `char` com 8 bits e texto em UTF-8 | `TAMANHO_TEXTO` conta bytes, não caracteres acentuados |
 | A-5 | `locale` "C" (ponto decimal) porque ninguém chama `setlocale` | ver D-17 |
 | A-6 | `-lm` disponível quando separada | `POTENCIA`/`RAIZ`/`PISO`/`TETO`/`ARREDONDA` não ligam |
-| A-7 | Compilação de um único arquivo `.bg` (ou vários, via linha de comando) | sem sistemas de módulos (D-18) |
+| A-7 | Compilação de um único arquivo `.c` (ou vários, via linha de comando) | sem sistemas de módulos (D-18) |
 
 ---
 
@@ -445,10 +449,23 @@ tem valor).
 (atrito de instalação em laboratório de escola). O repositório materializa a decisão:
 `include/basicgol.h`, `tools/basicgolc.c`, `Makefile` e `tests/`.
 
-### D-14 — Extensão do arquivo-fonte · **decidido: `.bg`**
-`.bg`. Alternativas descartadas: `.bgol` (mais distintivo, mais digitação) e `.por`
-(colide com arquivos de build). O `Makefile` e a suíte usam `*.bg`; mudar agora custaria
-documentação e scripts, não código.
+### D-14 — Extensão do arquivo-fonte · **decidido: `.c`** (revisto na Fase 2)
+A recomendação original era `.bg` ("distintivo, comunica que não é C de verdade"). O dono
+do projeto reverteu, e a razão é boa: **todo `.c` do BASICGOL já é um C válido** — é o
+mesmo arquivo com `#include <basicgol.h>` no topo. Dar-lhe outra extensão só criava
+atrito:
+
+* `cc programa.c` funciona sem `-x c`; `make`, `CMakeLists.txt` e `compile_commands.json`
+  funcionam sem regra extra;
+* editores, realce de sintaxe, formatadores, `clangd` e `gcc -E` tratam o arquivo como C,
+  que é exatamente o que ele é;
+* quem sai da linguagem leva os arquivos junto: não há "migração" de `.bg` para `.c`.
+
+Alternativas descartadas: `.bg` (atrito acima), `.bgol` (mais digitação, mesmo atrito) e
+`.por` (colide com nomes de build). A distinção entre "fonte BG" e "C comum" passa a ser
+de conteúdo, não de nome: um fonte BG inclui `basicgol.h` e usa as palavras-chave; um
+módulo C puro não. `Makefile`, `basicgolc` e a suíte aceitam qualquer nome, então a
+decisão é reversível sem tocar em código.
 
 ### D-19 — `LEIA` de caractere pula espaços · **decidido na Fase 2**
 A tabela `BG_SFMT` usa `" %c"` para `char`/`signed char`. Sem isso, `LEIA(n); LEIA(c);`

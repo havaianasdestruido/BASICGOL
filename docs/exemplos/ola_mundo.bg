@@ -1,8 +1,0 @@
-// ola_mundo.bg — o menor programa BASICGOL possivel.
-// Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra -x c ola_mundo.bg -o ola_mundo
-#include <basicgol.h>
-
-INICIO
-    ESCREVAL("Ola, mundo!");
-FIM

@@ -1,4 +1,4 @@
-// relatorio.bg — só apresentação: formatação, estatísticas e texto montado
+// relatorio.c — só apresentação: formatação, estatísticas e texto montado
 #include "acervo.h"
 
 PROCEDIMENTO relatorio(REAL fator) {

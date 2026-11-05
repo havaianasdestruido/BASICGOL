@@ -34,15 +34,15 @@ test-v: $(FERRAMENTA)
 
 exemplos: $(FERRAMENTA)
 	@mkdir -p $(BUILD)/exemplos
-	@for f in docs/exemplos/*.bg; do \
-	    b=$$(basename $$f .bg); \
+	@for f in docs/exemplos/*.c; do \
+	    b=$$(basename $$f .c); \
 	    printf '%-22s ' "$$b"; \
 	    if [ "$$b" = "para_contado" ]; then \
 	        $(FERRAMENTA) "$$f" -o $(BUILD)/exemplos/$$b.c 2>/dev/null && \
 	        $(CC) $(WARN) -I $(INCLUDE) -o $(BUILD)/exemplos/$$b $(BUILD)/exemplos/$$b.c -lm 2>/dev/null && \
 	        echo "ok (M1)"; \
 	    else \
-	        $(CC) $(WARN) -I $(INCLUDE) -x c "$$f" -o $(BUILD)/exemplos/$$b -lm && echo "ok (M0)"; \
+	        $(CC) $(WARN) -I $(INCLUDE) "$$f" -o $(BUILD)/exemplos/$$b -lm && echo "ok (M0)"; \
 	    fi; \
 	done
 

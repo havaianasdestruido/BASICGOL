@@ -16,8 +16,8 @@
  * formatos existe em um único lugar. Construtores de BLOCO viram C puro.
  *
  * Uso:
- *   basicgolc programa.bg -o programa.c
- *   basicgolc --checar programa.bg
+ *   basicgolc programa.c -o programa.transpilado.c
+ *   basicgolc --checar programa.c
  */
 
 #include <ctype.h>
@@ -1663,7 +1663,7 @@ static void traduz(Estado *e, const Lista *l)
 static void uso(FILE *f)
 {
     fputs(
-        "uso: basicgolc [opcoes] arquivo.bg\n"
+        "uso: basicgolc [opcoes] arquivo.c\n"
         "\n"
         "  -o ARQUIVO      escreve o C gerado em ARQUIVO (padrao: stdout)\n"
         "  --checar        so valida estrutura de blocos e avisos; nao gera C\n"

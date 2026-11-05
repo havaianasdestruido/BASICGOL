@@ -8,7 +8,7 @@ Referência de consulta. Para o *porquê* de cada decisão, ver
 
 | Coluna | Significado |
 |---|---|
-| **Forma** | como se escreve no programa `.bg` |
+| **Forma** | como se escreve no programa `.c` |
 | **Perfil** | `N` = funciona no caminho M0 (macros); `X` = só com `basicgolc` (M1); `C` = C nativo |
 | **Tipo** | `objeto` = macro sem argumentos; `função(n)` = macro com argumentos; `typedef`/`inline` = biblioteca |
 

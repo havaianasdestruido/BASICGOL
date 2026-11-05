@@ -1,4 +1,4 @@
-// principal.bg — usa o modulo BG e o modulo C
+// principal.c — usa o modulo BG e o modulo C
 #include "contas.h"
 
 INICIO

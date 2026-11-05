@@ -1,4 +1,4 @@
-// contas.bg — estado privado do modulo (ESTATICO) exposto por uma funcao
+// contas.c — estado privado do modulo (ESTATICO) exposto por uma funcao
 #include "contas.h"
 
 ESTATICO INTEIRO total = 0;

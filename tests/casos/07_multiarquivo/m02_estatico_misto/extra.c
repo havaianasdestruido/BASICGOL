@@ -1,4 +1,4 @@
-/* extra.c — um modulo escrito em C puro, ligado junto com os .bg */
+/* extra.c — um modulo escrito em C puro, ligado junto com os .c */
 #include "contas.h"
 
 int ajuda_c(void)
