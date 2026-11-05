@@ -27,6 +27,18 @@ jobs:
       - name: exemplos com saída dourada
         run: make exemplos CC=${{ matrix.cc }}
 
+      - name: diagnostico (apenas em falha)
+        if: failure()
+        continue-on-error: true
+        env:
+          CC: ${{ matrix.cc }}
+          T_CFLAGS: -std=${{ matrix.std }} -Wall -Wextra -Wformat=2 -Wvla -Werror
+        run: |
+          $CC --version | head -1 | sed 's/^/::notice::/'
+          ./tests/run.sh -v > /tmp/log 2>&1 || true
+          grep -A1 "FALHA" /tmp/log | head -60 | sed 's/^/::error::/'
+          tail -3 /tmp/log | sed 's/^/::error::/'
+
       - name: a matriz de cobertura está atualizada
         run: |
           make cobertura

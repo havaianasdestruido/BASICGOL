@@ -395,7 +395,19 @@ static inline bool bg_texto_vazio(const char *s)
 
 /* snprintf com resultado verificável: true = coube inteiro.
  * O compilador NÃO confere o formato (a função não é printf-like para o
- * compilador, por portabilidade); formato inválido é erro do programador. */
+ * compilador, por portabilidade); formato inválido é erro do programador.
+ *
+ * O clang sugere anotar o parâmetro com __attribute__((format(printf,3,4))).
+ * Não anotamos por duas razões: (a) é extensão de compilador, e fora da seção
+ * 2b o cabeçalho é C11 estrito (RB-6); (b) com a anotação, todo formato que não
+ * seja literal viraria aviso com -Wformat=2 (-Wformat-nonliteral) — e receber o
+ * formato por variável é caso de uso legítimo (D-25). O aviso do clang é sobre a
+ * sugestão, não sobre o código: silenciamos só ele, e só no clang. */
+#if defined(__clang__)
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wmissing-format-attribute"
+#  pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
 static inline bool bg_formata_texto(char *dest, size_t tam, const char *formato, ...)
 {
     va_list ap;
@@ -413,6 +425,9 @@ static inline bool bg_formata_texto(char *dest, size_t tam, const char *formato,
     }
     return true;
 }
+#if defined(__clang__)
+#  pragma clang diagnostic pop
+#endif
 
 /* Conversões: só aceitam o texto INTEIRO (espaços finais tolerados) — RB-7.
  * Passaram a recusar também estouro de faixa (Fase 4): antes, "2147483648"
@@ -686,9 +701,14 @@ static inline void      bg_inicia_sorteio(unsigned s) { srand(s); }
 #define BG_TEXTOS_DIFERENTES(a, b)  (strcmp((a), (b)) != 0)
 
 /* Lógica: formas prefixadas e normalização de verdade. Cada argumento é
- * avaliado UMA vez; o resultado é sempre LOGICO (0 ou 1). */
-#define BG_OU_EXCLUSIVO(a, b)       ((!!(a)) != (!!(b)))
-#define BG_LOGICO_DE(x)             (!!(x))
+ * avaliado UMA vez; o resultado é sempre LOGICO (0 ou 1).
+ *
+ * A normalização é `!= 0`, e não `!!`: as duas são equivalentes em resultado
+ * (inclusive para NaN, que é "diferente de zero"), mas `!!` sobre um literal
+ * real dispara -Wliteral-conversion no clang — e `LOGICO_DE(0.5)` é justamente
+ * o caso de uso documentado. Com `!= 0` não há conversão implícita a bool. */
+#define BG_OU_EXCLUSIVO(a, b)       ((bool) (((a) != 0) != ((b) != 0)))
+#define BG_LOGICO_DE(x)             ((bool) ((x) != 0))
 
 /* --- divisão e resto verificados --- */
 /* DIVIDE/RESTO seguem as conversões usuais de C (o tipo do resultado é o tipo

@@ -110,8 +110,8 @@ Os trechos de saída de pré-processador mostrados na §4 são reais (com a tabe
 | 52 | `DIFERENTE(a, b)` | `((a) != (b))` | N |
 | 53 | `TEXTOS_IGUAIS(a, b)` | `(strcmp((a), (b)) == 0)` | N |
 | 54 | `TEXTOS_DIFERENTES(a, b)` | `(strcmp((a), (b)) != 0)` | N |
-| 54a | `OU_EXCLUSIVO(a, b)` | `((!!(a)) != (!!(b)))` | N |
-| 54b | `LOGICO_DE(x)` | `(!!(x))` | N |
+| 54a | `OU_EXCLUSIVO(a, b)` | `((bool) (((a) != 0) != ((b) != 0)))` | N |
+| 54b | `LOGICO_DE(x)` | `((bool) ((x) != 0))` | N |
 | 54c | `DIVIDE(a, b)` | `_Generic((a)+(b), int: bg_divide_i, …, double: bg_divide_d, default: bg_divide_d)((a), (b), __FILE__, __LINE__)` | N |
 | 54d | `RESTO(a, b)` | `_Generic((a)+(b), int: bg_resto_i, …)((a), (b), __FILE__, __LINE__)` — sem real | N |
 | 55 | `ABS(x)` | `_Generic((x), int: bg_abs_i, long: bg_abs_l, float: bg_abs_f, double: bg_abs_d, default: bg_abs_d)(x)` | N |
@@ -280,8 +280,8 @@ detecção de compilador e documentação embutida, é entrega da Fase 2). Esta 
 #define MAXIMO_REAL         DBL_MAX
 #define EPSILON_REAL        DBL_EPSILON
 
-#define OU_EXCLUSIVO(a, b)  ((!!(a)) != (!!(b)))
-#define LOGICO_DE(x)        (!!(x))
+#define OU_EXCLUSIVO(a, b)  ((bool) (((a) != 0) != ((b) != 0)))
+#define LOGICO_DE(x)        ((bool) ((x) != 0))
 #define DIVIDE(a, b)        _Generic((a) + (b), /* … por tipo … */ \
                              default: bg_divide_d)((a), (b), __FILE__, __LINE__)
 #define RESTO(a, b)         _Generic((a) + (b), /* só tipos inteiros */ \

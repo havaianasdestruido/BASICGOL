@@ -219,7 +219,7 @@ NATURAL8 b = (NATURAL8) 300;    /* 44  (300 mod 256) */
 ### 4.2 Conversão para `LOGICO` (valor de verdade)
 
 ```c
-LOGICO_DE(x)                    /* (!!(x)) */
+LOGICO_DE(x)                    /* (bool)((x) != 0) */
 ```
 
 | `x` | `LOGICO_DE(x)` | Observação |
@@ -304,8 +304,8 @@ deliberado: em C não existe retorno múltiplo, e usar um “valor mágico” pa
 | comparação prefixada | `IGUAL(a, b)`, `DIFERENTE(a, b)` | `((a) == (b))`, `((a) != (b))` | `LOGICO` |
 | comparação de texto | `TEXTOS_IGUAIS(a, b)`, `TEXTOS_DIFERENTES(a, b)` | `strcmp(a,b) == 0` | `LOGICO` |
 | lógica | `a E b`, `a OU b`, `NAO a` | `a && b`, `a \|\| b`, `!a` | `int` 0/1 |
-| lógica exclusiva | `OU_EXCLUSIVO(a, b)` | `((!!(a)) != (!!(b)))` | `LOGICO` |
-| normalização | `LOGICO_DE(x)` | `(!!(x))` | `LOGICO` |
+| lógica exclusiva | `OU_EXCLUSIVO(a, b)` | `(bool) (((a) != 0) != ((b) != 0))` | `LOGICO` |
+| normalização | `LOGICO_DE(x)` | `(bool) ((x) != 0)` | `LOGICO` |
 | acesso | `.`, `[ ]`, `( )` | idem | campo / elemento / retorno |
 | ponteiros | `&x`, `*p`, `p->campo` | idem | C nativo |
 | bit a bit | `& \| ^ ~ << >>` | idem | C nativo (não há forma em português) |
@@ -377,7 +377,12 @@ compilação (teste `06_negativos/n14`), porque C não tem resto real. Para reai
 
 * `E` é `&&`, `OU` é `||`, `NAO` é `!`. `E`/`OU` têm **curto-circuito garantido** pelo
   padrão C: o lado direito não é avaliado quando o esquerdo decide.
-* `E`/`OU` devolvem `int` 0/1 (não `bool`); `LOGICO_DE` e `OU_EXCLUSIVO` devolvem 1/0.
+* `E`/`OU` devolvem `int` 0/1 (não `bool`); `LOGICO_DE` e `OU_EXCLUSIVO` devolvem `LOGICO`
+  (`bool`), também 0/1.
+* A normalização é `(bool) ((x) != 0)`, e **não** `!!(x)`: o resultado é o mesmo
+  (inclusive para `NAN`, que é “diferente de zero”), mas `!!` sobre um literal real
+  dispara `-Wliteral-conversion` no clang — e `LOGICO_DE(0.5)` é caso de uso documentado.
+  O `!` de C continua à disposição (`NAO x`): com literal real, ele avisa no clang.
 * Precedência: `NAO` liga mais forte que `E`, que liga mais forte que `OU`
   (`NAO a E b` = `(!a) && b`). Misturar os três sem parênteses é a recomendação R-6
   justamente porque é onde se erra.

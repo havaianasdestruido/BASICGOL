@@ -119,8 +119,8 @@ A referência completa de representação, faixa e conversão está em
 | `DIFERENTE(a, b)` | `((a) != (b))` | função(2) | idem |
 | `TEXTOS_IGUAIS(a, b)` | `strcmp(a,b) == 0` | função(2) | **única** forma correta de comparar conteúdo de texto |
 | `TEXTOS_DIFERENTES(a, b)` | `strcmp(a,b) != 0` | função(2) | idem |
-| `OU_EXCLUSIVO(a, b)` | `((!!(a)) != (!!(b)))` | função(2) | XOR **lógico**; normaliza os operandos |
-| `LOGICO_DE(x)` | `(!!(x))` | função(1) | valor de verdade normalizado (0/1) |
+| `OU_EXCLUSIVO(a, b)` | `((bool) (((a) != 0) != ((b) != 0)))` | função(2) | XOR **lógico**; normaliza os operandos |
+| `LOGICO_DE(x)` | `((bool) ((x) != 0))` | função(1) | valor de verdade normalizado (0/1); aceita literal real (`LOGICO_DE(0.5)`) |
 | `DIVIDE(a, b)` | `_Generic` → `bg_divide_*` | função(2) | divisão verificada: recusa divisor 0 e `MIN/-1` |
 | `RESTO(a, b)` | `_Generic` → `bg_resto_*` | função(2) | resto verificado, só inteiros |
 
