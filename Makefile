@@ -47,7 +47,7 @@ exemplos: $(FERRAMENTA)
 	@for f in docs/exemplos/*.c; do \
 	    b=$$(basename $$f .c); \
 	    printf '%-22s ' "$$b"; \
-	    if [ "$$b" = "para_contado" ]; then \
+	    if [ "$$b" = "para_contado" ] || [ "$$b" = "controle_para_acucar" ]; then \
 	        $(FERRAMENTA) "$$f" -o $(BUILD)/exemplos/$$b.c 2>/dev/null && \
 	        $(CC) $(WARN) -I $(INCLUDE) -o $(BUILD)/exemplos/$$b $(BUILD)/exemplos/$$b.c -lm 2>/dev/null && \
 	        echo "ok (M1)"; \

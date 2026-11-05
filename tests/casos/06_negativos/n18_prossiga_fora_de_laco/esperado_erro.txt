@@ -1,0 +1,3 @@
+# GCC: "continue statement not within a loop"; Clang: "'continue' statement not in loop statement".
+not within a loop
+not in loop statement

@@ -1,0 +1,3 @@
+# GCC: "macro "BG_ATE_QUE" passed 2 arguments, but takes just 1"; Clang: "too many arguments provided to function-like macro invocation".
+passed 2 arguments
+too many arguments provided to function-like macro

@@ -1,0 +1,7 @@
+Escolha um numero de 1 a 5: entrada invalida
+Escolha um numero de 1 a 5: fora da faixa
+Escolha um numero de 1 a 5: Voce escolheu 3
+Digite notas, 0 encerra:
+media: 7.50
+Digite notas, 0 encerra:
+nenhuma nota
