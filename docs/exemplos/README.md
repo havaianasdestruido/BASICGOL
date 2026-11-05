@@ -1,6 +1,6 @@
 # Exemplos BASICGOL
 
-Quatorze programas completos, escritos **apenas** com construtores definidos na
+Dezenove programas completos, escritos **apenas** com construtores definidos na
 [especificação](../01-especificacao.md) e na
 [referência de tipos e expressões](../06-tipos-e-expressoes.md). Eles servem a três propósitos:
 
@@ -64,10 +64,15 @@ Compilados com GCC 12.2, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror`: **ze
 | `para_contado.c` | **M1** | `PARA … DE … ATE … PASSO … FACA` / `FIM_PARA` | ok | ok |
 | `tipos.c` | M0 | **um valor de cada tipo** (Fase 4): `LOGICO`, `CARACTERE`, inteiros nativos e de largura exata, naturais, reais, `TEXTO`/`TEXTO_FIXO`, `VAZIO`, `TAMANHO_DE`/`BITS_DE`, `OU_EXCLUSIVO`, `LOGICO_DE`, `ACRESCENTA_TEXTO` | ok | ok |
 | `expressoes.c` | M0 | **semântica de expressões** (Fase 4): precedência, atribuição × comparação, valor de verdade, curto-circuito, conversões verificadas, `DIVIDE`/`RESTO`, texto seguro | ok | ok |
+| `controle_condicoes.c` | M0 | **controle de fluxo** (Fase 3): `SE` aninhado, `SENAO_SE`, `E`/`OU`, `FUNCAO TEXTO`, `PARA` com valores negativos; sem `dangling else` (cada `SE` tem seu `FIM_SE`) | ok | ok |
+| `controle_lacos.c` | M0 | **laços aninhados** (Fase 3): `PROSSIGA` no laço interno, `ENQUANTO` com contador (Collatz), `REPITA`/`ATE_QUE`, `PARE` com bandeira para sair de dois laços | ok | ok |
+| `controle_acumuladores.c` | M0 | **contadores e acumuladores** (Fase 3): soma, produto, contagem condicional, maior/menor, média `REAL`, laço vazio, `PARA_PASSO` decrescente | ok | ok |
+| `controle_entrada.c` | M0 | **laços dirigidos por entrada** (Fase 3): validação com `REPITA` + `LEIA_INTEIRO`, sentinela com `ENQUANTO`, rodada com zero iterações, `PROCEDIMENTO` | ok | ok |
+| `controle_para_acucar.c` | **M1** | açúcar `PARA i DE … ATE … PASSO … FACA` / `FIM_PARA` aninhado, `ATE` no `REPITA`, zero iterações | ok | ok |
 
-Todos os 14 exemplos compilam sem avisos com `-std=c11 -Wall -Wextra -Wformat=2 -Wvla
+Todos os 19 exemplos compilam sem avisos com `-std=c11 -Wall -Wextra -Wformat=2 -Wvla
 -Werror` e produzem exatamente a saída registrada — nos dois perfis, exceto
-`para_contado.c`, que é M1 puro por desenho. É o que a suíte verifica a cada `make test`.
+`para_contado.c` e `controle_para_acucar.c`, que são M1 puros por desenho. É o que a suíte verifica a cada `make test`.
 
 A validação também forçou três ajustes de contrato, registrados em
 [04 §6](../04-restricoes-e-decisoes.md): o contrato de `LEIA_TEXTO` (C-20, corrigido duas

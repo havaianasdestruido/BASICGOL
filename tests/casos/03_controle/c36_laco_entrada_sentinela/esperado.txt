@@ -1,0 +1,7 @@
+Rodada 1
+quantidade: 3
+soma: 12
+maximo: 10
+minimo: -3
+Rodada 2
+quantidade: 0

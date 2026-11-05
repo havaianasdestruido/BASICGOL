@@ -87,8 +87,8 @@ Os trechos de saída de pré-processador mostrados na §4 são reais (com a tabe
 | 34 | `REPITA` | `do {` | N |
 | 35 | `ATE_QUE(c);` | `} while (!(c));` | N |
 | 36 | `PARA (i, 1, 10) { … }` | `for ((i) = (1); (i) <= (10); ++(i)) { … }` | N |
-| 37 | `PARA_PASSO (i, 0, 100, 10) { … }` | `for ((i) = (0); ((10) > 0) ? ((i) <= (100)) : ((i) >= (100)); (i) += (10)) { … }` — o passo negativo conta para trás | N |
-| 38 | `PARA i DE 1 ATE 10 FACA … FIM_PARA` | `for (i = (1); (1) > 0 ? (i <= (10)) : (i >= (10)); i += (1)) { … }` | **X** |
+| 37 | `PARA_PASSO (i, 0, 100, 10) { … }` | `for ((i) = (0); ((10) > 0) ? ((i) <= (100)) : (((10) == 0) ? bg_passo_zero(__FILE__, __LINE__) : ((i) >= (100))); (i) += (10)) { … }` — o passo negativo conta para trás; passo zero é erro de execução | N |
+| 38 | `PARA i DE 1 ATE 10 FACA … FIM_PARA` | `for (i = (1); (1) > 0 ? (i <= (10)) : ((1) == 0 ? bg_passo_zero(__FILE__, __LINE__) : (i >= (10))); i += (1)) { … }` | **X** |
 | 39 | `ESCOLHA(e)` | `switch (e) {` | N |
 | 40 | `CASO 2:` | `case 2:` | N |
 | 41 | `CONTRARIO:` | `default:` | N |
@@ -226,7 +226,7 @@ detecção de compilador e documentação embutida, é entrega da Fase 2). Esta 
 #define PARE                break
 #define PROSSIGA            continue
 #define PARA(i, a, b)           for ((i) = (a); (i) <= (b); ++(i))
-#define PARA_PASSO(i, a, b, p)  for ((i) = (a); ((p) > 0) ? ((i) <= (b)) : ((i) >= (b)); (i) += (p))
+#define PARA_PASSO(i, a, b, p)  for ((i) = (a); ((p) > 0) ? ((i) <= (b)) : (((p) == 0) ? bg_passo_zero(__FILE__, __LINE__) : ((i) >= (b))); (i) += (p))
 
 /* ---- operadores por palavra ---- */
 #define E                   &&

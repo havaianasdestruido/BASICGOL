@@ -1448,6 +1448,12 @@ static void emite_identificador(Estado *e, const Lista *l, int *pi)
             if (passo.tam == 0) {
                 buf_adiciona(&passo, "1");
             }
+            /* Fase 3: passo literal zero nunca avanca o laco. Com passo
+             * variavel a mesma situacao vira erro de execucao (bg_passo_zero). */
+            if (strcmp(passo.dados, "0") == 0) {
+                erro(e, t->linha,
+                     "'PASSO 0' nunca avanca o laco: use um passo diferente de zero");
+            }
 
             buf_adiciona(&e->saida, "for (");
             buf_adiciona(&e->saida, var.dados);
@@ -1459,11 +1465,13 @@ static void emite_identificador(Estado *e, const Lista *l, int *pi)
             buf_adiciona(&e->saida, var.dados);
             buf_adiciona(&e->saida, " <= (");
             buf_adiciona(&e->saida, fim.dados);
-            buf_adiciona(&e->saida, ")) : (");
+            buf_adiciona(&e->saida, ")) : ((");
+            buf_adiciona(&e->saida, passo.dados);
+            buf_adiciona(&e->saida, ") == 0 ? bg_passo_zero(__FILE__, __LINE__) : (");
             buf_adiciona(&e->saida, var.dados);
             buf_adiciona(&e->saida, " >= (");
             buf_adiciona(&e->saida, fim.dados);
-            buf_adiciona(&e->saida, ")); ");
+            buf_adiciona(&e->saida, "))); ");
             buf_adiciona(&e->saida, var.dados);
             buf_adiciona(&e->saida, " += (");
             buf_adiciona(&e->saida, passo.dados);
@@ -1522,8 +1530,12 @@ static void emite_identificador(Estado *e, const Lista *l, int *pi)
             int prox = proximo_significativo(l, i);
             if (prox >= 0 && l->itens[prox].tipo == TK_IDENT
                 && strcmp(l->itens[prox].texto, "SE") == 0) {
+                /* Regra C-05: o par de palavras e sempre recusado, mesmo quando
+                 * se quer um SE aninhado dentro do SENAO (que o C aceitaria).
+                 * A mensagem diz o que fazer nos dois casos. */
                 erro(e, t->linha,
-                     "'SENAO SE' nao encadeia: use SENAO_SE (C-05 da especificacao)");
+                     "'SENAO SE' nao encadeia: use SENAO_SE (C-05 da especificacao); "
+                     "para um SE dentro do SENAO, escreva antes dele um comando do bloco");
             }
         }
         emite_seguro(&e->saida, tr->c);
@@ -1633,6 +1645,25 @@ static void emite_identificador(Estado *e, const Lista *l, int *pi)
         }
         if (strcmp(nome, "ATE_QUE") == 0) {
             desempilha(e, BLOCO_REPITA, t->linha);
+            /* ATE_QUE(c) expande para "} while (!(c))": sem ';' logo depois
+             * do ')', o erro so apareceria longe, no compilador C. Fase 3. */
+            {
+                Buf cond;
+                int fim;
+                int depois;
+
+                buf_ini(&cond);
+                fim = captura_parenteses(e, l, i, &cond);
+                if (fim < l->qtd) {
+                    depois = proximo_significativo(l, fim);
+                    if (depois < 0 || !(l->itens[depois].tipo == TK_PONT
+                                        && strcmp(l->itens[depois].texto, ";") == 0)) {
+                        erro(e, t->linha,
+                             "'ATE_QUE(cond)' exige ';' depois do ')' (e um do/while)");
+                    }
+                }
+                free(cond.dados);
+            }
         }
         *pi = i;
         return;

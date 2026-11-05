@@ -3,11 +3,11 @@
 > BASICGOL — a legibilidade do BASIC e do Portugol, entregue como uma camada de macros C.
 
 **Status: Fase 1 concluída (especificação) · Fase 2 concluída (implementação + testes) ·
-Fase 4 concluída (tipos e semântica de expressões).**
+Fase 3 concluída (controle de fluxo) · Fase 4 concluída (tipos e semântica de expressões).**
 O cabeçalho [`include/basicgol.h`](include/basicgol.h) e o transpilador
 [`tools/basicgolc.c`](tools/basicgolc.c) existem, e a suíte em [`tests/`](tests/) roda
-**244 verificações** (cada caso de programa é executado duas vezes: caminho M0 e caminho
-M1). Versão da linguagem: **1.1.0**.
+**294 verificações**, todas aprovadas (cada caso de programa é executado duas vezes: caminho M0 e
+caminho M1). Versão da linguagem: **1.1.0**.
 
 ---
 
@@ -79,7 +79,7 @@ cc -std=c11 programa.gerado.c -o programa -lm -I include
 |---|---|
 | [`include/basicgol.h`](include/basicgol.h) | a linguagem inteira: macros, tipos, biblioteca de execução (`bg_*`), header-only |
 | [`tools/basicgolc.c`](tools/basicgolc.c) | transpilador M1: insere chaves, desaçucara `PARA i DE …`, aceita acentos, emite W-01…W-07 |
-| [`tests/`](tests/) | suíte de testes: 106 casos em disco, caminho M0 **e** M1 em cada caso |
+| [`tests/`](tests/) | suíte de testes: 125 casos em disco, caminho M0 **e** M1 em cada caso |
 | [`tests/COBERTURA.md`](tests/COBERTURA.md) | matriz de rastreabilidade gerada: cada nome, aviso, critério e restrição → o teste que o fixa |
 | [`docs/`](docs/) | a especificação normativa (o código é a implementação dela) |
 | [`Makefile`](Makefile) | `make`, `make test`, `make test-v`, `make exemplos`, `make cobertura` |
@@ -94,6 +94,8 @@ cc -std=c11 programa.gerado.c -o programa -lm -I include
 | 4 | [`docs/04-restricoes-e-decisoes.md`](docs/04-restricoes-e-decisoes.md) | Restrições de implementação (C-xx), decisões abertas (D-xx) e riscos |
 | 5 | [`docs/05-criterios-de-aceitacao.md`](docs/05-criterios-de-aceitacao.md) | Critérios de aceitação das fases, com o veredito de cada um |
 | 6 | [`docs/06-tipos-e-expressoes.md`](docs/06-tipos-e-expressoes.md) | **Referência de tipos e expressões**: representação, mapeamento C, conversões, precedência, verdade, estouro, ponto flutuante, extensões opcionais e diferenças em relação a BASIC/Portugol |
+| 7 | [`docs/07-controle-de-fluxo.md`](docs/07-controle-de-fluxo.md) | **Controle de fluxo**: sintaxe exata de `SE`, `ENQUANTO`, `REPITA`, `PARA`, `ESCOLHA`, `PARE`, `PROSSIGA`; expansões; casos de borda; ninhos e `SENAO`; limitações |
+| 8 | [`docs/08-relatorio-controle-de-fluxo.md`](docs/08-relatorio-controle-de-fluxo.md) | Relatório de aprovação e reprovação da Fase 3, com os defeitos encontrados e corrigidos |
 | — | [`docs/exemplos/`](docs/exemplos/) | Programas de exemplo completos, no dialeto canônico |
 
 ## Fase 2 — o que foi entregue
@@ -124,6 +126,30 @@ cc -std=c11 programa.gerado.c -o programa -lm -I include
    aparece longe da causa. Hoje o transpilador acusa isso e mais dez situações
    (`'SE' exige 'ENTAO' antes de '{'`, `'SENAO SE' nao encadeia`,
    `'IGUAL' e prefixado e exige parenteses`…) antes de o compilador C entrar em cena.
+
+## Fase 3 — controle de fluxo
+
+Os construtores de controle já estavam no núcleo desde a Fase 2; a Fase 3 os **fixa, testa nos
+casos de borda e documenta os limites** ([07](docs/07-controle-de-fluxo.md)):
+
+* **Sintaxe**: `SE`/`SENAO_SE`/`SENAO`/`FIM_SE`, `ENQUANTO`/`FACA`/`FIM_ENQUANTO`,
+  `REPITA`/`ATE_QUE(c);`, `PARA`/`PARA_PASSO` (N) e `PARA i DE … ATE … FACA` (açúcar, M1),
+  `ESCOLHA`/`CASO`/`CONTRARIO`/`FIM_ESCOLHA`, `PARE`, `PROSSIGA`. Nenhuma palavra nova.
+* **Passo zero não trava mais**: `PARA_PASSO` com passo 0 vira erro de execução
+  (`PARA_PASSO: passo zero`, código 1) no M0 e no M1; passo literal `0` é recusado já na
+  tradução. Para passo não nulo, nada muda.
+* **`ATE_QUE(cond)` sem `;`** é recusado pelo transpilador com a linha certa (antes passava
+  adiante e o erro aparecia no C).
+* **`SENAO SE`** continua proibido (CND-2), e a mensagem agora diz como escrever um `SE`
+  aninhado dentro de `SENAO`.
+* **Limites documentados**: sem `PARE` rotulado nem `goto`; `PARE` dentro de `ESCOLHA` sai só
+  do `ESCOLHA`; `SENAO SE` é aceito pelo M0 e recusado pelo M1; `PARA` (forma N) usa chaves
+  de C; limites como `INT_MAX` nunca são alcançados.
+* **Testes e exemplos**: casos `03_controle/c24…c40` (zero iterações, limites, passo zero,
+  ninhos com `PARE`/`PROSSIGA`, saída de dois laços, `REPITA`/`ATE_QUE` com `PROSSIGA`, `ESCOLHA`
+  dentro de laço, entrada com sentinela); negativos `06_negativos/n17…n20` e
+  `12_negativos_m1/t12…t14`; exemplos `controle_condicoes`, `controle_lacos`,
+  `controle_acumuladores`, `controle_entrada` e `controle_para_acucar` (M1).
 
 ## Fase 4 — tipos e semântica de expressões
 
@@ -234,7 +260,7 @@ gcc -std=c11 -Wall -Wextra docs/exemplos/ola_mundo.c -o ola_mundo -lm -I include
 
 ## Exemplos entregues
 
-`docs/exemplos/` tem 12 programas, cada um com entrada e saída esperadas gravadas
+`docs/exemplos/` tem 19 programas, cada um com entrada e saída esperadas gravadas
 (`.entrada.txt` / `.esperado.txt`), consumidos pelos testes:
 
 | Entrega | Exemplo que a cobre | Construtores principais |
@@ -243,7 +269,8 @@ gcc -std=c11 -Wall -Wextra docs/exemplos/ola_mundo.c -o ola_mundo -lm -I include
 | Aritmética | `tabuada.c`, `primos.c`, `media_notas.c` | `PARA`, `PARA_PASSO`, laços aninhados, `MOD`, `ESCREVA_FMT`, `(a + b) / 2.0` |
 | Entrada | `contador_vogais.c`, `cadastro.c`, `adivinha.c` | `LEIA_TEXTO` (contrato C-20), `LEIA`, `LEIA_OK`, `SORTEIA`, `INICIA_SORTEIO` |
 | Saída | `ola_mundo.c` + todos os demais | `ESCREVA`, `ESCREVAL`, `ESCREVA_FMT`, `ESCREVA_ERRO` |
-| Açúcar (M1) | `para_contado.c` | `PARA i DE … ATE … [PASSO …] FACA` / `FIM_PARA` |
+| Controle de fluxo | `controle_condicoes.c`, `controle_lacos.c`, `controle_acumuladores.c`, `controle_entrada.c` | `SE` aninhado, `SENAO_SE`, `PARA`/`PARA_PASSO`, `ENQUANTO`, `REPITA`, `PARE`, `PROSSIGA`, laços por entrada com sentinela |
+| Açúcar (M1) | `para_contado.c`, `controle_para_acucar.c` | `PARA i DE … ATE … [PASSO …] FACA` / `FIM_PARA`, `ATE cond;` |
 
 ## Limitações conhecidas (resumo)
 
@@ -260,7 +287,8 @@ A lista completa e sua justificativa está em [`docs/04-restricoes-e-decisoes.md
 9. **Avaliação de argumentos**: `ABS`, `MINIMO`, `MAXIMO`, `ESCREVA`, `ESCREVAL` e `LEIA` avaliam cada argumento exatamente uma vez (P-11, verificado com `ABS(++i)`). A exceção é o **passo de `PARA_PASSO`**, reavaliado a cada iteração — não use expressão com efeito colateral como passo.
 10. **Sem rede de segurança em tempo de execução**: sem verificação de limites de vetor, sem detecção de tipo em tempo de execução, sem exceções; estouro de inteiro com sinal é comportamento indefinido de C (PT-E).
 11. **C11 obrigatório**: C99 é rejeitado com mensagem clara (falta `_Generic`); C++ não é suportado (D-15).
-12. **Diagnóstico no M0 aponta para o cabeçalho**: mensagens de macro citam `BG_*`; para diagnósticos que apontam para a linha do fonte do aluno, use o caminho M1 (`basicgolc`, erros com linha e coluna, §12.5 de `docs/01-especificacao.md`).
+12. **Controle de fluxo** (detalhes em [`docs/07-controle-de-fluxo.md`](docs/07-controle-de-fluxo.md) §8): não há `PARE` rotulado nem `goto` (use uma bandeira); `PARE` dentro de `ESCOLHA` sai só do `ESCOLHA`; `SENAO SE` é recusado pelo M1 mas o M0 o aceita como bloco aninhado; a forma `PARA (i, a, b) { }` usa chaves de C; limites como `INT_MAX` nunca são alcançados e laços sobre `NATURAL` com limite `n - 1` podem não terminar.
+13. **Diagnóstico no M0 aponta para o cabeçalho**: mensagens de macro citam `BG_*`; para diagnósticos que apontam para a linha do fonte do aluno, use o caminho M1 (`basicgolc`, erros com linha e coluna, §12.5 de `docs/01-especificacao.md`).
 
 ## Licença
 

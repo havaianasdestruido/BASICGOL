@@ -1,0 +1,7 @@
+4: reprovado
+5: recuperacao
+6: recuperacao
+7: aprovado
+8: aprovado
+9: excelente
+10: excelente

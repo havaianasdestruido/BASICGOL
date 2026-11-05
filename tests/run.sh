@@ -353,7 +353,7 @@ EOF
     if "$T_BASICGOLC" "$T_TMP/g1.gerado.c" -o "$T_TMP/g1.gerado.c" -w 2> "$T_TMP/e"; then
         esperados=("if (" ") {" "} else if (" "} else {" "while (" "do {" "} while (!(1));" \
                    "switch (1) {" "case " "default" "int main(void) {" \
-                   "for (i = (1); (1) > 0 ? (i <= (3)) : (i >= (3)); i += (1)) {")
+                   "for (i = (1); (1) > 0 ? (i <= (3)) : ((1) == 0 ? bg_passo_zero(__FILE__, __LINE__) : (i >= (3))); i += (1)) {")
         faltando=""
         for trecho in "${esperados[@]}"; do
             grep -qF -- "$trecho" "$T_TMP/g1.gerado.c" || faltando="$faltando [$trecho]"
@@ -538,8 +538,8 @@ if selecionado 10_exemplos; then
         ok_m0=0
         ok_m1=0
 
-        # caminho M0 (todos, menos o exemplo que so existe em M1)
-        if [ "$nome" != "para_contado" ]; then
+        # caminho M0 (todos, menos os exemplos que so existem em M1: acucar PARA i DE)
+        if [ "$nome" != "para_contado" ] && [ "$nome" != "controle_para_acucar" ]; then
             if $T_CC $T_CFLAGS -I "$T_INCLUDE" "$arq" -o "$bin0" -lm 2> "$T_TMP/e"; then
                 ok_m0=1
             else

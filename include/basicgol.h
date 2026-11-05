@@ -72,6 +72,15 @@ static inline _Noreturn void bg_erro(const char *arquivo, int linha, const char 
     exit(1);
 }
 
+/* Passo zero de PARA_PASSO (Fase 3): um laço com passo 0 nunca termina quando
+ * o início não está além do fim. Em vez de travar em silêncio, o laço recusa
+ * o passo zero com a linha do aluno. Chamado só pela condição do laço. */
+static inline int bg_passo_zero(const char *arquivo, int linha)
+{
+    bg_erro(arquivo, linha, "PARA_PASSO: passo zero (o laco nunca avancaria)");
+    return 0;   /* inalcancavel: bg_erro nao retorna; existe para todo compilador */
+}
+
 /* --------------------------------------------------- divisão e resto (Fase 4) */
 /* As versões verificadas recusam o divisor zero e o único caso de estouro
  * possível na divisão inteira (MIN / -1), que em C é comportamento indefinido.
@@ -684,9 +693,13 @@ static inline void      bg_inicia_sorteio(unsigned s) { srand(s); }
 #define BG_PROSSIGA             continue
 #define BG_PARA(i, a, b)            for ((i) = (a); (i) <= (b); ++(i))
 /* O passo negativo conta para trás: é o mesmo teste que o transpilador emite
- * (M1), então M0 e M1 concordam também no passo negativo. */
+ * (M1), então M0 e M1 concordam também no passo negativo. O passo zero é
+ * erro de execução (bg_passo_zero), nunca um laço infinito. */
 #define BG_PARA_PASSO(i, a, b, p)                                        \
-    for ((i) = (a); ((p) > 0) ? ((i) <= (b)) : ((i) >= (b)); (i) += (p))
+    for ((i) = (a); ((p) > 0) ? ((i) <= (b))                             \
+                    : (((p) == 0) ? bg_passo_zero(__FILE__, __LINE__)    \
+                                  : ((i) >= (b)));                        \
+         (i) += (p))
 
 /* --- operadores por palavra --- */
 #define BG_E                    &&

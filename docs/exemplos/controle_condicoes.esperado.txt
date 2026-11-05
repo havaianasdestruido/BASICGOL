@@ -1,0 +1,12 @@
+-- triangulos --
+3,4,5: escaleno
+2,2,2: equilatero
+5,5,8: isosceles
+1,2,3: nao forma triangulo
+4,4,9: nao forma triangulo
+-- sinal e paridade --
+-2: negativo
+-1: negativo
+0: zero
+1: positivo impar
+2: positivo par

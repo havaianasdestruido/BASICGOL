@@ -1,0 +1,3 @@
+# GCC: "break statement not within loop or switch"; Clang: "'break' statement not in loop or switch".
+not within loop or switch
+not in loop or switch

@@ -770,6 +770,12 @@ Semântica exata: `for ((i) = (inicio); (i) <= (fim); ++(i))`.
   condição de parada: passo positivo conta para cima (`i <= fim`), negativo conta para
   trás (`i >= fim`). É o mesmo teste nos dois perfis (M0 e M1) — a igualdade é verificada
   pelo caso `03_controle/c23_para_passo_negativo`;
+* passo **zero** é erro de execução (Fase 3): o laço para com
+  `arquivo:linha: erro: PARA_PASSO: passo zero (o laco nunca avancaria)` e código 1,
+  em vez de girar para sempre. Vale mesmo com intervalo vazio (casos
+  `03_controle/c26` e `c27`). No M1, passo literal `0` é recusado já na tradução;
+  ver [07 §5](07-controle-de-fluxo.md). Sem o passo zero, a expansão e o resultado
+  para `p ≠ 0` são exatamente os de antes;
 * contagem decrescente: use `ENQUANTO` (recomendado) ou C nativo.
 
 ### 11.5 Laço contado (açúcar, M1)
@@ -787,13 +793,13 @@ FIM_PARA
 Expansão M1 obrigatória (com `p` = `PASSO expressao` ou `1` quando omitido):
 
 ```c
-for (i = (inicio); (p) > 0 ? (i <= (fim)) : (i >= (fim)); i += (p))
+for (i = (inicio); (p) > 0 ? (i <= (fim)) : ((p) == 0 ? bg_passo_zero(__FILE__, __LINE__) : (i >= (fim))); i += (p))
 ```
 
 Exemplo: `PARA i DE 10 ATE 1 PASSO -1 FACA` →
 
 ```c
-for (i = (10); (-1) > 0 ? (i <= (1)) : (i >= (1)); i += (-1))
+for (i = (10); (-1) > 0 ? (i <= (1)) : ((-1) == 0 ? bg_passo_zero(__FILE__, __LINE__) : (i >= (1))); i += (-1))
 ```
 
 Regras: `i` pré-existente; limites inclusivos; `PASSO` opcional (padrão `+1`) e deve ser
@@ -943,7 +949,7 @@ suíte afirma, uma por uma, em `tests/casos/06_negativos/`.
 | Situação | Mensagem (`arquivo:linha: erro: …`) |
 |---|---|
 | `SE`/`ENQUANTO` com `{` ou `;` no cabeçalho | `'SE' exige 'ENTAO' antes de '{' (nao use chaves nem ';' no cabecalho do bloco)` |
-| `SENAO SE` | `'SENAO SE' nao encadeia: use SENAO_SE (C-05 da especificacao)` |
+| `SENAO SE` | `'SENAO SE' nao encadeia: use SENAO_SE (C-05 da especificacao); para um SE dentro do SENAO, escreva antes dele um comando do bloco` |
 | bloco fechado com o `FIM_*` errado | `'FIM' fecha o bloco errado: esperado 'FIM_SE' (aberto na linha 3)` |
 | bloco nunca fechado | `'INICIO' aberto aqui nao foi fechado (falta 'FIM')` |
 | `PARA … DE` sem `ATE` / sem `FACA` | `faltou 'ATE' no laco 'PARA i DE ... ATE ...'` |

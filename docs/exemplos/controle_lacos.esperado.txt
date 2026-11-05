@@ -1,0 +1,7 @@
+Produtos fora da diagonal:
+   2   3   4
+   2   6   8
+   3   6  12
+Collatz de 6 ate 1: 8 passos
+Soma dos digitos de 2026: 10
+Primeiro par com produto 12: 2 x 6

@@ -21,7 +21,7 @@ BG_FIM_ESCOLHA|}
 BG_PARE|break
 BG_PROSSIGA|continue
 BG_PARA(i,a,b)|for ((i) = (a); (i) <= (b); ++(i))
-BG_PARA_PASSO(i,a,b,p)|for ((i) = (a); ((p) > 0) ? ((i) <= (b)) : ((i) >= (b)); (i) += (p))
+BG_PARA_PASSO(i,a,b,p)|for ((i) = (a); ((p) > 0) ? ((i) <= (b)) : (((p) == 0) ? bg_passo_zero(__FILE__, __LINE__) : ((i) >= (b))); (i) += (p))
 BG_REGISTRO(n)|typedef struct n {
 BG_FIM_REGISTRO(n)|} n
 BG_ENUMERACAO(n)|typedef enum n {

@@ -87,7 +87,7 @@ A referência completa de representação, faixa e conversão está em
 | `ENQUANTO cond FACA … FIM_ENQUANTO` | N | laço com teste antes |
 | `REPITA … ATE_QUE(cond);` | N | laço com teste depois (ao menos uma execução) |
 | `PARA (i, inicio, fim) { … }` | N | laço contado inclusivo, passo +1 |
-| `PARA_PASSO (i, inicio, fim, passo) { … }` | N | laço contado inclusivo, passo genérico |
+| `PARA_PASSO (i, inicio, fim, passo) { … }` | N | laço contado inclusivo, passo genérico; passo zero é erro de execução |
 | `PARA i DE inicio ATE fim [PASSO p] FACA … FIM_PARA` | **X** | mesma semântica, sintaxe Portugol/BASIC |
 | `ESCOLHA (expr) … CASO v: … CONTRARIO: … FIM_ESCOLHA` | N | seleção múltipla |
 | `PARE;` | N | sai do laço/`ESCOLHA` mais interno (`break`) |

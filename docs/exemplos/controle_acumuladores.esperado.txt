@@ -1,0 +1,8 @@
+Soma de 1 a 100: 5050
+Multiplos de 3 ate 30: 10
+10! = 3628800
+Maior: 12 | menor: -7
+Media de 4, -7, 12, 0: 2.25
+Laco vazio, acumulador: 0
+10 7 4 1 
+Soma da contagem regressiva: 22
