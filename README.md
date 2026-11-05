@@ -2,11 +2,12 @@
 
 > BASICGOL — a legibilidade do BASIC e do Portugol, entregue como uma camada de macros C.
 
-**Status: Fase 1 concluída (especificação) · Fase 2 concluída (implementação + testes).**
+**Status: Fase 1 concluída (especificação) · Fase 2 concluída (implementação + testes) ·
+Fase 4 concluída (tipos e semântica de expressões).**
 O cabeçalho [`include/basicgol.h`](include/basicgol.h) e o transpilador
 [`tools/basicgolc.c`](tools/basicgolc.c) existem, e a suíte em [`tests/`](tests/) roda
-**203 verificações** (cada caso de programa é executado duas vezes: caminho M0 e caminho
-M1). Versão da linguagem: **1.0.0**.
+**244 verificações** (cada caso de programa é executado duas vezes: caminho M0 e caminho
+M1). Versão da linguagem: **1.1.0**.
 
 ---
 
@@ -78,7 +79,7 @@ cc -std=c11 programa.gerado.c -o programa -lm -I include
 |---|---|
 | [`include/basicgol.h`](include/basicgol.h) | a linguagem inteira: macros, tipos, biblioteca de execução (`bg_*`), header-only |
 | [`tools/basicgolc.c`](tools/basicgolc.c) | transpilador M1: insere chaves, desaçucara `PARA i DE …`, aceita acentos, emite W-01…W-07 |
-| [`tests/`](tests/) | suíte de testes: 85 casos em disco, 11 suítes, caminho M0 **e** M1 em cada caso |
+| [`tests/`](tests/) | suíte de testes: 106 casos em disco, caminho M0 **e** M1 em cada caso |
 | [`tests/COBERTURA.md`](tests/COBERTURA.md) | matriz de rastreabilidade gerada: cada nome, aviso, critério e restrição → o teste que o fixa |
 | [`docs/`](docs/) | a especificação normativa (o código é a implementação dela) |
 | [`Makefile`](Makefile) | `make`, `make test`, `make test-v`, `make exemplos`, `make cobertura` |
@@ -91,19 +92,20 @@ cc -std=c11 programa.gerado.c -o programa -lm -I include
 | 2 | [`docs/02-referencia.md`](docs/02-referencia.md) | Referência de palavras-chave, operadores, tipos e biblioteca de execução |
 | 3 | [`docs/03-mapeamento-para-c.md`](docs/03-mapeamento-para-c.md) | Tabela sintaxe → C, expansões reais verificadas e o que *não* é mapeável |
 | 4 | [`docs/04-restricoes-e-decisoes.md`](docs/04-restricoes-e-decisoes.md) | Restrições de implementação (C-xx), decisões abertas (D-xx) e riscos |
-| 5 | [`docs/05-criterios-de-aceitacao.md`](docs/05-criterios-de-aceitacao.md) | Critérios de aceitação das duas fases, com o veredito de cada um |
+| 5 | [`docs/05-criterios-de-aceitacao.md`](docs/05-criterios-de-aceitacao.md) | Critérios de aceitação das fases, com o veredito de cada um |
+| 6 | [`docs/06-tipos-e-expressoes.md`](docs/06-tipos-e-expressoes.md) | **Referência de tipos e expressões**: representação, mapeamento C, conversões, precedência, verdade, estouro, ponto flutuante, extensões opcionais e diferenças em relação a BASIC/Portugol |
 | — | [`docs/exemplos/`](docs/exemplos/) | Programas de exemplo completos, no dialeto canônico |
 
 ## Fase 2 — o que foi entregue
 
-* **`basicgol.h`**: implementa as 88 formas curtas da especificação, mais as 94 macros
-  `BG_*` (sempre disponíveis) e a biblioteca `bg_*`. Sem dependências além de `libc` e
-  `-lm`. Rejeita C99 com mensagem clara.
+* **`basicgol.h`**: implementa as 117 formas curtas da especificação, as macros `BG_*`
+  correspondentes (sempre disponíveis) e a biblioteca `bg_*`. Sem dependências além de
+  `libc` e `-lm`. Rejeita C99 com mensagem clara.
 * **`basicgolc`**: transpilador M1 em C11 puro. Faz três coisas que macro não faz
   (`PARA i DE a ATE b [PASSO p] FACA` → `for`, `REPITA … ATE c;` → `do/while`, e chaves
   explícitas no C emitido), aceita palavras-chave acentuadas na entrada e diagnostica
   W-01…W-07 com linha e coluna.
-* **Testes**: 85 casos em disco + checagens de sanidade, CLI e estresse. Cada caso de
+* **Testes**: os casos em disco (85 na Fase 2, 106 hoje) + checagens de sanidade, CLI e estresse. Cada caso de
   programa roda no caminho M0 e no M1 e precisa produzir exatamente a mesma saída — é a
   prova automatizada da equivalência M0 × M1 (AC-32). A cobertura por item está em
   [`tests/COBERTURA.md`](tests/COBERTURA.md).
@@ -123,10 +125,40 @@ cc -std=c11 programa.gerado.c -o programa -lm -I include
    (`'SE' exige 'ENTAO' antes de '{'`, `'SENAO SE' nao encadeia`,
    `'IGUAL' e prefixado e exige parenteses`…) antes de o compilador C entrar em cena.
 
+## Fase 4 — tipos e semântica de expressões
+
+* **Tipos com contrato explícito**: inteiros com e sem sinal (nativos e de largura
+  exata), `REAL_CURTO`/`REAL`/`REAL_LONGO`, `CARACTERE`, `LOGICO`, `TEXTO`, `TEXTO_FIXO`,
+  `VAZIO` — cada um com o tipo C, a garantia e o limite documentados em
+  [06](docs/06-tipos-e-expressoes.md). `NATURAL_CURTO`/`NATURAL_LONGO` completam a
+  família; `TAMANHO_DE`, `BITS_DE`, `MAXIMO_INTEIRO`, `MAXIMO_NATURAL`, `MAXIMO_REAL` e
+  `EPSILON_REAL` consultam o ambiente de verdade.
+* **Operadores em português**: `E`, `OU`, `NAO`, `MOD`, mais `OU_EXCLUSIVO(a,b)` e
+  `LOGICO_DE(x)`. Precedência é a de C, documentada com exemplos; `^` continua sendo XOR
+  (potência é `POTENCIA`).
+* **Erro em vez de comportamento indefinido**: `DIVIDE(a,b)` e `RESTO(a,b)` recusam
+  divisor zero e `MIN/-1` com mensagem apontando a linha do aluno. `/` e `MOD` continuam
+  sendo o C cru, e a documentação diz isso com todas as letras.
+* **Conversões verificadas**: `TEXTO_PARA_INTEIRO`, `TEXTO_PARA_NATURAL`,
+  `TEXTO_PARA_REAL` e `REAL_PARA_INTEIRO` agora recusam sobra, estouro de faixa e NaN
+  (antes, `"2147483648"` virava `VERDADEIRO` com valor truncado).
+* **Texto seguro**: `ACRESCENTA_TEXTO`, `TRECHO_TEXTO`, `COMPARA_TEXTO`, `TEXTO_VAZIO`,
+  `FORMATA_TEXTO` e helpers ASCII de caractere, todos com tamanho explícito e truncamento
+  reportado por valor de retorno.
+* **Entrada numérica sem lixo**: `LEIA_INTEIRO(x)` e `LEIA_REAL(x)` leem uma linha,
+  aceitam exatamente um número e nunca deixam o `stdin` dessincronizado.
+* **Extensões isoladas**: `BG_USAR_EXTENSOES` liga aritmética verificada via
+  `__builtin_*_overflow` (GCC/Clang). Desligada — o padrão — o cabeçalho é C11 estrito.
+* **Testes**: 15 casos novos (M0 + M1), 5 negativos de tipo, 2 checagens de sanidade e 2
+  exemplos executáveis; a matriz item-por-item continua em
+  [`tests/COBERTURA.md`](tests/COBERTURA.md).
+
 ## Escopo
 
 Fora da v1.0, por decisão registrada: `BG_ESTRITO` (D-09), funções de vetor na biblioteca
-(D-12), módulos/pacotes (D-18), C++ (D-15), realce de sintaxe para editores.
+(D-12), módulos/pacotes (D-18), C++ (D-15), realce de sintaxe para editores. A Fase 4 não
+muda esse escopo: tipos decimais, texto Unicode de tamanho dinâmico e detecção automática
+de estouro em `+ - *` continuam fora (D-22, C-24, C-25).
 
 ## Compilando — GCC e Clang
 

@@ -90,7 +90,7 @@ A Fase 2a (só macros) termina quando:
 |---|---|---|
 | AC-21 | `basicgol.h` é header-only, idempotente, compila sozinho | `echo '#include <basicgol.h>' \| cc -std=c11 -Wall -Wextra -fsyntax-only -x c -` sem avisos |
 | AC-22 | Todas as expansões de §3 de 03 são idênticas às do cabeçalho | `cc -E` comparado à tabela (teste automatizado) |
-| AC-23 | Os 12 exemplos compilam e produzem a saída esperada (`exemplos/README.md`) | suíte de execução com saída gravada |
+| AC-23 | Os 14 exemplos compilam e produzem a saída esperada (`exemplos/README.md`) | suíte de execução com saída gravada |
 | AC-24 | `BG_SEM_APELIDOS` funciona: nenhum nome curto definido | teste de compilação negativa (`#ifdef SE` → erro) |
 | AC-25 | Nenhuma macro avalia argumento duas vezes | teste com `ABS(i++)`, `MINIMO(i++, 3)`, `ESCREVA(i++)` |
 | AC-26 | Funciona em GCC e Clang, `-std=c11` e `-std=c17` | matriz de CI |
@@ -116,20 +116,50 @@ A Fase 2b (transpilador) termina quando:
 
 ### 3.4 Resultado da Fase 2 (verificado)
 
-`make test` roda **203 verificações** em 11 suítes, todas aprovadas no ambiente de
-referência (GCC 12.2, Debian, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror`):
+No fechamento da Fase 2, `make test` rodava **203 verificações**, todas aprovadas no
+ambiente de referência (GCC 12.2, Debian, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla
+-Werror`). A Fase 4 acrescentou 41 verificações sem remover nenhuma; hoje são **244**
+(ver §3.5):
 
 | Portão | Critério | Resultado |
 |---|---|---|
 | G-OUT | AC-21 … AC-29 (perfil N) | atendido — `01_sanidade`, `10_exemplos` |
 | G-OUT-M1 | AC-30 … AC-36 (transpilador) | atendido — `09_m1`, `06_avisos`, `12_negativos_m1` |
-| — | AC-32 ampliado: equivalência M0 × M1 | **todos** os 85 casos de programa, não só os exemplos |
+| — | AC-32 ampliado: equivalência M0 × M1 | **todos** os casos de programa (85 na Fase 2; 106 hoje), não só os exemplos |
 | — | AC-33 ampliado | W-01…W-07 implementados (W-03, W-04 e W-06 nasceram na Fase 2) |
-| — | AC-34 ampliado | 11 casos de erro do C + 11 do transpilador (o critério pedia 10) |
+| — | AC-34 ampliado | 16 casos de erro do C + 11 do transpilador (o critério pedia 10) |
 
 O mapa item-por-item — cada nome curto, cada aviso, cada restrição e cada critério, com o
 teste que o fixa — é gerado por `make cobertura` em
 [`../tests/COBERTURA.md`](../tests/COBERTURA.md).
+
+### 3.5 Portão de saída da Fase 4 — "tipos e expressões entregues"
+
+A Fase 4 (tipos e semântica de expressões) terminou quando cada item abaixo passou a ter
+**implementação definida**, documentação normativa e teste automatizado. Critério de
+corte: *o que não tem os três não é exposto*.
+
+| ID | Critério | Verificação | Status |
+|---|---|---|---|
+| AC-37 | Existe referência de tipos e expressões com representação, mapeamento C, faixa e precisão | [`06-tipos-e-expressoes.md`](06-tipos-e-expressoes.md) §1–§3 | **atendido** |
+| AC-38 | Todo tipo suportado tem mapeamento C explícito e teste executável | tabela §2 de 06 + `09_tipos_expr/t14_propriedades` (`_Static_assert` de identidade de tipo) | **atendido** |
+| AC-39 | Aliases em português e operadores lógicos cobrem o uso didático, sem inventar semântica | `NATURAL_CURTO/LONGO`, `E/OU/NAO`, `OU_EXCLUSIVO`, `LOGICO_DE`; §5 de 06 | **atendido** |
+| AC-40 | Atribuição, comparação, aritmética, precedência, conversão e valor de verdade estão especificados | §4–§7 de 06 + `t05_precedencia`, `t06_conversoes`, `t04_logico` | **atendido** |
+| AC-41 | Nenhuma abstração esconde diferença de comportamento de C | §10 de 06 (UB, wrap, NaN, `INT_MIN/-1`) + `t01`, `t07` demonstram o comportamento real | **atendido** |
+| AC-42 | Biblioteca de texto segura sobre `strlen`/`strcmp`/`memcpy`/`snprintf`, com limite de buffer | §8 de 06 + `t11_texto_seguro` (cabe, não cabe, `NULL`, trecho, formatação) | **atendido** |
+| AC-43 | Divisão por zero, conversão inválida, limite de buffer e entrada numérica inválida são tratados | `t08`/`t09`/`t10` (erro + rc 1), `t06` (conversões), `t11` (buffer), `t12` (entrada por linha), `t15` (formato por tipo), `n16` (`LEIA` de `LOGICO` recusado) | **atendido** |
+| AC-44 | Estouro inteiro e comportamento de ponto flutuante documentados com precisão | §10 de 06; `t01` (wrap sem sinal), `t02` (`0.1+0.2`, NaN, infinito), `t13` (estouro detectável) | **atendido** |
+| AC-45 | Extensões de compilador opcionais e isoladas; desligadas, o cabeçalho é C11 estrito | §2b de `basicgol.h`, D-22, `t13_extensoes` + checagem `01_sanidade` | **atendido** |
+| AC-46 | Existem exemplos executáveis para todos os tipos e para as regras de expressão | `docs/exemplos/tipos.c` e `docs/exemplos/expressoes.c` (M0 e M1, saída dourada) | **atendido** |
+| AC-47 | As diferenças semânticas em relação a BASIC e Portugol estão documentadas | §13 de 06 (8 seções: atribuição, tipos, aritmética, lógica, texto, vetores, E/S e o que não existe de propósito) | **atendido** |
+| AC-48 | Nenhum recurso novo é exposto sem teste que o fixe | `tests/COBERTURA.md` §1: todo nome curto do cabeçalho aparece em teste; 244 verificações | **atendido** |
+
+`make test` passou de **203** para **244 verificações**: 30 dos 15 casos novos (M0 + M1),
+5 casos negativos de tipo, 2 checagens de sanidade (extensões desligadas, avaliação única
+das macros novas) e os 2 exemplos novos em M0 + M1. A matriz gerada está em
+[`../tests/COBERTURA.md`](../tests/COBERTURA.md) §4.
+
+---
 
 ## 4. Matriz de conformidade (construtor × perfil × teste)
 

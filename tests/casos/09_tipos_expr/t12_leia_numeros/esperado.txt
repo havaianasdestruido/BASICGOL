@@ -1,0 +1,7 @@
+42
+inteiro 2 falhou
+-7
+3.5
+real 2 falhou
+real 3 falhou
+7

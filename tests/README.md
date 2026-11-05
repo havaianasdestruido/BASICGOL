@@ -20,7 +20,8 @@ e só passa se **os dois** produzirem exatamente a saída dourada. A equivalênc
 
 ```
 tests/
-├── run.sh        # as suítes 01…11 (cada uma é um bloco if)
+├── run.sh        # as suítes 01…11 (cada uma é um bloco if; 09_tipos_expr é
+│                 # dirigida pela árvore de casos, como 02…08)
 ├── lib.sh        # compila_m0, compila_m1, compila_objetos, roda, difere, caso_*
 ├── expansoes.txt # tabela de ouro das expansões (AC-22), comparada com `cc -dM -E`
 ├── COBERTURA.md  # matriz de rastreabilidade (gerada por `make cobertura`)
@@ -32,6 +33,8 @@ tests/
     ├── 06_negativos/        erros do compilador C (esperado_erro.txt)
     ├── 07_multiarquivo/     módulos, EXTERNO/ESTATICO, C puro junto de BG
     ├── 08_aplicacao/        sistema de acervo (3 módulos + cabeçalho)
+    ├── 09_tipos_expr/       tipos, conversões, precedência, divisão verificada,
+    │                        texto seguro, entrada numérica, extensões opcionais
     ├── 12_negativos_m1/     diagnósticos do transpilador (esperado_erro.txt)
     └── 13_avisos/           um caso por aviso W-01…W-07
 ```

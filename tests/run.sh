@@ -173,6 +173,15 @@ EOF
 #ifdef ESCREVAL
 #error "nome curto ESCREVAL nao deveria existir"
 #endif
+#ifdef DIVIDE
+#error "nome curto DIVIDE nao deveria existir"
+#endif
+#ifdef LEIA_INTEIRO
+#error "nome curto LEIA_INTEIRO nao deveria existir"
+#endif
+#ifdef NATURAL_CURTO
+#error "nome curto NATURAL_CURTO nao deveria existir"
+#endif
 int main(void) { return 0; }
 EOF
     if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h6" "$T_TMP/h6.c" 2> "$T_TMP/e"; then
@@ -180,6 +189,23 @@ EOF
         t_ok "BG_SEM_APELIDOS: nenhum nome curto definido"
     else
         t_falhou "BG_SEM_APELIDOS: nenhum nome curto definido" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"
+    fi
+
+    # as extensões de compilador ficam desligadas, e os nomes delas somem
+    cat > "$T_TMP/h6b.c" <<'EOF'
+#include <basicgol.h>
+#ifdef BG_TEM_EXTENSOES
+#error "BG_TEM_EXTENSOES nao deveria existir sem BG_USAR_EXTENSOES"
+#endif
+#ifdef SOMA_SEGURA
+#error "SOMA_SEGURA nao deveria existir sem BG_USAR_EXTENSOES"
+#endif
+int main(void) { return 0; }
+EOF
+    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h6b" "$T_TMP/h6b.c" 2> "$T_TMP/e"; then
+        t_ok "extensoes ficam desligadas por padrao (D-22)"
+    else
+        t_falhou "extensoes ficam desligadas por padrao (D-22)" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"
     fi
 
     # versão
@@ -192,7 +218,7 @@ INICIO
 FIM
 EOF
     if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h7" "$T_TMP/h7.c" -lm 2> "$T_TMP/e" \
-       && [ "$("$T_TMP/h7")" = "1.0.0" ]; then
+       && [ "$("$T_TMP/h7")" = "1.1.0" ]; then
         t_ok "macros de versao consistentes"
     else
         t_falhou "macros de versao consistentes" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"
@@ -219,10 +245,31 @@ EOF
         t_falhou "avaliacao unica de argumentos (P-11)" "saida: $("$T_TMP/h8" 2>/dev/null | tr '\n' '|') $(head -2 "$T_TMP/e" | tr '\n' ' ')"
     fi
 
+    # avaliação única das macros da Fase 4 (P-11 / RG-2)
+    cat > "$T_TMP/h8b.c" <<'EOF'
+#include <basicgol.h>
+INICIO
+    INTEIRO i = 0;
+    INTEIRO q;
+    LOGICO x;
+    q = DIVIDE(++i, 1);            /* uma avaliacao: i=1 */
+    x = OU_EXCLUSIVO(++i, 0);      /* uma avaliacao: i=2 */
+    ESCREVA(i); ESCREVA(" "); ESCREVA(q); ESCREVA(" ");
+    ESCREVAL(x);
+FIM
+EOF
+    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h8b" "$T_TMP/h8b.c" -lm 2> "$T_TMP/e" \
+       && [ "$("$T_TMP/h8b" | tr '\n' '|')" = "2 1 1|" ]; then
+        t_ok "avaliacao unica nas macros novas (DIVIDE, OU_EXCLUSIVO)"
+    else
+        t_falhou "avaliacao unica nas macros novas (DIVIDE, OU_EXCLUSIVO)" \
+                 "saida: $("$T_TMP/h8b" 2>/dev/null | tr '\n' '|') $(head -2 "$T_TMP/e" | tr '\n' ' ')"
+    fi
+
     # basicgolc: CLI
     "$T_BASICGOLC" --ajuda > /dev/null 2>&1 && t_ok "basicgolc --ajuda sai 0" \
         || t_falhou "basicgolc --ajuda sai 0"
-    "$T_BASICGOLC" --versao | grep -q "1.0.0" && t_ok "basicgolc --versao" \
+    "$T_BASICGOLC" --versao | grep -q "1.1.0" && t_ok "basicgolc --versao" \
         || t_falhou "basicgolc --versao"
     "$T_BASICGOLC" > /dev/null 2>&1
     [ $? -eq 2 ] && t_ok "basicgolc sem argumento sai 2" || t_falhou "basicgolc sem argumento sai 2"
@@ -235,7 +282,7 @@ fi
 # ===============================================================
 # 02..08 — casos de execução por diretório
 # ===============================================================
-for suite in 02_basico 03_controle 04_estruturas 05_entrada_saida 07_multiarquivo 08_aplicacao; do
+for suite in 02_basico 03_controle 04_estruturas 05_entrada_saida 07_multiarquivo 08_aplicacao 09_tipos_expr; do
     selecionado "$suite" || continue
     t_titulo "casos: $suite"
     for dir in "$T_CASOS/$suite"/*/; do

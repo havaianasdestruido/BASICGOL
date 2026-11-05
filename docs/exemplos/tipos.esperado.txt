@@ -1,0 +1,44 @@
+---------------------------------------------
+TIPOS SUPORTADOS
+---------------------------------------------
+LOGICO        1 0
+  tamanho: 1 byte(s)
+  LOGICO_DE(0.5) = 1
+  OU_EXCLUSIVO(verdadeiro, falso) = 1
+CARACTERE     A $
+  tamanho: 1 byte(s)
+  'A' + 2 = 67
+  (CARACTERE) ('A' + 2) = C
+  E_DIGITO('7') = 1  E_LETRA('7') = 0
+  CARACTERE_MAIUSCULO('q') = Q
+  CARACTERE_MINUSCULO('Q') = q
+INTEIRO_CURTO -12
+INTEIRO       1234567
+INTEIRO_LONGO 1234567890
+INTEIRO8/16/32/64: 100 30000 2000000000 9000000000
+  largura exata: 8/16/32/64 bits
+  INTEIRO_CURTO <= INTEIRO <= INTEIRO_LONGO ? 1
+  faixa de INTEIRO: -2147483648 .. 2147483647
+NATURAL       60000  (sem sinal; mesma largura de INTEIRO? 1
+)
+NATURAL_CURTO 65535
+NATURAL_LONGO 4000000000
+NATURAL8/16/32/64: 250 65000 4000000000 18000000000000000000
+  faixa de NATURAL: 0 .. 4294967295
+  NATURAL8 250 + 10 = 4
+  (modulo 256, comportamento definido)
+REAL_CURTO 1.5
+REAL       3.1415926536
+REAL_LONGO 2.5
+  REAL_CURTO <= REAL <= REAL_LONGO ? 1
+  REAL tem ao menos 32 bits? 1
+  EPSILON_REAL = 2.22045e-16
+  MAXIMO_REAL = 1.79769e+308
+  0.1 + 0.2 == 0.3 ? 0   |diferenca| < EPSILON_REAL ? 1
+TEXTO         "BASICGOL"
+  TAMANHO_TEXTO = 8
+  TEXTO_VAZIO(nome) = 0
+  copia + acrescimo coube? 1
+  TEXTO_FIXO     "tipo texto"  tamanho 10
+  COMPARA_TEXTO("a", "b") = -1
+---------------------------------------------

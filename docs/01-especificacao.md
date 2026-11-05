@@ -263,6 +263,8 @@ sequência.
 | `INTEIRO_LONGO` | `long` | ≥ 32 bits |
 | `INTEIRO8/16/32/64` | `int8_t`…`int64_t` | largura exata, complemento de dois (C11 `<stdint.h>`) |
 | `NATURAL` | `unsigned` | ≥ 16 bits, sem sinal |
+| `NATURAL_CURTO` | `unsigned short` | ≥ 16 bits, sem sinal |
+| `NATURAL_LONGO` | `unsigned long` | ≥ 32 bits, sem sinal |
 | `NATURAL8/16/32/64` | `uint8_t`…`uint64_t` | largura exata, sem sinal |
 | `REAL_CURTO` | `float` | IEEE-754 simples (recomendado, não garantido) |
 | `REAL` | `double` | IEEE-754 dupla (recomendado, não garantido) |
@@ -277,6 +279,18 @@ exata (`INTEIRO32`, `NATURAL64`).
 **Regra PT-2**: `TEXTO` é `const char *` — atribuir um literal é válido, **modificar
 caracteres não é** (`s[0] = 'x'` é erro de compilação, não aviso). Para texto mutável
 use `TEXTO_FIXO(nome, tamanho)` (§7.4).
+
+**Regra PT-4 (Fase 4)**: a largura dos tipos nativos é a da plataforma. Quando a largura
+importa, use os tipos de largura exata (§6.1) e consulte `BITS_DE`/`TAMANHO_DE`; não
+escreva números mágicos como `4` para `sizeof(int)`.
+
+`CARACTERE` ocupa exatamente 1 byte e guarda **um byte**, não um caractere Unicode; o
+sinal de `char` é definido pela implementação (por isso existem `INTEIRO8` e `NATURAL8`).
+`LOGICO` é `bool`: `VERDADEIRO` vale 1, não −1.
+
+A referência completa — faixas, conversões, operadores, valor de verdade, estouro,
+ponto flutuante e diferenças em relação a BASIC/Portugol — está em
+[06 — Tipos e Expressões](06-tipos-e-expressoes.md).
 
 ### 6.2 Qualificadores
 
@@ -313,13 +327,19 @@ porque o público iniciante precisa saber que existem:
 | Resto `MOD` | sinal acompanha o dividendo (`-7 MOD 2 == -1`) |
 | Estouro em inteiro com sinal | **comportamento indefinido** (UB); evite, use tipos largos |
 | Estouro em natural (`NATURAL*`) | aritmética módulo 2^N, definida |
-| Divisão por zero | UB; programe a checagem |
+| Divisão por zero | UB; `DIVIDE`/`RESTO` transformam em erro com linha (Fase 4) |
+| `MIN / -1` e `MIN MOD -1` | UB; `DIVIDE`/`RESTO` recusam |
+| `ABS(MINIMO_INTEIRO)` | UB (não há positivo representável); compare antes |
+| Conversão real→inteiro fora de faixa | UB; use `REAL_PARA_INTEIRO` |
+| `NAN` | diferente de tudo, inclusive de si mesmo; use `isnan` |
 | Índice fora do vetor | UB; não há verificação de limites |
 | Precisão de `REAL` | binária; `0.1 + 0.2 != 0.3`; compare com tolerância |
 | Curto-circuito de `E`/`OU` | garantido (é `&&`/`||`) |
 
 **Regra PT-3**: a documentação de exercícios nunca deve depender de UB. Se um exemplo
-didático precisa de estouro, ele é explicitamente marcado.
+didático precisa de estouro, ele é explicitamente marcado e usa tipo sem sinal (onde o
+estouro é definido, módulo 2ᴺ) ou os auxiliares opcionais `SOMA_SEGURA`/`MULTIPLICA_SEGURA`
+(§11 de [06](06-tipos-e-expressoes.md)).
 
 ---
 
@@ -512,10 +532,11 @@ linguagem para "vetor + tamanho".
 | atribuição | `=` | `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `++`, `--` (ver nota sobre `MOD=`) |
 | aritmética | `+ - * / MOD` | `+ - * / %` |
 | comparação | `== != < <= > >=`, `IGUAL(a,b)`, `DIFERENTE(a,b)` | idem |
-| lógica | `E OU NAO` | `&& || !` |
+| lógica | `E OU NAO`, `OU_EXCLUSIVO(a,b)`, `LOGICO_DE(x)` | `&& || !` |
+| divisão/resto verificados | `DIVIDE(a,b)`, `RESTO(a,b)` | — (transformam zero e `MIN/-1` em erro) |
 | acesso | `.` `[ ]` `( )` | idem |
 | endereço/indireção | `&` `*` | idem (C nativo) |
-| texto | `TEXTOS_IGUAIS(a,b)`, `TEXTOS_DIFERENTES(a,b)` | idem |
+| texto | `TEXTOS_IGUAIS(a,b)`, `TEXTOS_DIFERENTES(a,b)`, `COMPARA_TEXTO(a,b)` | idem |
 
 `MOD` e `%` são **a mesma coisa** (`MOD` expande para `%`). A forma por palavra é
 canônica na documentação didática; `%` permanece válido porque a fonte é C.
@@ -556,7 +577,11 @@ aritmética. `SE a E b OU c ENTAO` é legal e perigoso; `SE (a E b) OU c ENTAO` 
 | `NAO` com `E`/`OU` | `NAO a E b` = `(!a) && b` (precedência de `!`). Use parênteses. |
 | Dupla avaliação | as macros com argumentos avaliam cada argumento **uma vez** (P-11), inclusive `ABS`, `MINIMO`, `MAXIMO` (implementadas como funções `inline`). |
 | Efeito colateral em argumento de `ESCREVA` | `ESCREVA(i++)` avalia uma vez e imprime antes do incremento — evite por legibilidade. |
-| Verdade em C | qualquer valor diferente de zero é verdadeiro; a especificação recomenda condições `LOGICO`. M1 avisa (W-03). |
+| Verdade em C | qualquer valor diferente de zero é verdadeiro; a especificação recomenda condições `LOGICO` ou `LOGICO_DE(x)`. M1 avisa (W-03). |
+| `NaN` em comparação | todas as comparações com `NaN` são falsas, inclusive `NaN == NaN`; use `isnan(x)` |
+| `^` não é potência | em C, `^` é XOR bit a bit; use `POTENCIA`. `2 ^ 3` vale 1 |
+| Divisor zero em reais | `/` produz infinito/NaN; `DIVIDE` recusa o divisor zero também em real |
+| Texto `NULL` | `TEXTOS_IGUAIS`/`strlen` não aceitam `NULL`; `COMPARA_TEXTO`/`TEXTO_VAZIO`/`TAMANHO_TEXTO` tratam como vazio |
 
 ---
 
@@ -1070,6 +1095,13 @@ Compilação: `cc -std=c11 principal.c biblioteca.c -o app -lm` (o `.c` é C).
 * **menor** — adiciona construtor, palavra-chave, aviso ou função de biblioteca;
 * **correção** — corrige documentação/defeito sem mudar comportamento especificado.
 
+Histórico: `1.0.0` (Fases 1–2: linguagem, cabeçalho, transpilador); `1.1.0` (Fase 4:
+tipos com contrato explícito, `OU_EXCLUSIVO`/`LOGICO_DE`, `DIVIDE`/`RESTO`, conversões
+verificadas, biblioteca de texto segura, `LEIA_INTEIRO`/`LEIA_REAL` e extensões
+opcionais). A Fase 4 é aditiva, exceto pelo endurecimento de
+`TEXTO_PARA_INTEIRO`/`TEXTO_PARA_REAL`, que passaram a recusar estouro de faixa
+(D-27 em [04](04-restricoes-e-decisoes.md)).
+
 ### 16.2 Garantias
 
 * **G-1** Todo programa válido em `1.x` continua válido e com o mesmo comportamento em
@@ -1199,7 +1231,7 @@ mantém a especificação curta e o mapeamento 1:1.
 
 ## 18. Exemplos
 
-Programas completos em [`docs/exemplos/`](exemplos/) (11 programas no perfil M0 e 1 no perfil M1; saídas
+Programas completos em [`docs/exemplos/`](exemplos/) (13 programas no perfil M0 e 1 no perfil M1; saídas
 verificadas em [`exemplos/README.md`](exemplos/README.md)):
 
 | Arquivo | Demonstra |
@@ -1215,6 +1247,8 @@ verificadas em [`exemplos/README.md`](exemplos/README.md)):
 | [`interop_c.c`](exemplos/interop_c.c) | BG e C no mesmo arquivo, `#include`, `struct`, ponteiros |
 | [`fatorial_recursivo.c`](exemplos/fatorial_recursivo.c) | recursão, `RETORNE`, `INTEIRO64` |
 | [`utilidades.c`](exemplos/utilidades.c) | catálogo: todos os tipos, matemática, texto, `ENUMERACAO`, `AFIRME`, `ESCREVA_ERRO` |
+| [`tipos.c`](exemplos/tipos.c) | **Fase 4**: um valor de cada tipo, largura, faixa e precisão |
+| [`expressoes.c`](exemplos/expressoes.c) | **Fase 4**: precedência, conversões, verdade, `DIVIDE`/`RESTO`, texto seguro |
 | [`para_contado.c`](exemplos/para_contado.c) | forma açucarada do laço contado (**M1**) e sua equivalência em M0 |
 
 Cada exemplo abre com um comentário que declara o perfil exigido (`M0` ou `M0+M1`) e o
@@ -1233,6 +1267,11 @@ comando de compilação.
 3. O vocabulário em português cobre fluxo de controle, tipos, declarações, E/S de
    console e erros fatais.
 4. C está sempre disponível e se mistura sem cerimônia.
+5. Toda conversão que pode falhar tem forma verificada que devolve `LOGICO`, e as únicas
+   operações aritméticas com UB inevitável (divisão/resto por zero e `MIN/-1`) têm versão
+   verificada (`DIVIDE`/`RESTO`) — [06](06-tipos-e-expressoes.md) §4 e §5.
+6. O que a linguagem promete sobre estouro e ponto flutuante está escrito sem eufemismo
+   em [06 §10](06-tipos-e-expressoes.md).
 
 **Não garantido (por construção)**
 

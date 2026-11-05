@@ -27,7 +27,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define BG_VERSAO "1.0.0"
+#define BG_VERSAO "1.1.0"
 
 /* Sem o atributo de formato, -Wformat=2 (logo -Wformat-nonliteral) faz o
  * clang recusar o vfprintf das funções de diagnóstico com -Werror. O
@@ -439,6 +439,8 @@ static const Traducao TRADUCOES[] = {
     { "INTEIRO32",  "int32_t",          BLOCO_NENHUM,       BLOCO_NENHUM },
     { "INTEIRO64",  "int64_t",          BLOCO_NENHUM,       BLOCO_NENHUM },
     { "INTEIRO",    "int",              BLOCO_NENHUM,       BLOCO_NENHUM },
+    { "NATURAL_CURTO", "unsigned short", BLOCO_NENHUM,      BLOCO_NENHUM },
+    { "NATURAL_LONGO", "unsigned long",  BLOCO_NENHUM,      BLOCO_NENHUM },
     { "NATURAL8",   "uint8_t",          BLOCO_NENHUM,       BLOCO_NENHUM },
     { "NATURAL16",  "uint16_t",         BLOCO_NENHUM,       BLOCO_NENHUM },
     { "NATURAL32",  "uint32_t",         BLOCO_NENHUM,       BLOCO_NENHUM },
@@ -494,8 +496,16 @@ static const char *VALORES[] = {
     "ABS", "MINIMO", "MAXIMO", "POTENCIA", "RAIZ", "ARREDONDA", "PISO", "TETO",
     "SORTEIA", "INICIA_SORTEIO",
     "IGUAL", "DIFERENTE", "TEXTOS_IGUAIS", "TEXTOS_DIFERENTES",
-    "TAMANHO_TEXTO", "COPIA_TEXTO", "JUNTA_TEXTO",
-    "TEXTO_PARA_INTEIRO", "TEXTO_PARA_REAL",
+    "TAMANHO_TEXTO", "COPIA_TEXTO", "JUNTA_TEXTO", "ACRESCENTA_TEXTO",
+    "TRECHO_TEXTO", "COMPARA_TEXTO", "TEXTO_VAZIO", "FORMATA_TEXTO",
+    "TEXTO_PARA_INTEIRO", "TEXTO_PARA_NATURAL", "TEXTO_PARA_REAL",
+    "REAL_PARA_INTEIRO",
+    "E_DIGITO", "E_LETRA", "CARACTERE_MAIUSCULO", "CARACTERE_MINUSCULO",
+    "OU_EXCLUSIVO", "LOGICO_DE", "DIVIDE", "RESTO",
+    "TAMANHO_DE", "BITS_DE", "MAXIMO_INTEIRO", "MINIMO_INTEIRO",
+    "MAXIMO_NATURAL", "MAXIMO_REAL", "EPSILON_REAL",
+    "LEIA_INTEIRO", "LEIA_REAL",
+    "SOMA_SEGURA", "SUBTRAI_SEGURA", "MULTIPLICA_SEGURA",
     "ERRO", "AFIRME",
     NULL
 };
@@ -503,6 +513,7 @@ static const char *VALORES[] = {
 static const char *TIPOS[] = {
     "LOGICO", "CARACTERE", "INTEIRO_CURTO", "INTEIRO", "INTEIRO_LONGO",
     "INTEIRO8", "INTEIRO16", "INTEIRO32", "INTEIRO64", "NATURAL",
+    "NATURAL_CURTO", "NATURAL_LONGO",
     "NATURAL8", "NATURAL16", "NATURAL32", "NATURAL64",
     "REAL_CURTO", "REAL", "REAL_LONGO", "TEXTO", "VAZIO",
     NULL
@@ -807,6 +818,7 @@ static const char *NOMES_C[] = {
     "NULL", "EOF", "EXIT_SUCCESS", "EXIT_FAILURE", "SIZE_MAX", "RAND_MAX",
     "INT_MAX", "INT_MIN", "UINT_MAX", "CHAR_BIT", "BUFSIZ", "SEEK_SET",
     "SEEK_CUR", "SEEK_END", "true", "false",
+    "NAN", "INFINITY", "HUGE_VAL", "DBL_MAX", "DBL_EPSILON",
     NULL
 };
 
@@ -1711,7 +1723,7 @@ int main(int argc, char **argv)
             uso(stdout);
             return 0;
         } else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--versao") == 0) {
-            printf("basicgolc %s (BASICGOL 1.0.0)\n", BG_VERSAO);
+            printf("basicgolc %s (BASICGOL 1.1.0)\n", BG_VERSAO);
             return 0;
         } else if (strcmp(argv[i], "-o") == 0) {
             if (i + 1 >= argc) {

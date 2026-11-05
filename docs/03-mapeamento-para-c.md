@@ -55,6 +55,10 @@ Os trechos de saída de pré-processador mostrados na §4 são reais (com a tabe
 | 16 | `CONSTANTE INTEIRO k_n = 10;` | `static const int k_n = 10;` | N |
 | 17 | `EXTERNO INTEIRO total;` | `extern int total;` | N |
 | 18 | `(REAL) contador` | `(double) contador` | C |
+| 18a | `NATURAL_CURTO` / `NATURAL_LONGO` | `unsigned short` / `unsigned long` | N |
+| 18b | `TAMANHO_DE(t)` / `BITS_DE(t)` | `((size_t) sizeof(t))` / `((size_t) (sizeof(t) * CHAR_BIT))` | N |
+| 18c | `MAXIMO_INTEIRO` / `MINIMO_INTEIRO` / `MAXIMO_NATURAL` | `INT_MAX` / `INT_MIN` / `UINT_MAX` | N |
+| 18d | `MAXIMO_REAL` / `EPSILON_REAL` | `DBL_MAX` / `DBL_EPSILON` | N |
 | 19 | `INTEIRO v[]` (em parâmetro) | `int *v` | N/C |
 
 ### 2.2 Declarações compostas
@@ -106,6 +110,10 @@ Os trechos de saída de pré-processador mostrados na §4 são reais (com a tabe
 | 52 | `DIFERENTE(a, b)` | `((a) != (b))` | N |
 | 53 | `TEXTOS_IGUAIS(a, b)` | `(strcmp((a), (b)) == 0)` | N |
 | 54 | `TEXTOS_DIFERENTES(a, b)` | `(strcmp((a), (b)) != 0)` | N |
+| 54a | `OU_EXCLUSIVO(a, b)` | `((bool) (((a) != 0) != ((b) != 0)))` | N |
+| 54b | `LOGICO_DE(x)` | `((bool) ((x) != 0))` | N |
+| 54c | `DIVIDE(a, b)` | `_Generic((a)+(b), int: bg_divide_i, …, double: bg_divide_d, default: bg_divide_d)((a), (b), __FILE__, __LINE__)` | N |
+| 54d | `RESTO(a, b)` | `_Generic((a)+(b), int: bg_resto_i, …)((a), (b), __FILE__, __LINE__)` — sem real | N |
 | 55 | `ABS(x)` | `_Generic((x), int: bg_abs_i, long: bg_abs_l, float: bg_abs_f, double: bg_abs_d, default: bg_abs_d)(x)` | N |
 | 56 | `MINIMO(a, b)` / `MAXIMO(a, b)` | despacho `_Generic` para `bg_min_*`/`bg_max_*` | N |
 | 57 | `POTENCIA(b, e)` | `pow((b), (e))` | N |
@@ -115,6 +123,16 @@ Os trechos de saída de pré-processador mostrados na §4 são reais (com a tabe
 | 61 | `TAMANHO_TEXTO(s)` | `bg_tamanho_texto(s)` | N |
 | 62 | `SORTEIA(n)` | `bg_sorteia(n)` | N |
 | 63 | `INICIA_SORTEIO(s)` | `bg_inicia_sorteio((unsigned)(s))` | N |
+| 63a | `ACRESCENTA_TEXTO(d, t, s)` | `bg_acrescenta_texto((d), (size_t)(t), (s))` | N |
+| 63b | `TRECHO_TEXTO(d, t, s, i, n)` | `bg_trecho_texto((d), (size_t)(t), (s), (size_t)(i), (size_t)(n))` | N |
+| 63c | `COMPARA_TEXTO(a, b)` | `bg_compara_texto((a), (b))` | N |
+| 63d | `TEXTO_VAZIO(s)` | `bg_texto_vazio(s)` | N |
+| 63e | `FORMATA_TEXTO(d, t, …)` | `bg_formata_texto((d), (size_t)(t), __VA_ARGS__)` | N |
+| 63f | `E_DIGITO(c)` / `E_LETRA(c)` | `bg_e_digito(c)` / `bg_e_letra(c)` (ASCII) | N |
+| 63g | `CARACTERE_MAIUSCULO(c)` / `CARACTERE_MINUSCULO(c)` | `bg_caractere_maiusculo(c)` / `bg_caractere_minusculo(c)` | N |
+| 63h | `TEXTO_PARA_NATURAL(s, p)` | `bg_texto_para_natural((s), (p))` | N |
+| 63i | `REAL_PARA_INTEIRO(x, p)` | `bg_numero_para_inteiro((x), (p))` | N |
+| 63j | `SOMA_SEGURA(a,b,p)` etc. | `bg_soma_segura((a),(b),(p))` — só com `BG_USAR_EXTENSOES` | N (opcional) |
 
 ### 2.5 Entrada e saída
 
@@ -129,6 +147,8 @@ Os trechos de saída de pré-processador mostrados na §4 são reais (com a tabe
 | 70 | `LEIA(x);` | `((void)(scanf(_Generic(&(x), …), &(x)) == 1))` | N |
 | 71 | `LEIA_OK(x);` | `(scanf(_Generic(&(x), …), &(x)) == 1)` | N |
 | 72 | `LEIA_TEXTO(buf, tam);` | `bg_leia_texto((buf), (size_t)(tam))` | N |
+| 72a | `LEIA_INTEIRO(x);` | `bg_leia_inteiro(&(x))` (linha inteira, devolve `LOGICO`) | N |
+| 72b | `LEIA_REAL(x);` | `bg_leia_real(&(x))` | N |
 
 ### 2.6 Erros
 
@@ -237,8 +257,10 @@ detecção de compilador e documentação embutida, é entrega da Fase 2). Esta 
 #define BG_SFMT(x) _Generic(&(x), \
     int *: "%d", unsigned *: "%u", long *: "%ld", unsigned long *: "%lu", \
     long long *: "%lld", unsigned long long *: "%llu", \
-    float *: "%f", double *: "%lf", char *: "%c", signed char *: "%hhd", \
-    default: "%p")
+    float *: "%f", double *: "%lf", long double *: "%Lf", \
+    char *: " %c", signed char *: " %hhd", unsigned char *: "%hhu", \
+    short *: "%hd", unsigned short *: "%hu", \
+    default: "%p")   /* default atinge LOGICO: -Wformat recusa */
 #define LEIA(x)             ((void)(scanf(BG_SFMT(x), &(x)) == 1))
 #define LEIA_OK(x)          (scanf(BG_SFMT(x), &(x)) == 1)
 #define LEIA_TEXTO(b, t)    bg_leia_texto((b), (size_t)(t))
@@ -246,6 +268,38 @@ detecção de compilador e documentação embutida, é entrega da Fase 2). Esta 
 /* ---- erros ---- */
 #define ERRO(msg)           bg_erro(__FILE__, __LINE__, (msg))
 #define AFIRME(c, msg)      ((c) ? (void)0 : bg_erro(__FILE__, __LINE__, (msg)))
+
+/* ---- Fase 4: tipos, operadores e conversões verificadas ---- */
+#define NATURAL_CURTO       unsigned short
+#define NATURAL_LONGO       unsigned long
+#define TAMANHO_DE(t)       ((size_t) sizeof(t))
+#define BITS_DE(t)          ((size_t) (sizeof(t) * CHAR_BIT))
+#define MAXIMO_INTEIRO      INT_MAX
+#define MINIMO_INTEIRO      INT_MIN
+#define MAXIMO_NATURAL      UINT_MAX
+#define MAXIMO_REAL         DBL_MAX
+#define EPSILON_REAL        DBL_EPSILON
+
+#define OU_EXCLUSIVO(a, b)  ((bool) (((a) != 0) != ((b) != 0)))
+#define LOGICO_DE(x)        ((bool) ((x) != 0))
+#define DIVIDE(a, b)        _Generic((a) + (b), /* … por tipo … */ \
+                             default: bg_divide_d)((a), (b), __FILE__, __LINE__)
+#define RESTO(a, b)         _Generic((a) + (b), /* só tipos inteiros */ \
+                             default: bg_resto_i)((a), (b), __FILE__, __LINE__)
+
+#define ACRESCENTA_TEXTO(d, t, o)       bg_acrescenta_texto((d), (size_t)(t), (o))
+#define TRECHO_TEXTO(d, t, o, i, q)     bg_trecho_texto((d), (size_t)(t), (o), (size_t)(i), (size_t)(q))
+#define COMPARA_TEXTO(a, b)             bg_compara_texto((a), (b))
+#define TEXTO_VAZIO(s)                  bg_texto_vazio(s)
+#define FORMATA_TEXTO(d, t, ...)        bg_formata_texto((d), (size_t)(t), __VA_ARGS__)
+#define E_DIGITO(c)                     bg_e_digito(c)
+#define E_LETRA(c)                      bg_e_letra(c)
+#define CARACTERE_MAIUSCULO(c)          bg_caractere_maiusculo(c)
+#define CARACTERE_MINUSCULO(c)          bg_caractere_minusculo(c)
+#define TEXTO_PARA_NATURAL(s, p)        bg_texto_para_natural((s), (p))
+#define REAL_PARA_INTEIRO(x, p)         bg_numero_para_inteiro((x), (p))
+#define LEIA_INTEIRO(x)                 bg_leia_inteiro(&(x))
+#define LEIA_REAL(x)                    bg_leia_real(&(x))
 ```
 
 Observações normativas sobre este bloco:
@@ -427,9 +481,40 @@ bool   bg_junta_texto(char *dest, size_t tam, const char *a, const char *b);
 /* false = não coube; nesse caso dest[0] = '\0' (truncamento nunca silencioso) */
 
 bool bg_texto_para_inteiro(const char *s, int *saida);
+bool bg_texto_para_natural(const char *s, unsigned *saida);
 bool bg_texto_para_real(const char *s, double *saida);
 /* true somente se a conversao consumiu o texto INTEIRO (espacos finais
-   tolerados); sobra de caracteres -> false. Sem isso, "4x2" viraria 4. */
+   tolerados); sobra de caracteres -> false. Sem isso, "4x2" viraria 4.
+   Fase 4: tambem recusam estouro de faixa/ERANGE; "natural" recusa '-'. */
+
+/* Fase 4: texto seguro (mesmo contrato de RB-3, destino limpo na falha,
+   origem e destino podem se sobrepor: implementadas com memmove) */
+bool bg_acrescenta_texto(char *dest, size_t tam, const char *origem);
+bool bg_trecho_texto(char *dest, size_t tam, const char *origem,
+                     size_t inicio, size_t quantidade);
+int  bg_compara_texto(const char *a, const char *b);   /* -1/0/+1, NULL = "" */
+bool bg_texto_vazio(const char *s);
+bool bg_formata_texto(char *dest, size_t tam, const char *formato, ...);
+
+/* Fase 4: caractere ASCII (independente de locale) */
+bool bg_e_digito(char c);
+bool bg_e_letra(char c);
+char bg_caractere_maiusculo(char c);
+char bg_caractere_minusculo(char c);
+
+/* Fase 4: conversao verificada REAL -> INTEIRO (cast seria UB fora de faixa) */
+bool bg_numero_para_inteiro(double x, int *saida);
+
+/* Fase 4: divisor zero e MIN/-1 viram erro, nao UB */
+int  bg_divide_i(int a, int b, const char *arquivo, int linha);
+/* … long, long long, unsigned, unsigned long, unsigned long long,
+      float, double, long double — mesma assinatura por tipo … */
+int  bg_resto_i(int a, int b, const char *arquivo, int linha);
+/* … long, long long, unsigned, unsigned long, unsigned long long … */
+
+/* Fase 4: entrada numerica por linha (buffer interno de 64 bytes) */
+bool bg_leia_inteiro(int *saida);
+bool bg_leia_real(double *saida);
 
 /* matemática com avaliação única */
 int    bg_abs_i(int x);      long   bg_abs_l(long x);
@@ -455,6 +540,11 @@ Requisitos de qualidade dessa biblioteca (entram nos critérios de aceitação d
 | RB-6 | Nenhuma depende de extensão de compilador |
 | RB-7 | Conversão texto→número só aceita o texto inteiro (sem sobra) |
 | RB-8 | `bg_leia_texto` só consome um terminador de linha se ele estiver realmente pendente (C-20) |
+| RB-9 | Toda operação de texto com destino limitado reporta truncamento **e** deixa o destino vazio (Fase 4) |
+| RB-10 | Conversão verificada não altera o destino quando falha |
+| RB-11 | `DIVIDE`/`RESTO` recusam divisor zero e `MIN/-1` com erro que aponta o ponto de uso, nunca UB |
+| RB-12 | As únicas funções que tocam `errno` são as de conversão texto→número (efeito de `strtol`/`strtod`), documentado |
+| RB-13 | Origem `NULL` é texto vazio nas funções de texto, e origem/destino podem coincidir (`memmove`) |
 
 ---
 

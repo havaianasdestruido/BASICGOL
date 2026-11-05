@@ -1,0 +1,68 @@
+=============================================
+EXPRESSOES: SEMANTICA
+=============================================
+Precedencia (a mesma de C; parenteses explicitos):
+  2 + 3 * 4        = 14
+  (2 + 3) * 4      = 20
+  10 - 2 - 3       = 5
+  100 / 10 / 2     = 5
+  7 MOD 2 + 1      = 2
+  2 + 3 < 6        = 1
+  (1 E 0) OU 1     = 1
+  NAO 0 E 0        = 0
+  -7 / 2           = -3
+  -7 MOD 2         = -1
+
+Atribuicao e comparacao sao operadores diferentes:
+  x = 5;  x == 5    = 1
+  x = x + 1;  x     = 6
+  x += 2;  x        = 8
+  IGUAL(x, 8)       = 1
+  DIFERENTE(x, 8)   = 0
+
+Valor de verdade: zero e falso, o resto e verdadeiro.
+  LOGICO_DE(0)      = 0
+  LOGICO_DE(-3)     = 1
+  LOGICO_DE(0.0)    = 0
+  LOGICO_DE(0.1)    = 1
+  LOGICO_DE(NAN)    = 1
+  OU_EXCLUSIVO(1,0) = 1
+  OU_EXCLUSIVO(1,1) = 0
+  curto-circuito: lado direito avaliado 0 vez(es)
+
+Conversoes:
+  (REAL) 7 / 2      = 3.5
+  7 / 2             = 3
+  (INTEIRO) 3.9     = 3
+  (INTEIRO) -3.9    = -3
+  (NATURAL8) 300    = 44
+  TEXTO_PARA_INTEIRO(" 42 ")  = 1  -> 42
+  TEXTO_PARA_INTEIRO("4x2")   = 0  (n continua 42)
+  TEXTO_PARA_INTEIRO("2147483648") = 0
+  TEXTO_PARA_NATURAL("-1")    = 0
+  TEXTO_PARA_NATURAL("42")    = 1  -> 42
+  TEXTO_PARA_REAL("2.5")      = 1  -> 2.5
+  TEXTO_PARA_REAL("2,5")      = 0
+  TEXTO_PARA_REAL("1e999")    = 0
+  REAL_PARA_INTEIRO(2.9)    = 1  -> 2
+  REAL_PARA_INTEIRO(NAN)    = 0
+  REAL_PARA_INTEIRO(1e300)  = 0
+
+Divisao verificada (DIVIDE/RESTO recusam divisor zero):
+  DIVIDE(7, 2)      = 3
+  DIVIDE(-7, 2)     = -3
+  RESTO(7, 2)       = 1
+  RESTO(-7, 2)      = -1
+  DIVIDE(7.0, 2.0)  = 3.50
+  DIVIDE(MINIMO_INTEIRO, 1) == MINIMO_INTEIRO ? 1
+
+Texto (todas as operacoes reportam truncamento):
+  COPIA_TEXTO("abc")        = 1  -> "abc"
+  ACRESCENTA_TEXTO("def")   = 1  -> "abcdef"
+  acrescentar demais         = 0  -> tamanho 0
+  TRECHO_TEXTO("BASICGOL", 5, 3) = 1  -> "GOL"
+  FORMATA_TEXTO("%d/%d")     = 1  -> "22/7"
+  COMPARA_TEXTO("a", "b")   = -1
+  COMPARA_TEXTO("b", "b")   = 0
+  TEXTOS_IGUAIS("a", "a")   = 1
+=============================================
