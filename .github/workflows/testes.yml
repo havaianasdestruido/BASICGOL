@@ -1,0 +1,33 @@
+name: testes
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  suite:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [gcc, clang]
+        std: [c11, c17]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: compilar o transpilador
+        run: make CC=${{ matrix.cc }}
+
+      - name: suíte completa (M0 + M1)
+        env:
+          CC: ${{ matrix.cc }}
+          T_CFLAGS: -std=${{ matrix.std }} -Wall -Wextra -Wformat=2 -Wvla -Werror
+        run: ./tests/run.sh
+
+      - name: exemplos com saída dourada
+        run: make exemplos CC=${{ matrix.cc }}
+
+      - name: a matriz de cobertura está atualizada
+        run: |
+          make cobertura
+          git diff --exit-code tests/COBERTURA.md

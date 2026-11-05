@@ -1,0 +1,119 @@
+// principal.c — lê a configuração, monta o acervo e atende comandos
+#include "acervo.h"
+
+// Extrai o primeiro número que aparece no comando ("e 3" -> 3); -1 se não houver.
+FUNCAO INTEIRO le_id(TEXTO s) {
+    // tamanhos são NATURAL (size_t): compare NATURAL com NATURAL para não
+    // misturar sinal (-Wsign-compare)
+    NATURAL i = 0;
+    INTEIRO valor = -1;
+    ENQUANTO i < TAMANHO_TEXTO(s) FACA
+        SE s[i] >= '0' E s[i] <= '9' ENTAO
+            SE valor < 0 ENTAO
+                valor = 0;
+            FIM_SE
+            valor = valor * 10 + (s[i] - '0');
+        FIM_SE
+        i = i + 1;
+    FIM_ENQUANTO
+    RETORNE valor;
+}
+
+PROCEDIMENTO carrega_acervo(void) {
+    cadastra(1, "Dom Casmurro", "Machado de Assis", 1899);
+    cadastra(2, "O Cortico", "Aluisio Azevedo", 1890);
+    cadastra(3, "Grande Sertao", "Guimaraes Rosa", 1956);
+    cadastra(4, "Vidas Secas", "Graciliano Ramos", 1938);
+    cadastra(5, "Iracema", "Jose de Alencar", 1865);
+    cadastra(6, "Memorias Postumas", "Machado de Assis", 1881);
+}
+
+INICIO
+    TEXTO_FIXO(linha, 64);
+    INTEIRO quota = 0;
+    REAL fator = 1.0;
+
+    // 1ª linha: cota de empréstimos simultâneos (inteiro)
+    SE NAO LEIA_TEXTO(linha, 64) ENTAO
+        ERRO("entrada vazia: faltou a cota de emprestimos");
+    FIM_SE
+    SE NAO TEXTO_PARA_INTEIRO(linha, &quota) ENTAO
+        ERRO("cota invalida: esperado um inteiro na primeira linha");
+    FIM_SE
+
+    // 2ª linha: fator de raridade (real)
+    SE NAO LEIA_TEXTO(linha, 64) ENTAO
+        ERRO("faltou o fator de raridade");
+    FIM_SE
+    SE NAO TEXTO_PARA_REAL(linha, &fator) ENTAO
+        ERRO("fator invalido: esperado um real na segunda linha");
+    FIM_SE
+
+    carrega_acervo();
+    ordena_por_ano();
+    ESCREVA_FMT("cota: %d emprestimo(s), fator %.2f, capacidade %d\n",
+                quota, fator, ACERVO_MAX);
+
+    TEXTO_FIXO(comando, 64);
+    LOGICO sair = FALSO;
+    INTEIRO recusados = 0;
+
+    REPITA
+        SE NAO LEIA_TEXTO(comando, 64) ENTAO
+            PARE;                       // fim da entrada
+        FIM_SE
+        SE IGUAL(TAMANHO_TEXTO(comando), 0) ENTAO
+            PROSSIGA;                   // linha em branco
+        FIM_SE
+
+        INTEIRO id = le_id(comando);
+
+        ESCOLHA (comando[0])
+            CASO 'f':
+                sair = VERDADEIRO;
+                PARE;
+            CASO 'r':
+                relatorio(fator);
+                PARE;
+            CASO 'e':
+                SE id < 0 ENTAO
+                    ESCREVA_ERRO("falta o id do livro\n");
+                    recusados = recusados + 1;
+                SENAO_SE busca(id) < 0 ENTAO
+                    ESCREVA_FMT("recusado: livro %d inexistente\n", id);
+                    recusados = recusados + 1;
+                SENAO_SE emprestados() >= quota ENTAO
+                    ESCREVA_FMT("recusado: cota de %d atingida\n", quota);
+                    recusados = recusados + 1;
+                SENAO_SE empresta(id) ENTAO
+                    ESCREVA_FMT("emprestado: %d\n", id);
+                SENAO
+                    ESCREVA_FMT("recusado: livro %d ja emprestado\n", id);
+                    recusados = recusados + 1;
+                FIM_SE
+                PARE;
+            CASO 'd':
+                SE devolve(id) ENTAO
+                    ESCREVA_FMT("devolvido: %d\n", id);
+                SENAO
+                    ESCREVA_FMT("recusado: livro %d nao estava emprestado\n", id);
+                    recusados = recusados + 1;
+                FIM_SE
+                PARE;
+            CONTRARIO:
+                ESCREVA_ERRO("comando desconhecido\n");
+                recusados = recusados + 1;
+        FIM_ESCOLHA
+    ATE_QUE (sair);
+
+    ESCREVA("ids em ordem decrescente:");
+    INTEIRO k = 0;
+    PARA_PASSO (k, quantidade() - 1, 0, -1) {
+        ESCREVA_FMT(" %d", acervo_id(k));
+    }
+    ESCREVA_LINHA();
+
+    ESCREVA_FMT("fim: %d livro(s), %d emprestado(s), %d recusa(s)\n",
+                quantidade(), emprestados(), recusados);
+    AFIRME(quantidade() > 0, "o acervo nao pode terminar vazio");
+FIM

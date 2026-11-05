@@ -1,0 +1,19 @@
+// contas.c — estado privado do modulo (ESTATICO) exposto por uma funcao
+#include "contas.h"
+
+ESTATICO INTEIRO total = 0;
+
+ESTATICO PROCEDIMENTO soma_um(void) {
+    total = total + 1;
+}
+
+ESTATICO FUNCAO INTEIRO vezes_dois(INTEIRO x) {
+    RETORNE x * 2;
+}
+
+FUNCAO INTEIRO contador_global(void) {
+    soma_um();
+    soma_um();
+    soma_um();
+    RETORNE vezes_dois(total);
+}

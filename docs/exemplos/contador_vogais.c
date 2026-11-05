@@ -1,0 +1,61 @@
+// contador_vogais.c — TEXTO_FIXO, LEIA_TEXTO e percurso caractere a caractere.
+// Perfil: M0 (macros).
+// Compilar: cc -std=c11 -Wall -Wextra contador_vogais.c -o contador_vogais
+#include <basicgol.h>
+
+// Conta vogais minusculas e maiusculas da frase.
+FUNCAO INTEIRO conta_vogais(TEXTO frase) {
+    INTEIRO i = 0;
+    INTEIRO total = 0;
+    CARACTERE c = 0;
+
+    ENQUANTO frase[i] != '\0' FACA
+        c = frase[i];
+        SE c == 'a' OU c == 'e' OU c == 'i' OU c == 'o' OU c == 'u' ENTAO
+            total = total + 1;
+        SENAO_SE c == 'A' OU c == 'E' OU c == 'I' OU c == 'O' OU c == 'U' ENTAO
+            total = total + 1;
+        FIM_SE
+        i = i + 1;
+    FIM_ENQUANTO
+
+    RETORNE total;
+}
+
+// Devolve a frase com as vogais trocadas por '*' (escreve em destino).
+// O parametro e um vetor de caracteres: em parametro usa-se CARACTERE destino[].
+PROCEDIMENTO mascara_vogais(TEXTO origem, CARACTERE destino[]) {
+    INTEIRO i = 0;
+    CARACTERE c = 0;
+
+    ENQUANTO origem[i] != '\0' FACA
+        c = origem[i];
+        SE c == 'a' OU c == 'e' OU c == 'i' OU c == 'o' OU c == 'u'
+           OU c == 'A' OU c == 'E' OU c == 'I' OU c == 'O' OU c == 'U' ENTAO
+            destino[i] = '*';
+        SENAO
+            destino[i] = c;
+        FIM_SE
+        i = i + 1;
+    FIM_ENQUANTO
+    destino[i] = '\0';
+}
+
+INICIO
+    TEXTO_FIXO(frase, 120);
+    TEXTO_FIXO(mascarada, 120);
+
+    ESCREVA("Digite uma frase: ");
+    SE NAO LEIA_TEXTO(frase, (INTEIRO) sizeof frase) ENTAO
+        ERRO("falha ao ler a frase");
+    FIM_SE
+
+    ESCREVA("Caracteres: ");
+    ESCREVAL(TAMANHO_TEXTO(frase));
+    ESCREVA("Vogais: ");
+    ESCREVAL(conta_vogais(frase));
+
+    mascara_vogais(frase, mascarada);
+    ESCREVA("Mascarada: ");
+    ESCREVAL(mascarada);
+FIM

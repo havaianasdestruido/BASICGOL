@@ -1,0 +1,7 @@
+Quantos alunos (1 a 30)? Matricula do aluno 1: Nome: Nota: Matricula do aluno 2: Nome: Nota: 
+MATR.  NOME                   NOTA
+101    Ana Silva              9.50
+102    Bia Souza              6.50
+Media da turma: 8.00
+Buscar matricula (0 encerra): Encontrado: Bia Souza  nota 6.50
+Buscar matricula (0 encerra): Fim do cadastro.

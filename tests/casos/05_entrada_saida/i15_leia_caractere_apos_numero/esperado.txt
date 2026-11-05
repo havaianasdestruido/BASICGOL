@@ -1,0 +1,1 @@
+numero: letra: lido 42 e 'x'

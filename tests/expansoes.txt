@@ -1,0 +1,44 @@
+# expansoes.txt — tabela de ouro das expansões de macro (AC-22)
+#
+# Formato: NOME|<corpo exato, com espaços normalizados>
+# Comparado com a saída de:  cc -std=c11 -I include -dM -E  (macro expandida)
+# Esta tabela espelha §3 de docs/03-mapeamento-para-c.md. Se uma expansão mudar,
+# mude o cabeçalho, o documento e esta tabela juntos — a suíte reprova a divergência.
+BG_SE|if (
+BG_ENTAO|) {
+BG_SENAO_SE|} else if (
+BG_SENAO|} else {
+BG_FIM_SE|}
+BG_ENQUANTO|while (
+BG_FACA|) {
+BG_FIM_ENQUANTO|}
+BG_REPITA|do {
+BG_ATE_QUE(c)|} while (!(c))
+BG_ESCOLHA(e)|switch (e) {
+BG_CASO|case
+BG_CONTRARIO|default
+BG_FIM_ESCOLHA|}
+BG_PARE|break
+BG_PROSSIGA|continue
+BG_PARA(i,a,b)|for ((i) = (a); (i) <= (b); ++(i))
+BG_PARA_PASSO(i,a,b,p)|for ((i) = (a); ((p) > 0) ? ((i) <= (b)) : ((i) >= (b)); (i) += (p))
+BG_REGISTRO(n)|typedef struct n {
+BG_FIM_REGISTRO(n)|} n
+BG_ENUMERACAO(n)|typedef enum n {
+BG_FIM_ENUMERACAO(n)|} n
+BG_VETOR(t,n,k)|t n[k]
+BG_TAMANHO_VETOR(v)|(sizeof(v) / sizeof((v)[0]))
+BG_TEXTO_FIXO(n,k)|char n[k]
+BG_FUNCAO|
+BG_PROCEDIMENTO|void
+BG_RETORNE|return
+BG_E|&&
+BG_OU|||
+BG_NAO|!
+BG_MOD|%
+BG_INTEIRO|int
+BG_TEXTO|const char *
+BG_VAZIO|void
+BG_CONSTANTE|static const
+BG_ESTATICO|static
+BG_EXTERNO|extern

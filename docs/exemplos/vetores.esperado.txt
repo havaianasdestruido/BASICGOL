@@ -1,0 +1,4 @@
+Vetor:    3  10   6   2   9   5   1   8
+Soma:   44
+Media:  5.50
+Maior:  10

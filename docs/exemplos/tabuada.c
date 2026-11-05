@@ -1,0 +1,41 @@
+// tabuada.c — laco contado, lacos aninhados e alinhamento de colunas.
+// Perfil: M0 (macros).
+// Compilar: cc -std=c11 -Wall -Wextra tabuada.c -o tabuada
+#include <basicgol.h>
+
+INICIO
+    INTEIRO n = 0;
+    INTEIRO i = 0;
+
+    ESCREVA("Tabuada de qual numero (1 a 9)? ");
+    SE NAO LEIA_OK(n) ENTAO
+        ERRO("entrada invalida");
+    FIM_SE
+
+    SE n < 1 OU n > 9 ENTAO
+        ERRO("o numero deve estar entre 1 e 9");
+    FIM_SE
+
+    ESCREVAL("");
+    PARA (i, 1, 10) {
+        ESCREVA_FMT("%d x %2d = %3d\n", n, i, n * i);
+    }
+
+    // Tabela completa 1..5 x 1..5, com lacos aninhados.
+    ESCREVAL("");
+    INTEIRO a = 0;
+    INTEIRO b = 0;
+    PARA (a, 1, 5) {
+        PARA (b, 1, 5) {
+            ESCREVA_FMT("%4d", a * b);
+        }
+        ESCREVA_LINHA();
+    }
+
+    // De 0 a 100 de 10 em 10 (passo diferente de 1).
+    ESCREVAL("");
+    PARA_PASSO (i, 0, 100, 10) {
+        ESCREVA_FMT("%3d ", i);
+    }
+    ESCREVA_LINHA();
+FIM

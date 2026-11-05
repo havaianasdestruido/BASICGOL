@@ -1,0 +1,4 @@
+Ana: 9.0
+Bia: 6.0
+Caio: 7.5
+media 7.50

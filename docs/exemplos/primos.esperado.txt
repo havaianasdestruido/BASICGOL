@@ -1,0 +1,4 @@
+Primos ate qual valor? 2 3 5 7 11 13 17 19 23 29 
+
+Total de primos: 10
+Primeiro multiplo de 7 acima de 100: 105

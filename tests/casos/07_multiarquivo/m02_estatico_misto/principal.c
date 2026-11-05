@@ -1,0 +1,8 @@
+// principal.c — usa o modulo BG e o modulo C
+#include "contas.h"
+
+INICIO
+    ESCREVAL(contador_global());    // 3 * 2 = 6
+    ESCREVAL(contador_global());    // total 6 -> 12
+    ESCREVAL(ajuda_c());            // 42
+FIM
