@@ -1123,6 +1123,31 @@ static void verifica_w04(Estado *e, const Lista *l, int i)
     }
 }
 
+/* Macros que sao de funcao (exigem parenteses). Usar sem '(' nunca e o que a
+ * pessoa quis — e o erro mais comum de quem vem do Portugol ("x IGUAL 3"). */
+static const char *EXIGEM_PARENTESES[] = {
+    "IGUAL", "DIFERENTE", "TEXTOS_IGUAIS", "TEXTOS_DIFERENTES",
+    "MINIMO", "MAXIMO", "POTENCIA", "ABS", "RAIZ", "ARREDONDA", "PISO", "TETO",
+    "SORTEIA", "TAMANHO_TEXTO", "TAMANHO_VETOR", "COPIA_TEXTO", "JUNTA_TEXTO",
+    "TEXTO_PARA_INTEIRO", "TEXTO_PARA_REAL", "ATE_QUE", "VETOR", "TEXTO_FIXO",
+    "REGISTRO", "ENUMERACAO", "FIM_REGISTRO", "FIM_ENUMERACAO",
+    "ESCREVA", "ESCREVAL", "ESCREVA_LINHA", "ESCREVA_TEXTO", "ESCREVA_FMT",
+    "ESCREVA_ERRO", "LEIA", "LEIA_OK", "LEIA_TEXTO", "ERRO", "AFIRME", "ESCOLHA",
+    "PARA", "PARA_PASSO",
+    NULL
+};
+
+static bool exige_parenteses(const char *nome)
+{
+    int i;
+    for (i = 0; EXIGEM_PARENTESES[i] != NULL; i++) {
+        if (strcmp(EXIGEM_PARENTESES[i], nome) == 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /* Exige '(' depois do identificador em i e copia o conteudo balanceado para
  * 'dentro'. Devolve o indice do ')' correspondente (ou l->qtd em erro). */
 static int captura_parenteses(Estado *e, const Lista *l, int i, Buf *dentro)
@@ -1327,6 +1352,22 @@ static void emite_identificador(Estado *e, const Lista *l, int *pi)
     const char *nome = t->texto;
     const Traducao *tr;
     int i = *pi;
+    int prox_token = proximo_significativo(l, i);
+
+    /* nome de macro de funcao sem '(' depois: quase sempre "x IGUAL 3" */
+    if (exige_parenteses(nome)
+        && !(prox_token >= 0 && l->itens[prox_token].tipo == TK_PONT
+             && strcmp(l->itens[prox_token].texto, "(") == 0)) {
+        /* ATE, PARA e PARA_PASSO tem formas alternativas (acucar) — ja tratadas acima */
+        if (!(strcmp(nome, "PARA") == 0 || strcmp(nome, "PARA_PASSO") == 0
+              || strcmp(nome, "ATE_QUE") == 0)) {
+            erro(e, t->linha,
+                 "'%s' e prefixado e exige parenteses: use %s(...) "
+                 "(ou o operador de C equivalente)", nome, nome);
+            *pi = i;
+            return;
+        }
+    }
 
     /* --- laço contado açucarado: PARA <var> DE <ini> ATE <fim> [PASSO <p>] FACA */
     if (strcmp(nome, "PARA") == 0) {

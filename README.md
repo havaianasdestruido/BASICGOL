@@ -5,7 +5,7 @@
 **Status: Fase 1 concluída (especificação) · Fase 2 concluída (implementação + testes).**
 O cabeçalho [`include/basicgol.h`](include/basicgol.h) e o transpilador
 [`tools/basicgolc.c`](tools/basicgolc.c) existem, e a suíte em [`tests/`](tests/) roda
-**202 verificações** (cada caso de programa é executado duas vezes: caminho M0 e caminho
+**203 verificações** (cada caso de programa é executado duas vezes: caminho M0 e caminho
 M1). Versão da linguagem: **1.0.0**.
 
 ---
@@ -118,8 +118,9 @@ cc -std=c11 programa.c -o programa -lm -I include
    contava certo — divergência de semântica encontrada pela suíte. O cabeçalho passou a
    usar o mesmo teste ternário do transpilador.
 3. **`ATE_QUE(cond)` exige `;`** (é um `do/while`): sem o ponto e vírgula o erro do C
-   aparece longe da causa. O transpilador agora acusa `'SE' exige 'ENTAO' antes de '{'`
-   e `'SENAO SE' nao encadeia` antes de o compilador C entrar em cena.
+   aparece longe da causa. Hoje o transpilador acusa isso e mais dez situações
+   (`'SE' exige 'ENTAO' antes de '{'`, `'SENAO SE' nao encadeia`,
+   `'IGUAL' e prefixado e exige parenteses`…) antes de o compilador C entrar em cena.
 
 ## Escopo
 

@@ -275,7 +275,6 @@ fi
 # ===============================================================
 if selecionado 09_m1; then
     t_titulo "09 — transpilador M1"
-    M1="$T_CASOS/09_m1"
 
     # 9.1 tradução de cada construtor de bloco
     cat > "$T_TMP/g1.bg" <<'EOF'

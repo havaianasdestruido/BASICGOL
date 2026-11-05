@@ -56,7 +56,7 @@ Qualificadores: `CONSTANTE` → `static const`; `ESTATICO` → `static`; `EXTERN
 | `INTEIRO x = 0;` | N/C | — | variável |
 | `CONSTANTE REAL k_pi = 3.14159;` | N | objeto | constante |
 | `VETOR(INTEIRO, v, 10);` | N | função(3) | vetor de 10 posições, índices 0…9 |
-| `TAMANHO_VETOR(v)` | N | função(1) | número de elementos (só para vetor real, não ponteiro) |
+| `TAMANHO_VETOR(v)` | N | função(1) | número de elementos, devolve `NATURAL`; só para vetor real, não ponteiro (C-18, W-06) |
 | `TEXTO_FIXO(nome, 40);` | N | função(2) | buffer de texto mutável (`char nome[40]`) |
 | `REGISTRO(Nome)` … `FIM_REGISTRO(Nome);` | N | função(1) cada | define registro (`typedef struct`) |
 | `ENUMERACAO(Nome)` … `FIM_ENUMERACAO(Nome);` | N | função(1) cada | define enumeração (`typedef enum`) |
@@ -99,7 +99,7 @@ Qualificadores: `CONSTANTE` → `static const`; `ESTATICO` → `static`; `EXTERN
 | `NAO a` | `!a` | unário | precedência alta: `NAO a E b` = `(!a) && b` |
 | `a MOD b` | `a % b` | binário | só inteiros; sinal do dividendo |
 | `VERDADEIRO` / `FALSO` | `true` / `false` | literal | tipo `LOGICO` |
-| `IGUAL(a, b)` | `((a) == (b))` | função(2) | evita a confusão `=` × `==` |
+| `IGUAL(a, b)` | `((a) == (b))` | função(2) | evita a confusão `=` × `==`. **É prefixado**: `x IGUAL 3` não compila; para infixo use `==` (§11.6 de 01) |
 | `DIFERENTE(a, b)` | `((a) != (b))` | função(2) | idem |
 | `TEXTOS_IGUAIS(a, b)` | `strcmp(a,b) == 0` | função(2) | **única** forma correta de comparar texto |
 | `TEXTOS_DIFERENTES(a, b)` | `strcmp(a,b) != 0` | função(2) | idem |
@@ -173,7 +173,7 @@ por chamada; sem detecção de tipo em tempo de execução.
 | `PISO(x)` / `TETO(x)` | N | inline | piso/teto (`floor`/`ceil`) |
 | `SORTEIA(n)` | N | inline | inteiro pseudoaleatório em `0 … n-1` |
 | `INICIA_SORTEIO(semente)` | N | inline | reinicia o gerador (`srand`) |
-| `TAMANHO_TEXTO(s)` | N | inline | comprimento em bytes (`strlen`); sem acento = 1 byte cada |
+| `TAMANHO_TEXTO(s)` | N | inline | comprimento em bytes (`strlen`), devolve `NATURAL`; cada acento UTF-8 ocupa 2 bytes (D-20) |
 | `COPIA_TEXTO(destino, tam, origem)` | N | inline → `LOGICO` | copia com verificação de espaço |
 | `JUNTA_TEXTO(destino, tam, a, b)` | N | inline → `LOGICO` | concatena dois textos em `destino` |
 | `TEXTO_PARA_INTEIRO(s, &var)` / `TEXTO_PARA_REAL(s, &var)` | N | inline → `LOGICO` | converte texto em número; **rejeita** texto com sobra (`"4x2"`, `"12abc"`) |

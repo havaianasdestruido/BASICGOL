@@ -30,10 +30,6 @@ test: $(FERRAMENTA)
 test-v: $(FERRAMENTA)
 	@./tests/run.sh -v
 
-# Só as suítes de macro (M0) — útil enquanto o transpilador está em construção.
-test-m0:
-	@true
-
 # ---------------------------------------------------------------- exemplos
 
 exemplos: $(FERRAMENTA)

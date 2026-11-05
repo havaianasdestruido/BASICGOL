@@ -116,7 +116,7 @@ A Fase 2b (transpilador) termina quando:
 
 ### 3.4 Resultado da Fase 2 (verificado)
 
-`make test` roda **202 verificações** em 11 suítes, todas aprovadas no ambiente de
+`make test` roda **203 verificações** em 11 suítes, todas aprovadas no ambiente de
 referência (GCC 12.2, Debian, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror`):
 
 | Portão | Critério | Resultado |
@@ -125,7 +125,7 @@ referência (GCC 12.2, Debian, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror`
 | G-OUT-M1 | AC-30 … AC-36 (transpilador) | atendido — `09_m1`, `06_avisos`, `12_negativos_m1` |
 | — | AC-32 ampliado: equivalência M0 × M1 | **todos** os 85 casos de programa, não só os exemplos |
 | — | AC-33 ampliado | W-01…W-07 implementados (W-03, W-04 e W-06 nasceram na Fase 2) |
-| — | AC-34 ampliado | 11 casos de erro do C + 8 do transpilador (o critério pedia 10) |
+| — | AC-34 ampliado | 11 casos de erro do C + 11 do transpilador (o critério pedia 10) |
 
 O mapa item-por-item — cada nome curto, cada aviso, cada restrição e cada critério, com o
 teste que o fixa — é gerado por `make cobertura` em

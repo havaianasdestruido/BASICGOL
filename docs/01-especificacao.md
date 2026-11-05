@@ -816,6 +816,21 @@ FIM_ESCOLHA
 * `expr` deve ser inteiro ou enumeração (regra de C);
 * **não** há `ESCOLHA` sobre texto — use `SE`/`SENAO_SE` com `TEXTOS_IGUAIS`.
 
+### 11.6.1 Comparações: infixo é C, prefixado é português
+
+`IGUAL(a, b)` e `DIFERENTE(a, b)` são macros de **função**, logo só existem na forma
+prefixada; o C não permite criar um operador infixo a partir delas. Na prática:
+
+```c
+SE x == 3 ENTAO          // infixo, é o C de sempre
+SE IGUAL(x, 3) ENTAO     // prefixado, leitura em português
+SE x IGUAL 3 ENTAO       // ERRO: 'IGUAL' sem '(' — o nome fica indefinido
+```
+
+Para textos, `TEXTOS_IGUAIS(a, b)`/`TEXTOS_DIFERENTES(a, b)` são as formas corretas
+(`==` compara ponteiros). O transpulador M1 acusa o uso prefixado sem parênteses antes de
+o C reclamar.
+
 ### 11.7 Desvios
 
 | Comando | Efeito | Onde |
@@ -904,7 +919,8 @@ suíte afirma, uma por uma, em `tests/casos/06_negativos/`.
 | `PARA … DE` sem `ATE` / sem `FACA` | `faltou 'ATE' no laco 'PARA i DE ... ATE ...'` |
 | `PARA i …` sem `DE` | `esperado 'DE' depois da variavel de controle em 'PARA i DE ...'` |
 | `ATE` sem `REPITA` | `'ATE' sem 'REPITA': use 'REPITA ... ATE_QUE(cond);' ou abra um REPITA` |
-| `REGISTRO(Nome)` seguido de `{` | `'REGISTRO' ja abre o bloco: nao use '{'` |
+| `REGISTRO(Nome)`/`ENUMERACAO(Nome)` seguido de `{` | `'REGISTRO' ja abre o bloco: nao use '{' (va direto para os campos)` |
+| macro de função usada como infixo (`x IGUAL 3`) | `'IGUAL' e prefixado e exige parenteses: use IGUAL(...)` |
 
 Cada linha dessa tabela é um caso em `tests/casos/12_negativos_m1/`, e o código de saída
 do `basicgolc` é sempre `1` quando há qualquer erro (nada é escrito no arquivo de saída).

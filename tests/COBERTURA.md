@@ -14,9 +14,9 @@ make test-v          # idem, listando cada verificação aprovada
 
 Cada caso de execução roda **duas vezes** — caminho M0 (macros do cabeçalho) e
 caminho M1 (transpilador) — e só passa se os dois produzirem exatamente a saída
-esperada. Hoje são **87 casos em disco**; o total de verificações
+esperada. Hoje são **88 casos em disco**; o total de verificações
 (impresso no fim de `make test`) inclui também as checagens de sanidade, de linha de
-comando, os 7 avisos, os 19 casos negativos e as 4 provas de estresse.
+comando, os 7 avisos, os 22 casos negativos e as 4 provas de estresse.
 
 Legenda das suítes nas seções seguintes: os diretórios `tests/casos/*` são executados
 pelo `run.sh`; as suítes `01_sanidade`, `09_m1`, `10_exemplos` e `11_estresse` são
@@ -40,12 +40,12 @@ Todos os **88** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `DIFERENTE` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.bg` |
 | `E` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/08_aplicacao/app_acervo/relatorio.bg` (+5) |
 | `ENQUANTO` | `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/03_controle/c06_enquanto_zero/programa.bg`, `tests/casos/03_controle/c07_enquanto_pare/programa.bg` (+5) |
-| `ENTAO` | `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/02_basico/b05_caractere/programa.bg`, `tests/casos/03_controle/c02_se_senao/programa.bg` (+30) |
+| `ENTAO` | `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/02_basico/b05_caractere/programa.bg`, `tests/casos/03_controle/c02_se_senao/programa.bg` (+31) |
 | `ENUMERACAO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/04_estruturas/e07_enumeracao/programa.bg`, `tests/casos/12_negativos_m1/t10_enumeracao_com_chaves/programa.bg`, `tests/casos/12_negativos_m1/t10_enumeracao_com_chaves/esperado_erro.txt` |
 | `ERRO` | `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/05_entrada_saida/i12_erro_fatal/programa.bg` |
 | `ESCOLHA` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/03_controle/c18_escolha_pare/programa.bg` (+5) |
 | `ESCREVA` | `tests/casos/03_controle/c03_senao_se/programa.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/03_controle/c14_para_passo/programa.bg`, `tests/casos/04_estruturas/e04_registro/programa.bg` (+18) |
-| `ESCREVAL` | `tests/casos/02_basico/b01_ola/programa.bg`, `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/02_basico/b04_tipos/programa.bg`, `tests/casos/02_basico/b05_caractere/programa.bg` (+72) |
+| `ESCREVAL` | `tests/casos/02_basico/b01_ola/programa.bg`, `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/02_basico/b04_tipos/programa.bg`, `tests/casos/02_basico/b05_caractere/programa.bg` (+73) |
 | `ESCREVA_ERRO` | `tests/casos/08_aplicacao/app_acervo/principal.bg` |
 | `ESCREVA_FMT` | `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/05_entrada_saida/i03_fmt/programa.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/08_aplicacao/app_acervo/relatorio.bg` (+8) |
 | `ESCREVA_LINHA` | `tests/casos/03_controle/c03_senao_se/programa.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/03_controle/c14_para_passo/programa.bg`, `tests/casos/03_controle/c11_para_basico/programa.bg` (+10) |
@@ -54,17 +54,17 @@ Todos os **88** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `EXTERNO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/07_multiarquivo/m01_modulos/comum.h`, `tests/casos/07_multiarquivo/m02_estatico_misto/contas.h`, `tests/lib.sh` |
 | `FACA` | `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/03_controle/c15_para_acucar/programa.bg`, `tests/casos/03_controle/c06_enquanto_zero/programa.bg` (+9) |
 | `FALSO` | `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/07_multiarquivo/m01_modulos/matematica.bg`, `tests/casos/05_entrada_saida/i09_texto_truncamento/programa.bg` (+2) |
-| `FIM` | `tests/casos/02_basico/b01_ola/programa.bg`, `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/02_basico/b04_tipos/programa.bg`, `tests/casos/02_basico/b05_caractere/programa.bg` (+84) |
+| `FIM` | `tests/casos/02_basico/b01_ola/programa.bg`, `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/02_basico/b04_tipos/programa.bg`, `tests/casos/02_basico/b05_caractere/programa.bg` (+85) |
 | `FIM_ENQUANTO` | `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/03_controle/c06_enquanto_zero/programa.bg`, `tests/casos/03_controle/c07_enquanto_pare/programa.bg` (+5) |
 | `FIM_ENUMERACAO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/04_estruturas/e07_enumeracao/programa.bg`, `tests/casos/12_negativos_m1/t10_enumeracao_com_chaves/programa.bg` |
 | `FIM_ESCOLHA` | `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/03_controle/c18_escolha_pare/programa.bg`, `tests/casos/04_estruturas/e07_enumeracao/programa.bg` (+4) |
 | `FIM_REGISTRO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/04_estruturas/e04_registro/programa.bg`, `tests/casos/04_estruturas/e06_vetor_registros/programa.bg`, `tests/casos/04_estruturas/e05_registro_aninhado/programa.bg` (+2) |
-| `FIM_SE` | `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/02_basico/b05_caractere/programa.bg`, `tests/casos/03_controle/c02_se_senao/programa.bg` (+29) |
+| `FIM_SE` | `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/02_basico/b05_caractere/programa.bg`, `tests/casos/03_controle/c02_se_senao/programa.bg` (+30) |
 | `FUNCAO` | `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/07_multiarquivo/m01_modulos/comum.h` (+10) |
-| `IGUAL` | `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/08_aplicacao/app_acervo/relatorio.bg`, `tests/casos/07_multiarquivo/m01_modulos/matematica.bg` |
+| `IGUAL` | `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/08_aplicacao/app_acervo/relatorio.bg`, `tests/casos/07_multiarquivo/m01_modulos/matematica.bg` (+2) |
 | `INICIA_SORTEIO` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.bg` |
-| `INICIO` | `tests/casos/02_basico/b01_ola/programa.bg`, `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/02_basico/b04_tipos/programa.bg`, `tests/casos/02_basico/b05_caractere/programa.bg` (+84) |
-| `INTEIRO` | `tests/casos/02_basico/b04_tipos/programa.bg`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/02_basico/b05_caractere/programa.bg` (+61) |
+| `INICIO` | `tests/casos/02_basico/b01_ola/programa.bg`, `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/02_basico/b04_tipos/programa.bg`, `tests/casos/02_basico/b05_caractere/programa.bg` (+85) |
+| `INTEIRO` | `tests/casos/02_basico/b04_tipos/programa.bg`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/02_basico/b05_caractere/programa.bg` (+62) |
 | `INTEIRO16` | `tests/casos/02_basico/b04_tipos/programa.bg` |
 | `INTEIRO32` | `tests/casos/02_basico/b04_tipos/programa.bg` |
 | `INTEIRO64` | `tests/casos/02_basico/b04_tipos/programa.bg`, `tests/casos/04_estruturas/e08_recursao/programa.bg`, `tests/casos/05_entrada_saida/i01_formatos/programa.bg`, `tests/run.sh` |
@@ -100,7 +100,7 @@ Todos os **88** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `REGISTRO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/04_estruturas/e04_registro/programa.bg`, `tests/casos/04_estruturas/e06_vetor_registros/programa.bg`, `tests/casos/04_estruturas/e05_registro_aninhado/programa.bg` (+3) |
 | `REPITA` | `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/03_controle/c09_repita_uma_vez/programa.bg`, `tests/casos/03_controle/c10_repita_ate_que/programa.bg`, `tests/casos/03_controle/c17_repita_ate_acucar/programa.bg` (+2) |
 | `RETORNE` | `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/04_estruturas/e08_recursao/programa.bg` (+7) |
-| `SE` | `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/02_basico/b05_caractere/programa.bg`, `tests/casos/03_controle/c02_se_senao/programa.bg` (+34) |
+| `SE` | `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/08_aplicacao/app_acervo/acervo.bg`, `tests/casos/02_basico/b05_caractere/programa.bg`, `tests/casos/03_controle/c02_se_senao/programa.bg` (+35) |
 | `SENAO` | `tests/casos/02_basico/b03_real/programa.bg`, `tests/casos/03_controle/c02_se_senao/programa.bg`, `tests/casos/03_controle/c03_senao_se/programa.bg`, `tests/casos/03_controle/c04_aninhado/programa.bg` (+12) |
 | `SENAO_SE` | `tests/casos/03_controle/c03_senao_se/programa.bg`, `tests/casos/08_aplicacao/app_acervo/principal.bg`, `tests/casos/12_negativos_m1/t02_senao_se/esperado_erro.txt`, `tests/run.sh` |
 | `SORTEIA` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.bg` |
@@ -136,7 +136,7 @@ Todos os **88** nomes curtos aparecem em pelo menos um arquivo de teste.
 * **11 casos** de erro do compilador C (`tests/casos/06_negativos/`), cada um
   afirmando um trecho exato da mensagem (o catálogo humano está em
   [01 §12.3](docs/01-especificacao.md)).
-* **10 casos** de erro do transpilador (`tests/casos/12_negativos_m1/`), que
+* **11 casos** de erro do transpilador (`tests/casos/12_negativos_m1/`), que
   acusa antes do C e com a linha do fonte `.bg`.
 
 ## 3. Suítes e casos em disco
@@ -150,7 +150,7 @@ Todos os **88** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `06_negativos` | 11 | o compilador C recusa o que a especificação proíbe (11 casos) |
 | `07_multiarquivo` | 2 | módulos, EXTERNO/ESTATICO, C puro junto de BG |
 | `08_aplicacao` | 1 | sistema de acervo: 3 módulos + cabeçalho, estado privado, E/S |
-| `12_negativos_m1` | 10 | o transpilador acusa o erro certo, com linha (8 casos) |
+| `12_negativos_m1` | 11 | o transpilador acusa o erro certo, com linha (8 casos) |
 | `13_avisos` | 7 | um caso por aviso W-01…W-07 |
 
 ## 4. Critérios de aceitação da Fase 2
