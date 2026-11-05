@@ -1,1 +1,5 @@
-expected declaration or statement at end of input
+# Uma mensagem por linha; basta UMA casar (o texto é do compilador, não da linguagem).
+# GCC: o bloco ficou aberto até o fim do arquivo.
+expected declaration or statement
+# Clang
+expected '}'

@@ -1,1 +1,5 @@
-expected identifier or '(' before '}' token
+# Uma mensagem por linha; basta UMA casar (o texto é do compilador, não da linguagem).
+# GCC: "expected identifier or '(' before '}' token" (o erro aparece no cabecalho)
+expected identifier or '('
+# Clang
+extraneous closing brace

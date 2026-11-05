@@ -1,1 +1,5 @@
+# Uma mensagem por linha; basta UMA casar (o texto é do compilador, não da linguagem).
+# GCC
 assignment of read-only location
+# Clang
+read-only variable is not assignable

@@ -1,1 +1,4 @@
-called object is not a function or function pointer
+# Uma mensagem por linha; basta UMA casar (o texto é do compilador, não da linguagem).
+# GCC: "called object is not a function or function pointer";
+# Clang: "called object type 'int' is not a function or function pointer".
+is not a function or function pointer

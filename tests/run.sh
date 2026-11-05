@@ -12,6 +12,13 @@
 
 set -u
 
+# Locale fixo: os casos negativos comparam o texto do diagnóstico, que é do
+# compilador (em inglês) e não da linguagem. Sem isto, um ambiente com locale
+# UTF-8 faz o GCC trocar ' por ‘ (e um locale traduzido muda a mensagem
+# inteira), então a suíte passaria numa máquina e falharia em outra. A
+# biblioteca não chama setlocale (D-17); aqui só se fixa o ambiente do runner.
+export LC_ALL=C
+
 RAIZ=$(cd "$(dirname "$0")/.." && pwd)
 T_CASOS="$RAIZ/tests/casos"
 T_INCLUDE="$RAIZ/include"

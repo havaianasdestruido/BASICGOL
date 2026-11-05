@@ -1,1 +1,3 @@
-expected identifier or '(' before 'if'
+# Uma mensagem por linha; basta UMA casar (o texto é do compilador, não da linguagem).
+# GCC: "expected identifier or '(' before 'if'"; Clang: igual, sem o "before".
+expected identifier or '('

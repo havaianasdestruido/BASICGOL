@@ -195,21 +195,55 @@ caso_execucao() {
     fi
 }
 
+# normaliza_aspas < arquivo > arquivo
+# GCC e Clang usam aspas tipográficas (‘x’, “x”) quando o locale é UTF-8 e
+# aspas retas quando é "C". O diagnóstico é do compilador, não da linguagem:
+# a comparação não pode depender disso.
+normaliza_aspas() {
+    sed -e "s/‘/'/g" -e "s/’/'/g" -e 's/“/"/g' -e 's/”/"/g'
+}
+
+# confere_diagnostico <saida-do-compilador> <esperado_erro.txt>
+#   esperado_erro.txt lista, uma por linha, as mensagens ACEITAS para o caso;
+#   linha vazia é ignorada e linha começando com '#' é comentário. Basta uma
+#   casar (texto fixo). Assim cada caso fixa o defeito que quer provar sem
+#   depender da redação de um compilador ou de uma versão dele — a redação
+#   muda entre GCC e Clang e entre versões do mesmo GCC.
+#   Deixa em DIAG_DETALHE a razão da falha, quando falha.
+confere_diagnostico() {
+    local saida="$1" esperados="$2" trecho tentados=""
+
+    DIAG_DETALHE=""
+    normaliza_aspas < "$saida" > "$T_TMP/diag.norm"
+    while IFS= read -r trecho || [ -n "$trecho" ]; do
+        case "$trecho" in ''|'#'*) continue ;; esac
+        tentados="$tentados [$trecho]"
+        if grep -qF -- "$trecho" "$T_TMP/diag.norm"; then
+            return 0
+        fi
+    done < "$esperados"
+    if [ -z "$tentados" ]; then
+        DIAG_DETALHE="esperado_erro.txt nao declara nenhum trecho comparavel"
+    else
+        DIAG_DETALHE="diagnostico nao casa com nenhum de:$tentados"
+    fi
+    return 1
+}
+
 # caso_erro_compilacao <caminho-do-caso>
-#   programa.c + esperado_erro.txt (trecho do erro de compilação M0)
+#   programa.c + esperado_erro.txt (mensagens aceitas do erro de compilação M0)
 caso_erro_compilacao() {
-    local dir="$1" nome trecho
+    local dir="$1" nome
 
     nome="$(echo "$dir" | sed "s|^$T_CASOS/||")"
-    trecho="$(cat "$dir/esperado_erro.txt")"
     if compila_m0 "$dir" "$T_TMP/bin_neg"; then
         t_falhou "$nome" "compilou, mas deveria falhar"
         return
     fi
-    if grep -qF "$trecho" "$T_TMP/err.log"; then
+    if confere_diagnostico "$T_TMP/err.log" "$dir/esperado_erro.txt"; then
         t_ok "$nome"
     else
-        t_falhou "$nome" "erro nao contem '$trecho': $(head -2 "$T_TMP/err.log" | tr '\n' ' ')"
+        t_falhou "$nome" "$DIAG_DETALHE: $(head -2 "$T_TMP/err.log" | tr '\n' ' ')"
     fi
 }
 
@@ -231,19 +265,18 @@ caso_aviso() {
 }
 
 # caso_erro_transpilacao <caminho-do-caso>
-#   programa.c + esperado_erro.txt (trecho que o basicgolc deve reportar)
+#   programa.c + esperado_erro.txt (mensagens aceitas do basicgolc)
 caso_erro_transpilacao() {
-    local dir="$1" nome trecho
+    local dir="$1" nome
 
     nome="$(echo "$dir" | sed "s|^$T_CASOS/||")"
-    trecho="$(cat "$dir/esperado_erro.txt")"
     if "$T_BASICGOLC" "$dir/programa.c" -o "$T_TMP/neg_m1.c" 2> "$T_TMP/err.m1"; then
         t_falhou "$nome" "transpilou, mas deveria falhar"
         return
     fi
-    if grep -qF "$trecho" "$T_TMP/err.m1"; then
+    if confere_diagnostico "$T_TMP/err.m1" "$dir/esperado_erro.txt"; then
         t_ok "$nome"
     else
-        t_falhou "$nome" "erro nao contem '$trecho': $(head -2 "$T_TMP/err.m1" | tr '\n' ' ')"
+        t_falhou "$nome" "$DIAG_DETALHE: $(head -2 "$T_TMP/err.m1" | tr '\n' ' ')"
     fi
 }
