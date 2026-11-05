@@ -1,0 +1,2 @@
+# GCC: "invalid operands to binary %"; Clang: "invalid operands to binary expression".
+invalid operands

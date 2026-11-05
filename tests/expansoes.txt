@@ -42,3 +42,31 @@ BG_VAZIO|void
 BG_CONSTANTE|static const
 BG_ESTATICO|static
 BG_EXTERNO|extern
+
+# --- Fase 4: tipos, operadores e biblioteca de tipos/expressoes ---
+BG_NATURAL_CURTO|unsigned short
+BG_NATURAL_LONGO|unsigned long
+BG_TAMANHO_DE(t)|((size_t) sizeof(t))
+BG_BITS_DE(t)|((size_t) (sizeof(t) * CHAR_BIT))
+BG_MAXIMO_INTEIRO|INT_MAX
+BG_MINIMO_INTEIRO|INT_MIN
+BG_MAXIMO_NATURAL|UINT_MAX
+BG_MAXIMO_REAL|DBL_MAX
+BG_EPSILON_REAL|DBL_EPSILON
+BG_OU_EXCLUSIVO(a,b)|((!!(a)) != (!!(b)))
+BG_LOGICO_DE(x)|(!!(x))
+BG_DIVIDE(a,b)|_Generic((a) + (b), int: bg_divide_i, long: bg_divide_l, long long: bg_divide_ll, unsigned: bg_divide_u, unsigned long: bg_divide_ul, unsigned long long: bg_divide_ull, float: bg_divide_f, double: bg_divide_d, long double: bg_divide_ld, default: bg_divide_d)((a), (b), __FILE__, __LINE__)
+BG_RESTO(a,b)|_Generic((a) + (b), int: bg_resto_i, long: bg_resto_l, long long: bg_resto_ll, unsigned: bg_resto_u, unsigned long: bg_resto_ul, unsigned long long: bg_resto_ull)((a), (b), __FILE__, __LINE__)
+BG_ACRESCENTA_TEXTO(d,t,o)|bg_acrescenta_texto((d), (size_t) (t), (o))
+BG_TRECHO_TEXTO(d,t,o,i,q)|bg_trecho_texto((d), (size_t) (t), (o), (size_t) (i), (size_t) (q))
+BG_COMPARA_TEXTO(a,b)|bg_compara_texto((a), (b))
+BG_TEXTO_VAZIO(s)|bg_texto_vazio(s)
+BG_FORMATA_TEXTO(d,t,...)|bg_formata_texto((d), (size_t) (t), __VA_ARGS__)
+BG_TEXTO_PARA_NATURAL(s,p)|bg_texto_para_natural((s), (p))
+BG_REAL_PARA_INTEIRO(x,p)|bg_numero_para_inteiro((x), (p))
+BG_E_DIGITO(c)|bg_e_digito(c)
+BG_E_LETRA(c)|bg_e_letra(c)
+BG_CARACTERE_MAIUSCULO(c)|bg_caractere_maiusculo(c)
+BG_CARACTERE_MINUSCULO(c)|bg_caractere_minusculo(c)
+BG_LEIA_INTEIRO(x)|bg_leia_inteiro(&(x))
+BG_LEIA_REAL(x)|bg_leia_real(&(x))

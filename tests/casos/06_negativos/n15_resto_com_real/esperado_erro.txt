@@ -1,0 +1,3 @@
+# GCC: "'_Generic' selector of type 'double' is not compatible with any association";
+# Clang: "controlling expression type 'double' not compatible with any generic association type".
+not compatible with any

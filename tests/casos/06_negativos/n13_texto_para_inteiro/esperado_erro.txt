@@ -1,0 +1,4 @@
+# GCC
+makes integer from pointer without a cast
+# Clang
+incompatible pointer to integer conversion

@@ -50,11 +50,13 @@ def casos_por_suite() -> list[tuple[str, int, str]]:
         "03_controle": "SE/SENAO_SE, ENQUANTO, REPITA/ATE_QUE, PARA, ESCOLHA, desvios",
         "04_estruturas": "VETOR, TEXTO_FIXO, REGISTRO, ENUMERACAO, funções, recursão",
         "05_entrada_saida": "ESCREVA*, LEIA*, formatação, ERRO/AFIRME, truncamento",
-        "06_negativos": "o compilador C recusa o que a especificação proíbe (11 casos)",
-        "12_negativos_m1": "o transpilador acusa o erro certo, com linha (8 casos)",
+        "06_negativos": "o compilador C recusa o que a especificação proíbe",
+        "12_negativos_m1": "o transpilador acusa o erro certo, com linha",
         "13_avisos": "um caso por aviso W-01…W-07",
         "07_multiarquivo": "módulos, EXTERNO/ESTATICO, C puro junto de BG",
         "08_aplicacao": "sistema de acervo: 3 módulos + cabeçalho, estado privado, E/S",
+        "09_tipos_expr": "Fase 4: tipos, conversões, precedência, divisão verificada, "
+                         "texto seguro, entrada numérica, extensões opcionais",
         "09_m1": "transpilador: tradução, açúcar, acentos, avisos, CLI",
     }
     linhas = []
@@ -85,6 +87,27 @@ AC = [
     ("AC-34", "erro com linha nos fontes malformados", "06_negativos + 12_negativos_m1"),
     ("AC-35", "código de saída 0/1/2/70", "01_sanidade + 09_m1"),
     ("AC-36", "`--checar` valida sem compilar", "09_m1"),
+    ("AC-37", "referência de tipos e expressões (representação, faixa, precisão)",
+     "[06](../docs/06-tipos-e-expressoes.md)"),
+    ("AC-38", "todo tipo tem mapeamento C e teste de identidade",
+     "09_tipos_expr/t14_propriedades"),
+    ("AC-39", "aliases em português e operadores lógicos definidos",
+     "09_tipos_expr/t04_logico + t01"),
+    ("AC-40", "atribuição, comparação, aritmética, precedência, conversão e verdade",
+     "t05_precedencia, t06_conversoes, t04_logico"),
+    ("AC-41", "nenhuma abstração esconde diferença de C",
+     "t01_inteiros, t07_divisao (conversões e sinais reais)"),
+    ("AC-42", "texto seguro com limite de buffer", "t11_texto_seguro"),
+    ("AC-43", "divisão por zero, conversão inválida, buffer e entrada numérica",
+     "t08, t09, t10 (erro + rc), t06, t11, t12"),
+    ("AC-44", "estouro inteiro e ponto flutuante documentados com precisão",
+     "[06 §10](../docs/06-tipos-e-expressoes.md) + t01, t02, t13"),
+    ("AC-45", "extensões de compilador opcionais e isoladas",
+     "t13_extensoes + 01_sanidade (desligadas por padrão)"),
+    ("AC-46", "exemplos executáveis para todos os tipos e para as expressões",
+     "10_exemplos (tipos.c, expressoes.c)"),
+    ("AC-47", "diferenças semânticas em relação a BASIC e Portugol",
+     "[06 §13](../docs/06-tipos-e-expressoes.md)"),
 ]
 
 RESTRICOES = [
@@ -106,6 +129,9 @@ RESTRICOES = [
     ("C-18", "vetor + tamanho, nunca `sizeof` de ponteiro", "06_avisos/w06"),
     ("C-20", "contrato de `LEIA_TEXTO`", "05_entrada_saida/i06, i15"),
     ("C-23", "tamanho de vetor não pode ser `CONSTANTE`", "06_avisos/w07"),
+    ("C-24", "texto é ponteiro sem dono", "09_tipos_expr/t11 + 06_negativos/n12"),
+    ("C-25", "sem resto real nem potência por símbolo", "06_negativos/n14, n15"),
+    ("C-26", "formato de `FORMATA_TEXTO` não é conferido pelo compilador", "t11"),
 ]
 
 ESTRESSE = [
@@ -186,7 +212,7 @@ def main() -> None:
     n_m1 = len([d for d in (CASOS / "12_negativos_m1").iterdir() if d.is_dir()])
     w(f"* **{n_neg} casos** de erro do compilador C (`tests/casos/06_negativos/`), cada um")
     w("  afirmando um trecho exato da mensagem (o catálogo humano está em")
-    w("  [01 §12.3](docs/01-especificacao.md)).")
+    w("  [01 §12.3](../docs/01-especificacao.md)).")
     w(f"* **{n_m1} casos** de erro do transpilador (`tests/casos/12_negativos_m1/`), que")
     w("  acusa antes do C e com a linha do fonte.")
     w("")
@@ -197,7 +223,7 @@ def main() -> None:
     for suite, n, desc in suites:
         w(f"| `{suite}` | {n} | {desc} |")
     w("")
-    w("## 4. Critérios de aceitação da Fase 2")
+    w("## 4. Critérios de aceitação (Fases 2 e 4)")
     w("")
     w("| AC | critério | verificação automatizada |")
     w("|---|---|---|")
@@ -227,7 +253,7 @@ def main() -> None:
     w("  `ATE_QUE`), todos corrigidos e fixados por teste.")
     w("* **D-09** (`BG_ESTRITO`), **D-12** (funções de vetor) e **D-17** (locale do")
     w("  sistema): fora da v1.0 por decisão registrada em")
-    w("  [04](docs/04-restricoes-e-decisoes.md).")
+    w("  [04](../docs/04-restricoes-e-decisoes.md).")
     w("* Desempenho além do limite de 1 s por compilação (AC-29): medido, não otimizado.")
     w("")
 

@@ -303,6 +303,45 @@ uma função é um **VLA** — alocado na pilha em tempo de execução, sem avis
 pode emitir `W-07` quando `VETOR`/`TEXTO_FIXO` recebem um identificador `k_*` como
 tamanho (o transpilador vê os tokens e pode avisar).
 
+### C-24 — Não existe `string` de tamanho gerenciado, e `TEXTO` não é dono da memória
+
+**Fato.** C não tem tipo de texto com tamanho e dono. `TEXTO` é `const char *`: um
+ponteiro para bytes terminados por `'\0'`. O comprimento é uma varredura (`strlen`);
+o espaço é responsabilidade do programador.
+
+**Consequência.** A linguagem não pode oferecer concatenação com `+`, comparação com `==`
+por conteúdo, nem redimensionamento. `TEXTO_FIXO` tem limite fixo; `TAMANHO_TEXTO` conta
+bytes, não caracteres.
+
+**Mitigação.** Biblioteca de texto segura (RB-3/RB-9): todas as operações com destino
+recebem o tamanho e reportam truncamento; `TEXTOS_IGUAIS`/`COMPARA_TEXTO` para conteúdo;
+`malloc` explícito quando o tamanho é dinâmico. Tudo documentado em
+[06 §2.5 e §8](06-tipos-e-expressoes.md).
+
+### C-25 — Não há operador de resto real nem potência por símbolo
+
+**Fato.** Em C, `%` só aceita inteiros e `^` é XOR bit a bit. A linguagem não pode
+sobrecarregar operadores (isso exigiria reescrever expressões — C-01).
+
+**Consequência.** `7 MOD 2.5` é erro de compilação; `2 ^ 3` vale 1 (XOR), não 8. Não há
+`**`.
+
+**Mitigação.** `POTENCIA(a, b)` para potência; para resto real, `fmod` de `<math.h>` ou
+`x - PISO(x / y) * y`. `DIVIDE`/`RESTO` cobrem o caso inteiro verificado. Testes:
+`06_negativos/n14`, `09_tipos_expr/t07`.
+
+### C-26 — O compilador não verifica o formato de `FORMATA_TEXTO`
+
+**Fato.** Fazer o compilador conferir a string de formato exige
+`__attribute__((format(printf, …)))`, que é extensão de GCC/Clang; a linguagem é C11
+estrito (fora da seção opcional).
+
+**Consequência.** Um `FORMATA_TEXTO(d, t, "%d", "texto")` compila e falha em execução.
+
+**Mitigação.** `ESCREVA_FMT` mantém a checagem do compilador quando o formato é literal;
+`FORMATA_TEXTO` existe para quando o formato precisa ser uma variável. Documentado em
+[06 §8](06-tipos-e-expressoes.md).
+
 ---
 
 ## 2. Resumo por consequência
@@ -324,6 +363,9 @@ tamanho (o transpilador vê os tokens e pode avisar).
 | C-17, C-18 | `TEXTO`/`TEXTO_FIXO`; idioma vetor+tamanho |
 | C-20 | contrato de `LEIA_TEXTO` |
 | C-23 | tamanho de vetor precisa ser literal (ou `#define`), não `CONSTANTE` |
+| C-24 | biblioteca de texto com tamanho explícito e truncamento reportado |
+| C-25 | `POTENCIA` no lugar de `^`; `MOD` só em inteiros |
+| C-26 | `ESCREVA_FMT` para formato conferido pelo compilador |
 
 ---
 
@@ -518,6 +560,77 @@ dependente da máquina. Consequência documentada em [01 §16](01-especificacao.
 
 ### D-18 — Módulos e pacotes · **rejeitado para v1.0**
 `#include` de C, mais `EXTERNO`. Sem sistema de módulos (§13.3).
+
+### D-22 — Extensões de compilador · **opcionais, isoladas e desligadas**
+
+Toda a linguagem é C11 estrito, exceto um bloco: `#ifdef BG_USAR_EXTENSOES` (§2b de
+`basicgol.h`), que oferece aritmética verificada (`SOMA_SEGURA`, `SUBTRAI_SEGURA`,
+`MULTIPLICA_SEGURA`) sobre `__builtin_*_overflow` de GCC/Clang. Desligada, nenhum símbolo
+existe, nada muda e o cabeçalho compila com `-Wpedantic`.
+
+*Justificativa*: detecção de estouro em `+ - *` não é possível com macro portátil; a
+alternativa seria (a) não oferecer, (b) prometer wrap falso, ou (c) usar extensão
+escondida. (c) é a única que viola portabilidade sem avisar. A escolha foi oferecer,
+explicitamente, atrás de uma macro.
+
+*Custo*: cobre só `INTEIRO` (o caso didático) e não funciona em MSVC. Quem precisa de
+tipos largos usa `INTEIRO64` e valida a faixa manualmente. *Teste*:
+`09_tipos_expr/t13_extensoes` (ligada) e `01_sanidade` (desligada por padrão).
+
+### D-23 — `DIVIDE`/`RESTO` verificados em vez de mudar `/` e `MOD` · **decidido na Fase 4**
+
+`/` e `MOD` continuam sendo o C cru (P-09): a linguagem documenta o UB de divisor zero e
+de `MIN/-1`, mas não muda o operador. Para quem quer a checagem, existem `DIVIDE` e
+`RESTO`, que fazem a mesma conta com o tipo promovido dos operandos e chamam
+`bg_erro(__FILE__, __LINE__)` no caso inválido.
+
+*Justificativa*: mudar `/` quebraria a promessa “expressões são expressões C” e
+desligaria otimizações/idiomas de C. A forma verificada é opt-in e explícita na leitura.
+*Alternativa rejeitada*: `DIVIDE` retornar um `LOGICO` com ponteiro de saída (ruído em
+toda expressão aritmética). *Testes*: `t07` (válido), `t08`, `t09`, `t10` (erro + código
+de saída 1).
+
+### D-24 — Conversões verificadas em vez de casts que “funcionam” · **decidido na Fase 4**
+
+`TEXTO_PARA_INTEIRO`, `TEXTO_PARA_NATURAL`, `TEXTO_PARA_REAL` e `REAL_PARA_INTEIRO`
+devolvem `LOGICO`. Casts continuam permitidos, com semântica de C.
+
+*Justificativa*: o cast real→inteiro fora de faixa é UB, e texto→número por `atoi` é
+indefinido em erro. Devolver `LOGICO` obriga o programador a decidir o que fazer. As
+funções antigas foram endurecidas (antes `TEXTO_PARA_INTEIRO("2147483648")` devolvia
+`VERDADEIRO` com valor truncado — bug corrigido e fixado em `t06`).
+
+### D-25 — Texto novo = `ACRESCENTA`/`TRECHO`/`FORMATA`, sem “mini-biblioteca de string”
+
+*Justificativa*: quatro operações cobrem o uso didático (copiar, juntar, acrescentar,
+recortar) mais formatação verificável. Busca/substituição de substring ficam para C
+(`strstr`), porque uma API própria exigiria dono de memória (C-24). *Contrato*: RB-3/RB-9
+— truncamento sempre reportado, destino limpo na falha.
+
+### D-26 — Helpers de caractere são ASCII e não usam `<ctype.h>`
+
+`E_DIGITO`, `E_LETRA`, `CARACTERE_MAIUSCULO`, `CARACTERE_MINUSCULO` operam só em ASCII.
+
+*Justificativa*: as funções de `<ctype.h>` dependem de `locale` e exigem argumento
+convertido para `unsigned char`; usar `toupper` em `'ç'` daria resultados diferentes por
+ambiente. ASCII é exato, testável e suficiente para o que `CARACTERE` representa (um
+byte). *Consequência*: acentos não são convertidos — use `TEXTO` e uma biblioteca de
+Unicode, de forma explícita.
+
+### D-27 — Versão 1.1.0 e compatibilidade
+
+A Fase 4 é **aditiva**: nenhum construtor existente mudou de expansão, exceto
+`TEXTO_PARA_INTEIRO`/`TEXTO_PARA_REAL`, que passaram a **recusar** estouro de faixa
+(antes devolviam `VERDADEIRO` com valor truncado). Isso é correção de contrato (RB-7),
+não mudança de sintaxe: programas que tratavam a falha corretamente não mudam; programas
+que dependiam do valor truncado estavam errados. Junto vem a correção de um **defeito**
+de `LEIA`: `BG_SFMT` não tinha formato para `unsigned char*`, `unsigned short*` nem
+`long double*`, então `LEIA` de `NATURAL8`, `NATURAL16`, `NATURAL_CURTO` e `REAL_LONGO`
+caía no `default` (`"%p"`) e gravava um ponteiro sobre a variável. Agora cada tipo
+escalar tem o seu formato (`%hhu`, `%hu`, `%hu`, `%Lf`) e `LOGICO` continua recusado pelo
+compilador — ver §9.1 de [06](06-tipos-e-expressoes.md) e o caso
+`06_negativos/n16_leia_logico`. A versão sobe para 1.1.0 (minor), conforme §16.1 de
+[01](01-especificacao.md).
 
 ---
 

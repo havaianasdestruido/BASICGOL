@@ -40,6 +40,8 @@ usuário; `expressao` = qualquer expressão C; `cmd*` = zero ou mais comandos.
 | `INTEIRO_LONGO` | `long` | ≥ 32 bits |
 | `INTEIRO8` `INTEIRO16` `INTEIRO32` `INTEIRO64` | `int8_t` … `int64_t` | largura exata |
 | `NATURAL` | `unsigned` | ≥ 16 bits |
+| `NATURAL_CURTO` | `unsigned short` | ≥ 16 bits |
+| `NATURAL_LONGO` | `unsigned long` | ≥ 32 bits |
 | `NATURAL8` `NATURAL16` `NATURAL32` `NATURAL64` | `uint8_t` … `uint64_t` | largura exata, sem sinal |
 | `REAL_CURTO` | `float` | precisão simples |
 | `REAL` | `double` | precisão dupla |
@@ -48,6 +50,20 @@ usuário; `expressao` = qualquer expressão C; `cmd*` = zero ou mais comandos.
 | `VAZIO` | `void` | ausência de valor |
 
 Qualificadores: `CONSTANTE` → `static const`; `ESTATICO` → `static`; `EXTERNO` → `extern`.
+
+Inteiros e reais têm a largura da plataforma, exceto os de largura exata. As constantes
+abaixo dizem o valor **real** do ambiente:
+
+| Forma | Valor | Uso |
+|---|---|---|
+| `TAMANHO_DE(t)` | `((size_t) sizeof(t))` | bytes do tipo |
+| `BITS_DE(t)` | `((size_t) (sizeof(t) * CHAR_BIT))` | bits do tipo |
+| `MAXIMO_INTEIRO` / `MINIMO_INTEIRO` | `INT_MAX` / `INT_MIN` | faixa de `INTEIRO` |
+| `MAXIMO_NATURAL` | `UINT_MAX` | faixa de `NATURAL` |
+| `MAXIMO_REAL` / `EPSILON_REAL` | `DBL_MAX` / `DBL_EPSILON` | faixa e precisão de `REAL` |
+
+A referência completa de representação, faixa e conversão está em
+[06 — Tipos e Expressões](06-tipos-e-expressoes.md).
 
 ## 3. Declarações
 
@@ -101,8 +117,12 @@ Qualificadores: `CONSTANTE` → `static const`; `ESTATICO` → `static`; `EXTERN
 | `VERDADEIRO` / `FALSO` | `true` / `false` | literal | tipo `LOGICO` |
 | `IGUAL(a, b)` | `((a) == (b))` | função(2) | evita a confusão `=` × `==`. **É prefixado**: `x IGUAL 3` não compila; para infixo use `==` (§11.6 de 01) |
 | `DIFERENTE(a, b)` | `((a) != (b))` | função(2) | idem |
-| `TEXTOS_IGUAIS(a, b)` | `strcmp(a,b) == 0` | função(2) | **única** forma correta de comparar texto |
+| `TEXTOS_IGUAIS(a, b)` | `strcmp(a,b) == 0` | função(2) | **única** forma correta de comparar conteúdo de texto |
 | `TEXTOS_DIFERENTES(a, b)` | `strcmp(a,b) != 0` | função(2) | idem |
+| `OU_EXCLUSIVO(a, b)` | `((!!(a)) != (!!(b)))` | função(2) | XOR **lógico**; normaliza os operandos |
+| `LOGICO_DE(x)` | `(!!(x))` | função(1) | valor de verdade normalizado (0/1) |
+| `DIVIDE(a, b)` | `_Generic` → `bg_divide_*` | função(2) | divisão verificada: recusa divisor 0 e `MIN/-1` |
+| `RESTO(a, b)` | `_Generic` → `bg_resto_*` | função(2) | resto verificado, só inteiros |
 
 ### 5.2 Símbolos C (sempre aceitos)
 
@@ -130,6 +150,10 @@ OU (||)
 **Nota**: `MOD=` (com `MOD` por palavra) **não existe** — geraria `%= ` como dois tokens.
 Use `x = x MOD 2` ou `x %= 2` (C nativo). Ver C-01 em [04](04-restricoes-e-decisoes.md).
 
+`DIVIDE`/`RESTO` mantêm o tipo promovido dos operandos e trocam o comportamento
+indefinido por um erro com arquivo e linha. `/` e `MOD` continuam sendo o C cru; a
+diferença entre eles está em [06 §5.4–5.5](06-tipos-e-expressoes.md).
+
 ## 6. Entrada e saída
 
 | Forma | Perfil | Significado |
@@ -140,9 +164,11 @@ Use `x = x MOD 2` ou `x %= 2` (C nativo). Ver C-01 em [04](04-restricoes-e-decis
 | `ESCREVA_TEXTO(s);` | N | escreve texto como `%s` (sem consultar tipo) |
 | `ESCREVA_FMT(fmt, …);` | N | `printf` direto (formatação fina, múltiplos valores) |
 | `ESCREVA_ERRO(s);` | N | escreve texto em `stderr` |
-| `LEIA(x);` | N | lê **um** valor escalar para a variável `x` |
+| `LEIA(x);` | N | lê **um** valor escalar para `x`; o formato sai de `_Generic` pelo tipo do destino (`NATURAL8`→`%hhu`, `NATURAL_CURTO`→`%hu`, `REAL_LONGO`→`%Lf`, `CARACTERE`→` %c`); `LOGICO`, `TEXTO` e `TEXTO_FIXO` são **recusados** pelo compilador (`-Wformat`) |
 | `LEIA_OK(x);` | N | lê e devolve `LOGICO` (sucesso/falha) |
 | `LEIA_TEXTO(buf, tam);` | N | lê uma linha para `TEXTO_FIXO`; consome o `\n` pendente de um `LEIA` anterior, se houver |
+| `LEIA_INTEIRO(x);` | N | lê **uma linha** e converte para `INTEIRO`; devolve `LOGICO`; não deixa lixo no `stdin` |
+| `LEIA_REAL(x);` | N | idem para `REAL` |
 
 Formatos usados por `ESCREVA`/`ESCREVAL` (escolhidos em tempo de compilação):
 
@@ -176,10 +202,24 @@ por chamada; sem detecção de tipo em tempo de execução.
 | `TAMANHO_TEXTO(s)` | N | inline | comprimento em bytes (`strlen`), devolve `NATURAL`; cada acento UTF-8 ocupa 2 bytes (D-20) |
 | `COPIA_TEXTO(destino, tam, origem)` | N | inline → `LOGICO` | copia com verificação de espaço |
 | `JUNTA_TEXTO(destino, tam, a, b)` | N | inline → `LOGICO` | concatena dois textos em `destino` |
-| `TEXTO_PARA_INTEIRO(s, &var)` / `TEXTO_PARA_REAL(s, &var)` | N | inline → `LOGICO` | converte texto em número; **rejeita** texto com sobra (`"4x2"`, `"12abc"`) |
+| `TEXTO_PARA_INTEIRO(s, &var)` / `TEXTO_PARA_REAL(s, &var)` | N | inline → `LOGICO` | converte texto em número; **rejeita** texto com sobra (`"4x2"`, `"12abc"`) e estouro de faixa |
+| `TEXTO_PARA_NATURAL(s, &var)` | N | inline → `LOGICO` | idem para `NATURAL`; recusa `-` |
+| `REAL_PARA_INTEIRO(x, &var)` | N | inline → `LOGICO` | converte real em inteiro com checagem de faixa e NaN |
+| `ACRESCENTA_TEXTO(destino, tam, origem)` | N | inline → `LOGICO` | acrescenta ao fim do conteúdo atual |
+| `TRECHO_TEXTO(destino, tam, origem, inicio, n)` | N | inline → `LOGICO` | copia até `n` bytes a partir de `inicio` |
+| `COMPARA_TEXTO(a, b)` | N | inline → `INTEIRO` | −1/0/+1; `NULL` conta como `""` |
+| `TEXTO_VAZIO(s)` | N | inline → `LOGICO` | verdadeiro para `""` e `NULL` |
+| `FORMATA_TEXTO(destino, tam, formato, …)` | N | inline → `LOGICO` | `snprintf` verificável; `false` se truncou |
+| `E_DIGITO(c)` / `E_LETRA(c)` | N | inline → `LOGICO` | classificação ASCII, independente de locale |
+| `CARACTERE_MAIUSCULO(c)` / `CARACTERE_MINUSCULO(c)` | N | inline → `CARACTERE` | conversão ASCII de 1 byte |
 
 **Não existe** concatenação com `+`: `"a" + "b"` é aritmética de ponteiros em C e produz
-lixo. Use `JUNTA_TEXTO`.
+lixo. Use `JUNTA_TEXTO` ou `ACRESCENTA_TEXTO`.
+
+Todo truncamento é reportado por valor de retorno, e em caso de falha o destino fica
+vazio (`dest[0] == '\0'`) — nunca conteúdo parcial. Origem `NULL` é texto vazio, e origem
+e destino podem ser o mesmo buffer (`memmove`). Contrato completo em
+[06 §8](06-tipos-e-expressoes.md).
 
 ## 8. Erros
 
@@ -199,6 +239,8 @@ Não há `TENTE`/`CAPTURE`/`FINALMENTE` em v1.0 (ver [D-06](04-restricoes-e-deci
 | `BG_VERSAO_MAIOR` / `BG_VERSAO_MENOR` / `BG_VERSAO_CORRECAO` | versão da implementação (inteiros) |
 | `BG_VERSAO_MINIMA(mai, men)` | emite `#error` se a implementação for mais antiga |
 | `BG_ESTRITO` | liga verificações extras em tempo de compilação (reservado; ver D-09) |
+| `BG_USAR_EXTENSOES` | liga a seção opcional de extensões (`SOMA_SEGURA`, …); exige GCC/Clang (D-22) |
+| `BG_TEM_EXTENSOES` | definida **pelo cabeçalho** quando as extensões estão ativas (`1`) |
 
 ## 10. Nomes reservados
 
@@ -209,18 +251,23 @@ reservados para o futuro: `PARA_CADA`, `TENTE`, `CAPTURE`, `FINALMENTE`, `CLASSE
 
 ## 11. Índice alfabético
 
-`ABS` · `AFIRME` · `ARREDONDA` · `ATE` (X) · `ATE_QUE` · `CASO` · `CARACTERE` ·
-`CONSTANTE` · `CONTRARIO` · `COPIA_TEXTO` · `DE` (X) · `DIFERENTE` · `E` · `ENTAO` ·
+`ABS` · `ACRESCENTA_TEXTO` · `AFIRME` · `ARREDONDA` · `ATE` (X) · `ATE_QUE` · `BITS_DE` ·
+`CARACTERE_MAIUSCULO` · `CARACTERE_MINUSCULO` · `CASO` · `CARACTERE` · `COMPARA_TEXTO` ·
+`CONSTANTE` · `CONTRARIO` · `COPIA_TEXTO` · `DE` (X) · `DIFERENTE` · `DIVIDE` · `E` ·
+`E_DIGITO` · `E_LETRA` · `ENTAO` · `EPSILON_REAL` ·
 `ENQUANTO` · `ENUMERACAO` · `ERRO` · `ESCOLHA` · `ESCREVA` · `ESCREVA_ERRO` ·
 `ESCREVA_FMT` · `ESCREVA_LINHA` · `ESCREVA_TEXTO` · `ESCREVAL` · `ESTATICO` · `EXTERNO` ·
-`FACA` · `FALSO` · `FIM` · `FIM_ENQUANTO` · `FIM_ENUMERACAO` · `FIM_ESCOLHA` ·
+`FACA` · `FALSO` · `FIM` · `FIM_ENQUANTO` · `FIM_ENUMERACAO` · `FIM_ESCOLHA` · `FORMATA_TEXTO` ·
 `FIM_PARA` (X) · `FIM_REGISTRO` · `FIM_SE` · `FUNCAO` · `IGUAL` ·
 `INICIA_SORTEIO` · `INICIO` · `INTEIRO` · `INTEIRO8/16/32/64` · `INTEIRO_CURTO` ·
-`INTEIRO_LONGO` · `JUNTA_TEXTO` · `LEIA` · `LEIA_OK` · `LEIA_TEXTO` · `LOGICO` ·
-`MAXIMO` · `MINIMO` · `MOD` · `NAO` · `NATURAL` · `NATURAL8/16/32/64` · `OU` ·
+`INTEIRO_LONGO` · `JUNTA_TEXTO` · `LEIA` · `LEIA_INTEIRO` · `LEIA_OK` · `LEIA_REAL` ·
+`LEIA_TEXTO` · `LOGICO` · `LOGICO_DE` · `MAXIMO` · `MAXIMO_INTEIRO` · `MAXIMO_NATURAL` ·
+`MAXIMO_REAL` · `MINIMO` · `MINIMO_INTEIRO` · `MOD` · `NAO` · `NATURAL` ·
+`NATURAL_CURTO` · `NATURAL_LONGO` · `NATURAL8/16/32/64` · `OU` · `OU_EXCLUSIVO` ·
 `PARA` · `PARA_PASSO` · `PARE` · `PASSO` (X) · `PISO` · `POTENCIA` · `PROCEDIMENTO` ·
-`PROSSIGA` · `RAIZ` · `REAL` · `REAL_CURTO` · `REAL_LONGO` · `REGISTRO` · `REPITA` ·
-`RETORNE` · `SE` · `SENAO` · `SENAO_SE` · `SORTEIA` · `TAMANHO_TEXTO` ·
+`PROSSIGA` · `RAIZ` · `REAL` · `REAL_CURTO` · `REAL_LONGO` · `REAL_PARA_INTEIRO` ·
+`REGISTRO` · `REPITA` · `RESTO` ·
+`RETORNE` · `SE` · `SENAO` · `SENAO_SE` · `SORTEIA` · `TAMANHO_DE` · `TAMANHO_TEXTO` ·
 `TAMANHO_VETOR` · `TETO` · `TEXTO` · `TEXTO_FIXO` · `TEXTO_PARA_INTEIRO` ·
-`TEXTO_PARA_REAL` · `TEXTOS_DIFERENTES` · `TEXTOS_IGUAIS` · `VAZIO` · `VERDADEIRO` ·
-`VETOR`
+`TEXTO_PARA_NATURAL` · `TEXTO_PARA_REAL` · `TEXTO_VAZIO` · `TEXTOS_DIFERENTES` ·
+`TEXTOS_IGUAIS` · `TRECHO_TEXTO` · `VAZIO` · `VERDADEIRO` · `VETOR`

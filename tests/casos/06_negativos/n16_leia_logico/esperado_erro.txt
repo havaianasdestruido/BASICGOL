@@ -1,0 +1,2 @@
+# Ambos recusam: GCC fala em "format %p expects ...", Clang em "format specifies".
+format

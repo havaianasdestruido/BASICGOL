@@ -1,7 +1,8 @@
 # Exemplos BASICGOL
 
-Doze programas completos, escritos **apenas** com construtores definidos na
-[especificação](../01-especificacao.md). Eles servem a três propósitos:
+Quatorze programas completos, escritos **apenas** com construtores definidos na
+[especificação](../01-especificacao.md) e na
+[referência de tipos e expressões](../06-tipos-e-expressoes.md). Eles servem a três propósitos:
 
 1. **Documentação executável** — cada exemplo demonstra um conjunto de construtores.
 2. **Especificação por exemplos** — se um exemplo não compilar, a especificação está
@@ -61,8 +62,10 @@ Compilados com GCC 12.2, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror`: **ze
 | `fatorial_recursivo.c` | M0 | recursão, `INTEIRO64`, `ESCREVA_FMT("%lld")` | ok | ok |
 | `utilidades.c` | M0 | catálogo de tipos, `ABS`/`MINIMO`/`MAXIMO`/`POTENCIA`/`RAIZ`/`ARREDONDA`/`PISO`/`TETO`, `COPIA_TEXTO`/`JUNTA_TEXTO`, `TEXTO_PARA_INTEIRO`/`TEXTO_PARA_REAL`, `ENUMERACAO`, `AFIRME`, `ESCREVA_ERRO`, `ESTATICO`, `VAZIO` | ok | ok |
 | `para_contado.c` | **M1** | `PARA … DE … ATE … PASSO … FACA` / `FIM_PARA` | ok | ok |
+| `tipos.c` | M0 | **um valor de cada tipo** (Fase 4): `LOGICO`, `CARACTERE`, inteiros nativos e de largura exata, naturais, reais, `TEXTO`/`TEXTO_FIXO`, `VAZIO`, `TAMANHO_DE`/`BITS_DE`, `OU_EXCLUSIVO`, `LOGICO_DE`, `ACRESCENTA_TEXTO` | ok | ok |
+| `expressoes.c` | M0 | **semântica de expressões** (Fase 4): precedência, atribuição × comparação, valor de verdade, curto-circuito, conversões verificadas, `DIVIDE`/`RESTO`, texto seguro | ok | ok |
 
-Todos os 12 exemplos compilam sem avisos com `-std=c11 -Wall -Wextra -Wformat=2 -Wvla
+Todos os 14 exemplos compilam sem avisos com `-std=c11 -Wall -Wextra -Wformat=2 -Wvla
 -Werror` e produzem exatamente a saída registrada — nos dois perfis, exceto
 `para_contado.c`, que é M1 puro por desenho. É o que a suíte verifica a cada `make test`.
 
@@ -169,6 +172,37 @@ TEXTO_PARA_INTEIRO rejeitou "4x2" (correto)
 AFIRME passou: contrato interno satisfeito.
 ```
 (mais a linha `(esta linha vai para stderr)` no fluxo de erro)
+
+### `tipos.c` — sem entrada (trecho)
+```
+LOGICO        1 0
+INTEIRO8/16/32/64: 100 30000 2000000000 9000000000
+  largura exata: 8/16/32/64 bits
+NATURAL       60000  (sem sinal; mesma largura de INTEIRO? 1)
+  NATURAL8 250 + 10 = 4
+  (modulo 256, comportamento definido)
+REAL       3.1415926536
+  0.1 + 0.2 == 0.3 ? 0   |diferenca| < EPSILON_REAL ? 1
+TEXTO         "BASICGOL"
+  copia + acrescimo coube? 1
+  TEXTO_FIXO     "tipo texto"  tamanho 10
+```
+(a saída completa está em `tipos.esperado.txt`)
+
+### `expressoes.c` — sem entrada (trecho)
+```
+  2 + 3 * 4        = 14
+  (1 E 0) OU 1     = 1
+  NAO 0 E 0        = 0
+  -7 / 2           = -3
+  (INTEIRO) 3.9     = 3
+  (NATURAL8) 300    = 44
+  TEXTO_PARA_INTEIRO("4x2")   = 0  (n continua 42)
+  DIVIDE(-7, 2)     = -3
+  acrescentar demais         = 0  -> tamanho 0
+  TRECHO_TEXTO("BASICGOL", 5, 3) = 1  -> "GOL"
+```
+(a saída completa está em `expressoes.esperado.txt`)
 
 ### `para_contado.c` — sem entrada
 ```
