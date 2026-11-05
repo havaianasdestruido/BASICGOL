@@ -1,0 +1,1 @@
+erro: total deve ser positivo

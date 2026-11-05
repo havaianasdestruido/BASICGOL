@@ -16,7 +16,7 @@ FUNCAO INTEIRO64 fibonacci(INTEIRO n) {
     INTEIRO64 a = 0;
     INTEIRO64 b = 1;
     INTEIRO64 proximo = 0;
-    INTEIRO i;
+    INTEIRO i = 0;
 
     SE n <= 0 ENTAO
         RETORNE 0;
@@ -31,7 +31,7 @@ FUNCAO INTEIRO64 fibonacci(INTEIRO n) {
 }
 
 INICIO
-    INTEIRO i;
+    INTEIRO i = 0;
 
     PARA (i, 0, 10) {
         ESCREVA_FMT("fatorial(%2d) = %lld\n", i, (long long) fatorial(i));

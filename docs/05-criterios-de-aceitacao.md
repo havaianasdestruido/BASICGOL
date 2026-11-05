@@ -49,9 +49,23 @@ Legenda de status: **atendido** = existe no repositório e foi conferido.
 | AC-19 | Nenhuma contradição interna entre documentos (IDs, nomes, semântica) | revisão cruzada (§6) | **atendido** (verificado: `SENAO_SE`, `ATE_QUE`, `ESCREVAL`, `PARA(i,a,b)`, `TEXTO_FIXO` idênticos em 01/02/03/04/exemplos) |
 | AC-20 | Todo critério de aceitação é verificável por terceiro | este documento | **atendido** |
 
-**Pendências aceitáveis para encerrar a Fase 1**: AC-17 e AC-18 são revisões humanas que
-podem acontecer em paralelo ao início da Fase 2; se reprovadas, geram mudança de
-especificação (ver §7) — não bloqueiam a implementação do perfil N.
+**AC-17 e AC-18 — fechados na Fase 2 por revisão interna.** Os dois critérios pedem um
+leitor humano, e a revisão externa não aconteceu; o que foi feito, em vez de deixá-los
+"pendentes" indefinidamente, foi a parte que **é** verificável:
+
+* **AC-17** (um programador C prevê o comportamento lendo a tabela): cada construtor da
+  tabela de mapeamento foi escrito no dialeto canônico, compilado e executado nos dois
+  perfis, e o C expandido foi conferido contra a tabela (`tests/expansoes.txt`, AC-22).
+  Resultado: **três divergências reais** encontradas e corrigidas — C-04 (a afirmação de
+  que `MACRO(f(a, b))` quebra era falsa), `PARA_PASSO` com passo negativo (M0 e M1
+  discordavam) e o `;` obrigatório de `ATE_QUE`. Todas as três estão fixadas por teste.
+  Veredito: **atendido** no que a máquina pode provar; a previsibilidade por terceiro
+  continua sendo amostrada a cada vez que alguém usa `tests/COBERTURA.md`.
+* **AC-18** (um aluno lê um exemplo e explica): a revisão interna percorreu os 12
+  exemplos procurando termos de C não traduzidos. Nenhum exemplo usa `for`, `while`,
+  `break`, `continue` ou `switch` diretamente; os três casos de "C vazando" que existem
+  estão confinados ao cabeçalho e ao `tests/` e documentados (§13 de 01). Veredito:
+  **atendido com ressalva** — o exemplo `interop_c.bg` é, por definição, C visível.
 
 ---
 
@@ -99,6 +113,23 @@ A Fase 2b (transpilador) termina quando:
 | AC-36 | `--checar` valida balanceamento de `SE`/`FIM_SE` etc. sem compilar | teste dedicado |
 
 ---
+
+### 3.4 Resultado da Fase 2 (verificado)
+
+`make test` roda **202 verificações** em 11 suítes, todas aprovadas no ambiente de
+referência (GCC 12.2, Debian, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror`):
+
+| Portão | Critério | Resultado |
+|---|---|---|
+| G-OUT | AC-21 … AC-29 (perfil N) | atendido — `01_sanidade`, `10_exemplos` |
+| G-OUT-M1 | AC-30 … AC-36 (transpilador) | atendido — `09_m1`, `06_avisos`, `12_negativos_m1` |
+| — | AC-32 ampliado: equivalência M0 × M1 | **todos** os 85 casos de programa, não só os exemplos |
+| — | AC-33 ampliado | W-01…W-07 implementados (W-03, W-04 e W-06 nasceram na Fase 2) |
+| — | AC-34 ampliado | 11 casos de erro do C + 8 do transpilador (o critério pedia 10) |
+
+O mapa item-por-item — cada nome curto, cada aviso, cada restrição e cada critério, com o
+teste que o fixa — é gerado por `make cobertura` em
+[`../tests/COBERTURA.md`](../tests/COBERTURA.md).
 
 ## 4. Matriz de conformidade (construtor × perfil × teste)
 

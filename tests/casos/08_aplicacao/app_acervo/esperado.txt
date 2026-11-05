@@ -1,0 +1,23 @@
+cota: 1 emprestimo(s), fator 1.50, capacidade 6
+emprestado: 1
+recusado: cota de 1 atingida
+devolvido: 1
+emprestado: 3
+recusado: livro 9 inexistente
+=== acervo: 6 livros (capacidade 6) ===
+id  titulo                 autor              ano   situacao
+5   Iracema                Jose de Alencar    1865  disponivel
+6   Memorias Postumas      Machado de Assis   1881  disponivel
+2   O Cortico              Aluisio Azevedo    1890  disponivel
+1   Dom Casmurro           Machado de Assis   1899  disponivel
+4   Vidas Secas            Graciliano Ramos   1938  disponivel
+3   Grande Sertao          Guimaraes Rosa     1956  emprestado
+emprestados: 1 de 6
+media de ano: 1904.83
+raridade: 188 (fator 1.50)
+faixa de anos: 1865..1956 (amplitude 91)
+primeiro da lista: Iracema - Jose de Alencar
+o primeiro livro esta livre
+devolvido: 3
+ids em ordem decrescente: 3 4 1 2 6 5
+fim: 6 livro(s), 0 emprestado(s), 2 recusa(s)

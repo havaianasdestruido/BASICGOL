@@ -1,0 +1,8 @@
+Contagem crescente:
+1 2 3 4 5 
+Contagem decrescente:
+5 4 3 2 1 
+Pares de 0 a 10:
+0 2 4 6 8 10 
+Mesma coisa sem acucar:
+0 2 4 6 8 10 

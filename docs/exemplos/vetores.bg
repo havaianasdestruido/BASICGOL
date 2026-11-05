@@ -5,7 +5,7 @@
 
 // Soma os n primeiros elementos.
 FUNCAO INTEIRO soma_de(INTEIRO v[], INTEIRO n) {
-    INTEIRO i;
+    INTEIRO i = 0;
     INTEIRO total = 0;
 
     PARA (i, 0, n - 1) {
@@ -24,7 +24,7 @@ FUNCAO REAL media_de(INTEIRO v[], INTEIRO n) {
 
 // Maior elemento.
 FUNCAO INTEIRO maior_de(INTEIRO v[], INTEIRO n) {
-    INTEIRO i;
+    INTEIRO i = 0;
     INTEIRO maior = v[0];
 
     PARA (i, 1, n - 1) {
@@ -36,7 +36,7 @@ FUNCAO INTEIRO maior_de(INTEIRO v[], INTEIRO n) {
 }
 
 PROCEDIMENTO imprime(INTEIRO v[], INTEIRO n) {
-    INTEIRO i;
+    INTEIRO i = 0;
 
     PARA (i, 0, n - 1) {
         ESCREVA_FMT("%4d", v[i]);
@@ -47,7 +47,7 @@ PROCEDIMENTO imprime(INTEIRO v[], INTEIRO n) {
 INICIO
     VETOR(INTEIRO, notas, 8);
     INTEIRO n = (INTEIRO) TAMANHO_VETOR(notas);
-    INTEIRO i;
+    INTEIRO i = 0;
 
     // Sem inicializador de vetor na sintaxe BG: preencha no laco.
     PARA (i, 0, n - 1) {

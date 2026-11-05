@@ -1,0 +1,51 @@
+// relatorio.bg — só apresentação: formatação, estatísticas e texto montado
+#include "acervo.h"
+
+PROCEDIMENTO relatorio(REAL fator) {
+    INTEIRO i = 0;
+    INTEIRO emp = emprestados();
+
+    ESCREVA_FMT("=== acervo: %d livros (capacidade %d) ===\n", quantidade(), ACERVO_MAX);
+    ESCREVA_FMT("%-3s %-22s %-18s %-5s %s\n", "id", "titulo", "autor", "ano", "situacao");
+
+    PARA (i, 0, quantidade() - 1) {
+        // livros sem titulo ficam fora da listagem (PROSSIGA)
+        SE IGUAL(TAMANHO_TEXTO(acervo_titulo(i)), 0) ENTAO
+            PROSSIGA;
+        FIM_SE
+        ESCREVA_FMT("%-3d %-22s %-18s %-5d %s\n",
+                    acervo_id(i), acervo_titulo(i), acervo_autor(i),
+                    acervo_ano(i), nome_situacao(acervo_situacao(i)));
+    }
+
+    ESCREVA_FMT("emprestados: %d de %d\n", emp, quantidade());
+    ESCREVA_FMT("media de ano: %.2f\n", media_ano());
+    ESCREVA_FMT("raridade: %d (fator %.2f)\n", indice_raridade(fator), fator);
+
+    SE quantidade() > 0 ENTAO
+        INTEIRO menor = acervo_ano(0);
+        INTEIRO maior = acervo_ano(0);
+        PARA (i, 0, quantidade() - 1) {
+            menor = MINIMO(menor, acervo_ano(i));
+            maior = MAXIMO(maior, acervo_ano(i));
+        }
+        ESCREVA_FMT("faixa de anos: %d..%d (amplitude %d)\n",
+                    menor, maior, ABS(maior - menor));
+
+        // dois JUNTA_TEXTO encadeados: "titulo - autor"
+        TEXTO_FIXO(parcial, 64);
+        TEXTO_FIXO(rotulo, 64);
+        SE JUNTA_TEXTO(parcial, 64, acervo_titulo(0), " - ") E
+           JUNTA_TEXTO(rotulo, 64, parcial, acervo_autor(0)) ENTAO
+            ESCREVA_FMT("primeiro da lista: %s\n", rotulo);
+        FIM_SE
+    FIM_SE
+
+    TEXTO_FIXO(situacao_txt, 16);
+    COPIA_TEXTO(situacao_txt, 16, nome_situacao(acervo_situacao(0)));
+    SE TEXTOS_IGUAIS(situacao_txt, "disponivel") ENTAO
+        ESCREVAL("o primeiro livro esta livre");
+    SENAO
+        ESCREVAL("o primeiro livro esta emprestado");
+    FIM_SE
+}

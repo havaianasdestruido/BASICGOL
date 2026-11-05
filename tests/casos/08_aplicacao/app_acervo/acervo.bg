@@ -1,0 +1,161 @@
+// acervo.bg — dados e operações sobre o acervo (sem E/S, exceto ERRO)
+#include "acervo.h"
+
+ESTATICO VETOR(Livro, acervo, ACERVO_MAX);
+ESTATICO INTEIRO total = 0;
+
+PROCEDIMENTO cadastra(INTEIRO id, TEXTO titulo, TEXTO autor, INTEIRO ano) {
+    SE total >= ACERVO_MAX ENTAO
+        ERRO("acervo cheio");
+    FIM_SE
+
+    acervo[total].id = id;
+    SE NAO COPIA_TEXTO(acervo[total].titulo, TITULO_MAX, titulo) ENTAO
+        ERRO("titulo longo demais");
+    FIM_SE
+    SE NAO COPIA_TEXTO(acervo[total].autor, AUTOR_MAX, autor) ENTAO
+        ERRO("autor longo demais");
+    FIM_SE
+    acervo[total].ano = ano;
+    acervo[total].situacao = DISPONIVEL;
+    total = total + 1;
+}
+
+FUNCAO INTEIRO busca(INTEIRO id) {
+    INTEIRO i = 0;
+    ENQUANTO i < total FACA
+        SE IGUAL(acervo[i].id, id) ENTAO
+            RETORNE i;
+        FIM_SE
+        i = i + 1;
+    FIM_ENQUANTO
+    RETORNE -1;
+}
+
+FUNCAO LOGICO empresta(INTEIRO id) {
+    INTEIRO pos = busca(id);
+    SE pos < 0 ENTAO
+        RETORNE FALSO;
+    FIM_SE
+    SE IGUAL(acervo[pos].situacao, EMPRESTADO) ENTAO
+        RETORNE FALSO;
+    FIM_SE
+    acervo[pos].situacao = EMPRESTADO;
+    RETORNE VERDADEIRO;
+}
+
+FUNCAO LOGICO devolve(INTEIRO id) {
+    INTEIRO pos = busca(id);
+    SE pos < 0 ENTAO
+        RETORNE FALSO;
+    FIM_SE
+    SE IGUAL(acervo[pos].situacao, DISPONIVEL) ENTAO
+        RETORNE FALSO;
+    FIM_SE
+    acervo[pos].situacao = DISPONIVEL;
+    RETORNE VERDADEIRO;
+}
+
+// Ordena por ano (bolha) e para cedo quando uma passada não troca nada.
+PROCEDIMENTO ordena_por_ano(void) {
+    INTEIRO i = 0;
+    ENQUANTO i < total FACA
+        INTEIRO j = 0;
+        LOGICO trocou = FALSO;
+        ENQUANTO j + 1 < total - i FACA
+            SE acervo[j].ano > acervo[j + 1].ano ENTAO
+                Livro tmp = acervo[j];
+                acervo[j] = acervo[j + 1];
+                acervo[j + 1] = tmp;
+                trocou = VERDADEIRO;
+            FIM_SE
+            j = j + 1;
+        FIM_ENQUANTO
+        SE NAO trocou ENTAO
+            PARE;
+        FIM_SE
+        i = i + 1;
+    FIM_ENQUANTO
+}
+
+FUNCAO INTEIRO quantidade(void) {
+    RETORNE total;
+}
+
+FUNCAO INTEIRO emprestados(void) {
+    INTEIRO i = 0;
+    INTEIRO contador = 0;
+    ENQUANTO i < total FACA
+        SE IGUAL(acervo[i].situacao, EMPRESTADO) ENTAO
+            contador = contador + 1;
+        FIM_SE
+        i = i + 1;
+    FIM_ENQUANTO
+    RETORNE contador;
+}
+
+FUNCAO REAL media_ano(void) {
+    SE IGUAL(total, 0) ENTAO
+        RETORNE 0.0;
+    FIM_SE
+    INTEIRO soma = 0;
+    INTEIRO i = 0;
+    PARA (i, 0, total - 1) {
+        soma = soma + acervo[i].ano;
+    }
+    RETORNE (1.0 * soma) / total;
+}
+
+// Idade média dos livros ao quadrado, tirada a raiz e escalada pelo fator da
+// configuração — exercita POTENCIA, RAIZ e ARREDONDA.
+FUNCAO INTEIRO indice_raridade(REAL fator) {
+    SE IGUAL(total, 0) ENTAO
+        RETORNE 0;
+    FIM_SE
+    REAL soma = 0.0;
+    INTEIRO i = 0;
+    PARA (i, 0, total - 1) {
+        INTEIRO idade = 2026 - acervo[i].ano;
+        soma = soma + POTENCIA(idade, 2);
+    }
+    RETORNE ARREDONDA(RAIZ(soma / total) * fator);
+}
+
+FUNCAO TEXTO nome_situacao(Situacao s) {
+    ESCOLHA (s)
+        CASO DISPONIVEL:
+            RETORNE "disponivel";
+        CASO EMPRESTADO:
+            RETORNE "emprestado";
+        CONTRARIO:
+            RETORNE "?";
+    FIM_ESCOLHA
+    RETORNE "?";
+}
+
+// --- acessores (o vetor é privado do módulo) ---
+
+FUNCAO INTEIRO acervo_id(INTEIRO i) {
+    AFIRME(i >= 0 E i < total, "indice fora do acervo");
+    RETORNE acervo[i].id;
+}
+
+FUNCAO TEXTO acervo_titulo(INTEIRO i) {
+    AFIRME(i >= 0 E i < total, "indice fora do acervo");
+    RETORNE acervo[i].titulo;
+}
+
+FUNCAO TEXTO acervo_autor(INTEIRO i) {
+    AFIRME(i >= 0 E i < total, "indice fora do acervo");
+    RETORNE acervo[i].autor;
+}
+
+FUNCAO INTEIRO acervo_ano(INTEIRO i) {
+    AFIRME(i >= 0 E i < total, "indice fora do acervo");
+    RETORNE acervo[i].ano;
+}
+
+FUNCAO Situacao acervo_situacao(INTEIRO i) {
+    AFIRME(i >= 0 E i < total, "indice fora do acervo");
+    RETORNE acervo[i].situacao;
+}

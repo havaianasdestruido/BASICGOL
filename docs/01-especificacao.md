@@ -736,7 +736,10 @@ Semântica exata: `for ((i) = (inicio); (i) <= (fim); ++(i))`.
 * a variável **deve existir antes** e não pode ser declarada na construção;
 * não altere a variável de controle dentro do corpo (comportamento definido, mas quase
   sempre bug) → M1 avisa (W-04);
-* passo diferente de 1: `PARA_PASSO(i, 0, 100, 10) { … }`;
+* passo diferente de 1: `PARA_PASSO(i, 0, 100, 10) { … }`. O sinal do passo decide a
+  condição de parada: passo positivo conta para cima (`i <= fim`), negativo conta para
+  trás (`i >= fim`). É o mesmo teste nos dois perfis (M0 e M1) — a igualdade é verificada
+  pelo caso `03_controle/c23_para_passo_negativo`;
 * contagem decrescente: use `ENQUANTO` (recomendado) ou C nativo.
 
 ### 11.5 Laço contado (açúcar, M1)
@@ -795,11 +798,19 @@ ESCOLHA (opcao)
 FIM_ESCOLHA
 ```
 
-* `ESCOLHA(expr)` é macro de função: **`expr` não pode conter vírgula no nível superior**
-  (`ESCOLHA(f(a, b))` falha) → atribua a uma variável antes;
+* `ESCOLHA(expr)` é macro de função: **`expr` não pode ter vírgula no nível superior**
+  (`ESCOLHA(a, b)`), porque a vírgula seria lida como separador de argumentos.
+  Chamadas aninhadas como `ESCOLHA(f(a, b))` **funcionam**, porque os parênteses internos
+  protegem a vírgula — a Fase 2 verificou isso empiricamente e o caso
+  `tests/casos/03_controle/c22_escolha_com_chamada` fixa o comportamento.
+  Isto **corrige** a redação da Fase 1 (ver C-04 em [04](04-restricoes-e-decisoes.md));
 * `CASO` expande para `case`, `CONTRARIO` para `default` (o `:` é do programador);
-* `PARE;` é obrigatório no fim de cada caso que não deve "cair" no seguinte (fall-through
-  é C e é permitido — documente quando intencional);
+* `PARE;` é obrigatório no fim de cada caso que não deve "cair" no seguinte. Queda
+  intencional é C e é permitida, mas `-Wextra` a transforma em erro
+  (`-Wimplicit-fallthrough`): anote com `/* fall through */` e, se o compilador não
+  reconhecer o comentário dentro das macros, desligue só esse aviso
+  (`-Wno-implicit-fallthrough`) — é o que o caso `03_controle/c19_escolha_fallthrough`
+  faz, com o motivo documentado;
 * um caso que precisa de variáveis locais usa um bloco C explícito:
   `CASO 3: { INTEIRO t = 1; … PARE; }`;
 * `expr` deve ser inteiro ou enumeração (regra de C);
@@ -852,23 +863,51 @@ por três mecanismos, todos explícitos:
 O compilador C é o compilador de BG. A qualidade da mensagem depende da expansão; esta
 tabela é parte da especificação porque o professor vai encontrá-la.
 
-| Erro do aluno | Mensagem provável | Como explicar |
+Todas as mensagens abaixo foram **reproduzidas na Fase 2** (GCC 12.2) e são as que a
+suíte afirma, uma por uma, em `tests/casos/06_negativos/`.
+
+| Erro do aluno | Mensagem observada | Como explicar |
 |---|---|---|
-| esqueceu `FIM_SE`/`FIM_ENQUANTO` | `expected declaration or statement at end of input` (na linha do `FIM` do programa) | “falta fechar o bloco aberto com `SE`” |
+| esqueceu `FIM_SE`/`FIM_ENQUANTO` | `expected declaration or statement at end of input` | “falta fechar o bloco aberto com `SE`” |
 | escreveu `SE x {` | `expected ')' before '{' token` + nota mostrando a origem da macro `SE` | “`SE` já abre parêntese; use `ENTAO`” |
-| escreveu `SENAO SE` | erro de chaves no fim do bloco | “use `SENAO_SE`” |
-| esqueceu `ENTAO` | `expected ')'` ou erro em cascata | “`SE` sempre tem `ENTAO`” |
-| usou `VETOR INTEIRO` | `unknown type name 'VETOR'` | “`VETOR` é chamada: `VETOR(INTEIRO, v, 10);`” |
-| usou `PARA i DE 1 ATE 10` sem M1 | erro em `PARA` | “no modo macro use `PARA (i, 1, 10) { }`” |
+| escreveu `SENAO SE` | `expected declaration or statement at end of input` (o `{` extra do `SENAO` estoura no fim) | “use `SENAO_SE`” |
+| esqueceu `ENTAO` | `called object is not a function or function pointer` | “`SE` sempre tem `ENTAO`” |
+| usou `VETOR INTEIRO` | `'BG_VETOR' undeclared (first use in this function)` | “`VETOR` é chamada: `VETOR(INTEIRO, v, 10);`” |
+| usou `PARA i DE 1 ATE 10` sem M1 | `unknown type name 'BG_PARA'` | “no modo macro use `PARA (i, 1, 10) { }` (ou compile com `basicgolc`)” |
+| escreveu `MOD=` | `expected expression before '=' token` | “não existe `MOD=`: `x = x MOD 3;`” |
+| usou palavra-chave como variável (`INTEIRO SE`) | `expected identifier or '(' before 'if'` | “o nome é das palavras-chave; escolha outro” |
+| dois `INICIO` | `redefinition of 'main'` | “um programa tem um `INICIO`” |
+| `FIM` a mais | `expected identifier or '(' before '}' token` | “há um `FIM` sobrando” |
 | registrou com nomes divergentes | `unknown type name` / `conflicting types` | “o nome aparece na abertura e no fechamento do `REGISTRO`” |
-| `ESCREVAL(a, b)` | `macro "ESCREVAL" passed 2 arguments, but takes just 1` | “uma chamada por valor” |
-| atribuiu a `TEXTO` | `assignment of read-only location` | “`TEXTO` é imutável; use `TEXTO_FIXO`” |
+| `ESCREVAL(a, b)` | `macro "BG_ESCREVAL" passed 2 arguments, but takes just 1` | “uma chamada por valor” |
+| atribuiu a `TEXTO` | `assignment of read-only location '*s'` | “`TEXTO` é imutável; use `TEXTO_FIXO`” |
 | comparou textos com `==` | compila; resultado errado | usar `TEXTOS_IGUAIS` |
+
+> **Nota de projeto (honesta):** mensagens de macro apontam para o cabeçalho e citam
+> `BG_*`, não o que o aluno escreveu. É exatamente para isso que existe o caminho M1: o C
+> gerado não tem macros de palavra-chave, então a mensagem aponta para o `programa.bg` e
+> para a linha certa. O que o M1 resolve sozinho, sem esperar o compilador, está em §12.5.
 
 > **Nota de projeto (honesta):** mensagens de macro são piores que mensagens de C nativo.
 > É exatamente para melhorá-las que existe o caminho M1: o C gerado tem palavras-chave
 > C, sem macros, e as mensagens passam a apontar para o código que o aluno escreveu, com
 > `{`/`}` explícitos.
+
+### 12.5 Erros que o transpilador M1 acusa antes do C
+
+| Situação | Mensagem (`arquivo:linha: erro: …`) |
+|---|---|
+| `SE`/`ENQUANTO` com `{` ou `;` no cabeçalho | `'SE' exige 'ENTAO' antes de '{' (nao use chaves nem ';' no cabecalho do bloco)` |
+| `SENAO SE` | `'SENAO SE' nao encadeia: use SENAO_SE (C-05 da especificacao)` |
+| bloco fechado com o `FIM_*` errado | `'FIM' fecha o bloco errado: esperado 'FIM_SE' (aberto na linha 3)` |
+| bloco nunca fechado | `'INICIO' aberto aqui nao foi fechado (falta 'FIM')` |
+| `PARA … DE` sem `ATE` / sem `FACA` | `faltou 'ATE' no laco 'PARA i DE ... ATE ...'` |
+| `PARA i …` sem `DE` | `esperado 'DE' depois da variavel de controle em 'PARA i DE ...'` |
+| `ATE` sem `REPITA` | `'ATE' sem 'REPITA': use 'REPITA ... ATE_QUE(cond);' ou abra um REPITA` |
+| `REGISTRO(Nome)` seguido de `{` | `'REGISTRO' ja abre o bloco: nao use '{'` |
+
+Cada linha dessa tabela é um caso em `tests/casos/12_negativos_m1/`, e o código de saída
+do `basicgolc` é sempre `1` quando há qualquer erro (nada é escrito no arquivo de saída).
 
 ### 12.4 Diagnósticos do transpilador M1 (avisos, não erros)
 
@@ -876,11 +915,11 @@ tabela é parte da especificação porque o professor vai encontrá-la.
 |---|---|
 | W-01 | atribuição (`=`) usada como condição de `SE`/`ENQUANTO` (provável confusão com `==`) |
 | W-02 | variável local declarada sem inicializador |
-| W-03 | condição de tipo inteiro em `SE`/`ENQUANTO` (prefira `LOGICO`/comparação) |
-| W-04 | variável de controle de `PARA` modificada dentro do corpo, ou limite com efeito colateral |
+| W-03 | condição que é um literal numérico em `SE`/`ENQUANTO` (padrão "verdade em C": prefira `LOGICO` ou comparação) |
+| W-04 | variável de controle de `PARA`/`PARA_PASSO` modificada dentro do corpo |
 | W-05 | identificador 100% maiúsculo declarado pelo usuário (viola R-1) |
-| W-06 | `TAMANHO_VETOR` aplicado a parâmetro declarado como `[]`/`*` (C-18) — **proposto** |
-| W-07 | `VETOR`/`TEXTO_FIXO` com tamanho que é um identificador `k_*` (viraria VLA, C-23) — **proposto** |
+| W-06 | `TAMANHO_VETOR` aplicado a parâmetro declarado como `[]`/`*` (C-18) |
+| W-07 | `VETOR`/`TEXTO_FIXO` com tamanho que é um identificador `k_*` (viraria VLA, C-23) |
 
 ---
 

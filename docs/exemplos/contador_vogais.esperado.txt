@@ -1,0 +1,3 @@
+Digite uma frase: Caracteres: 23
+Vogais: 9
+Mascarada: Pr*gr*m*c** *m P*rt*g*l

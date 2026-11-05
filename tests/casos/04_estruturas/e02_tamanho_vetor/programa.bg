@@ -1,0 +1,12 @@
+
+#include <basicgol.h>
+
+INICIO
+    VETOR(INTEIRO, a, 7);
+    VETOR(REAL, b, 3);
+    VETOR(TEXTO, c, 2);
+
+    ESCREVAL(TAMANHO_VETOR(a));
+    ESCREVAL(TAMANHO_VETOR(b));
+    ESCREVAL(TAMANHO_VETOR(c));
+FIM

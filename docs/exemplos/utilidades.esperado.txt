@@ -1,0 +1,56 @@
+==============================
+TIPOS
+------------------------------
+CARACTERE: B
+LOGICO:    1
+INTEIRO8:  100
+INTEIRO16: 30000
+INTEIRO32: 2000000000
+CURTO:     12
+LONGO:     1234567890
+INTEIRO64: 9000000000
+NATURAL:   60000
+NATURAL8:  250
+NATURAL16: 65000
+NATURAL32: 4000000000
+NATURAL64: 18000000000000000000
+REAL_CURTO:1.5
+REAL_LONGO:2.5
+==============================
+MATEMATICA
+------------------------------
+ABS(-7)          = 7
+MINIMO(3, 9)     = 3
+MAXIMO(3, 9)     = 9
+POTENCIA(2, 10)  = 1024
+RAIZ(144)        = 12
+ARREDONDA(2.6)   = 3
+PISO(2.9)        = 2
+TETO(2.1)        = 3
+MOD: 17 MOD 5    = 2
+IGUAL(4, 4)      = 1
+DIFERENTE(4, 5)  = 1
+==============================
+TEXTO
+------------------------------
+TAMANHO_TEXTO("BASICGOL") = 8
+TEXTOS_IGUAIS("abc", "abc") = 1
+TEXTOS_DIFERENTES("abc", "abd") = 1
+COPIA_TEXTO coube? 1
+JUNTA_TEXTO coube? 1  ->  BASICGOL
+JUNTA_TEXTO em buffer pequeno coube? 0
+==============================
+ENUMERACAO
+------------------------------
+CONCEITO_B vale 11
+conceito B
+==============================
+CONVERSOES E CONTRATOS
+------------------------------
+TEXTO_PARA_INTEIRO("42") = 42
+TEXTO_PARA_INTEIRO rejeitou "4x2" (correto)
+TEXTO_PARA_REAL("2.75") = 2.75
+AFIRME passou: contrato interno satisfeito.
+==============================
+pi = 3.14159   contador_global (EXTERNO) = 7
+

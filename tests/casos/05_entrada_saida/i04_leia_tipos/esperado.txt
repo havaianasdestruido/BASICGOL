@@ -1,0 +1,3 @@
+int 42
+real 3.50
+char Z

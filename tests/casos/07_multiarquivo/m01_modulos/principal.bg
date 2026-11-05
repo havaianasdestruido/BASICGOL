@@ -1,0 +1,12 @@
+// principal.bg — junta os modulos num programa
+#include "comum.h"
+
+INICIO
+    ESCREVAL(mdc(48, 18));          // 6
+    ESCREVAL(mmc(4, 6));            // 12
+    ESCREVAL(mmc(0, 7));            // 0
+    ESCREVAL(eh_primo(97));         // 1
+    ESCREVAL(eh_primo(1));          // 0
+    ESCREVAL(eh_primo(91));         // 0
+    tabuada(3);
+FIM

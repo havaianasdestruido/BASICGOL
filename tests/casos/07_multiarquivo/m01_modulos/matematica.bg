@@ -1,0 +1,39 @@
+// matematica.bg — modulo de funcoes puras (sem E/S)
+#include "comum.h"
+
+FUNCAO INTEIRO mdc(INTEIRO a, INTEIRO b) {
+    ENQUANTO b != 0 FACA
+        INTEIRO resto = a MOD b;
+        a = b;
+        b = resto;
+    FIM_ENQUANTO
+    RETORNE ABS(a);
+}
+
+FUNCAO INTEIRO mmc(INTEIRO a, INTEIRO b) {
+    SE IGUAL(a, 0) OU IGUAL(b, 0) ENTAO
+        RETORNE 0;
+    FIM_SE
+    RETORNE ABS(a / mdc(a, b) * b);
+}
+
+FUNCAO LOGICO eh_primo(INTEIRO n) {
+    SE n < 2 ENTAO
+        RETORNE FALSO;
+    FIM_SE
+    INTEIRO d = 2;
+    ENQUANTO d * d <= n FACA
+        SE IGUAL(n MOD d, 0) ENTAO
+            RETORNE FALSO;
+        FIM_SE
+        d = d + 1;
+    FIM_ENQUANTO
+    RETORNE VERDADEIRO;
+}
+
+PROCEDIMENTO tabuada(INTEIRO n) {
+    INTEIRO i = 0;
+    PARA (i, 1, 5) {
+        ESCREVA_FMT("%d x %d = %d\n", n, i, n * i);
+    }
+}

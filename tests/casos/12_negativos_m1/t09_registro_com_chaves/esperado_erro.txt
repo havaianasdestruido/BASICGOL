@@ -1,0 +1,1 @@
+'REGISTRO' ja abre o bloco: nao use '{'

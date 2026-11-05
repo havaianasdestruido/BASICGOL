@@ -11,23 +11,37 @@ Doze programas completos, escritos **apenas** com construtores definidos na
 
 ## Como compilar
 
-Nenhum exemplo foi compilado contra um `basicgol.h` publicado: ele é entrega da Fase 2.
-A validação da Fase 1 usou uma **sonda descartável** que implementa exatamente as macros
-da [§3 do mapeamento](../03-mapeamento-para-c.md), e o resultado está registrado na §6 de
-[restrições e decisões](../04-restricoes-e-decisoes.md).
+Desde a Fase 2 o cabeçalho existe ([`include/basicgol.h`](../../include/basicgol.h)) e
+todos os exemplos são compilados e executados pela suíte, nos dois perfis
+(`make test`, suíte `10_exemplos`).
 
-Com o cabeçalho disponível (perfil M0):
+Perfil M0 (só precisa de um compilador C11):
 
 ```sh
 cc -std=c11 -Wall -Wextra -Wformat=2 -x c ola_mundo.bg -o ola_mundo -lm
 ```
 
-Com o transpilador (perfil M1, apenas `para_contado.bg`):
+Com o transpilador (perfil M1 — todos os exemplos passam por aqui):
 
 ```sh
-basicgolc para_contado.bg -o para_contado.c
-cc -std=c11 -Wall -Wextra -Wformat=2 para_contado.c -o para_contado -lm
+make                                    # constrói build/basicgolc
+build/basicgolc para_contado.bg -o para_contado.c
+cc -std=c11 -Wall -Wextra -Wformat=2 para_contado.c -o para_contado -lm -I ../../include
 ```
+
+### Arquivos de ouro ao lado dos fontes
+
+Cada exemplo tem, ao lado do `.bg`, os arquivos que a suíte consome:
+
+| Sufixo | Papel |
+|---|---|
+| `.entrada.txt` | o que vai para o `stdin` (ausente = sem entrada) |
+| `.esperado.txt` | a saída **completa** esperada em `stdout` |
+| `.contem.txt` | linhas que precisam aparecer em `stdout` (para saída que depende do relógio) |
+| `.esperado_stderr.txt` | linha que precisa aparecer em `stderr` |
+
+Eles são a fonte de verdade da máquina; a seção "Saídas esperadas" abaixo continua sendo a
+leitura humana, e pode mostrar trechos em vez do arquivo inteiro.
 
 ## Registro de validação (Fase 1)
 
@@ -46,10 +60,11 @@ Compilados com GCC 12.2, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror`: **ze
 | `interop_c.bg` | M0 + C | `#include <time.h>`, `struct`, função estática em C, ponteiro, `for`/`printf` misturados | ok | ok |
 | `fatorial_recursivo.bg` | M0 | recursão, `INTEIRO64`, `ESCREVA_FMT("%lld")` | ok | ok |
 | `utilidades.bg` | M0 | catálogo de tipos, `ABS`/`MINIMO`/`MAXIMO`/`POTENCIA`/`RAIZ`/`ARREDONDA`/`PISO`/`TETO`, `COPIA_TEXTO`/`JUNTA_TEXTO`, `TEXTO_PARA_INTEIRO`/`TEXTO_PARA_REAL`, `ENUMERACAO`, `AFIRME`, `ESCREVA_ERRO`, `ESTATICO`, `VAZIO` | ok | ok |
-| `para_contado.bg` | **M1** | `PARA … DE … ATE … PASSO … FACA` / `FIM_PARA` | ok¹ | ok¹ |
+| `para_contado.bg` | **M1** | `PARA … DE … ATE … PASSO … FACA` / `FIM_PARA` | ok | ok |
 
-¹ validado traduzindo à mão para a expansão obrigatória de
-[01 §11.5](../01-especificacao.md); o `basicgolc` é da Fase 2.
+Todos os 12 exemplos compilam sem avisos com `-std=c11 -Wall -Wextra -Wformat=2 -Wvla
+-Werror` e produzem exatamente a saída registrada — nos dois perfis, exceto
+`para_contado.bg`, que é M1 puro por desenho. É o que a suíte verifica a cada `make test`.
 
 A validação também forçou três ajustes de contrato, registrados em
 [04 §6](../04-restricoes-e-decisoes.md): o contrato de `LEIA_TEXTO` (C-20, corrigido duas
@@ -57,10 +72,12 @@ vezes até ficar correto), a exigência de conversão de texto sem sobra (RB-7) 
 descoberta de que `CONSTANTE` não serve como tamanho de vetor (C-23) — `cadastro.bg`
 nasceu com um VLA silencioso até `-Wvla` ser ligado.
 
-## Saídas esperadas (testes dourados)
+## Saídas esperadas (leitura humana)
 
-As saídas abaixo são reais (obtidas na validação), com entradas indicadas. Espaços em
-branco fazem parte do teste.
+As saídas abaixo são reais, com entradas indicadas; em alguns casos mostram só o trecho
+que importa. A comparação automática é feita contra os arquivos `.esperado.txt` /
+`.contem.txt` descritos acima (e não contra este documento, para não haver duas verdades).
+Espaços em branco fazem parte do teste.
 
 ### `ola_mundo.bg`
 ```

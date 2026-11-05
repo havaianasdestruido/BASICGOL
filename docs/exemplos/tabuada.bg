@@ -5,7 +5,7 @@
 
 INICIO
     INTEIRO n = 0;
-    INTEIRO i;
+    INTEIRO i = 0;
 
     ESCREVA("Tabuada de qual numero (1 a 9)? ");
     SE NAO LEIA_OK(n) ENTAO
@@ -23,8 +23,8 @@ INICIO
 
     // Tabela completa 1..5 x 1..5, com lacos aninhados.
     ESCREVAL("");
-    INTEIRO a;
-    INTEIRO b;
+    INTEIRO a = 0;
+    INTEIRO b = 0;
     PARA (a, 1, 5) {
         PARA (b, 1, 5) {
             ESCREVA_FMT("%4d", a * b);

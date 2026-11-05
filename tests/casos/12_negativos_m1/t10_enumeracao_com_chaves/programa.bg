@@ -1,0 +1,10 @@
+#include <basicgol.h>
+
+ENUMERACAO(Cor) {
+    VERMELHO,
+    AZUL
+FIM_ENUMERACAO(Cor);
+
+INICIO
+    ESCREVAL(VERMELHO);
+FIM

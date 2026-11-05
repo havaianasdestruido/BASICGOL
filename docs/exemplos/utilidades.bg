@@ -15,7 +15,7 @@ INTEIRO contador_global = 7;
 
 // Funcao privada deste arquivo (ESTATICO) que nao devolve nada (VAZIO).
 ESTATICO FUNCAO VAZIO linha(char preenchimento) {
-    INTEIRO i;
+    INTEIRO i = 0;
     PARA (i, 1, 30) {
         ESCREVA(preenchimento);
     }

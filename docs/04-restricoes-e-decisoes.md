@@ -56,16 +56,27 @@ valor e escolhe o formato por `_Generic`. Não há `MINIMO` variádico nem `SOMA
 
 ### C-04 — Vírgula dentro de argumento de macro
 
-**Fato.** `MACRO(f(a, b))` é interpretado como dois argumentos, salvo parênteses extras
-(`MACRO((f(a, b)))`) — que nem sempre preservam a semântica desejada.
+**Fato (corrigido na Fase 2).** O pré-processador conta parênteses, colchetes e chaves ao
+separar argumentos, então `MACRO(f(a, b))` passa **um** argumento — `f(a, b)`. O que
+quebra é a **vírgula no nível superior do argumento**: `ESCOLHA(a, b)` vira dois
+argumentos, e `POTENCIA(f(a, b), 2)` é lido corretamente porque a vírgula está dentro de
+parênteses.
 
-**Consequência.** Macros de função que recebem **expressões** (não listas) são pontos
-frágeis: `ESCOLHA(f(a,b))`, `PARA(i, 0, g(x,y))`, `POTENCIA(f(a,b), 2)`.
+> A Fase 1 afirmava o contrário ("`MACRO(f(a, b))` é interpretado como dois argumentos").
+> A sonda da Fase 2 (caso `03_controle/c22_escolha_com_chamada`, no caminho M0 **e** M1)
+> mostrou que a afirmação era falsa; a redação foi corrigida aqui, em
+> [01 §11.6](01-especificacao.md) e em [03 §6](03-mapeamento-para-c.md).
+
+**Consequência.** Só expressões com vírgula **de nível superior** são frágeis: a lista de
+valores de `ESCREVAL(a, b)` (que é erro por desenho, D-07), o operador vírgula
+(`ESCOLHA((a, b))` passa, mas é um erro de estilo) e qualquer macro de 2+ argumentos cujo
+argumento contenha vírgula solta.
 
 **Mitigação.** (a) os construtores de bloco mais usados (`SE`, `ENQUANTO`) são macros
-**objeto** justamente para não sofrer disso; (b) a especificação manda atribuir a uma
-variável temporária quando houver vírgula; (c) os exemplos evitam o caso; (d) mensagem de
-erro documentada em [01 §12.3](01-especificacao.md).
+**objeto**; (b) quando houver vírgula de nível superior, atribua a uma variável
+temporária; (c) o prefixo alemão ajuda: `ESCOLHA(t)` com `t` calculado antes;
+(d) a mensagem do compilador (`macro "BG_ESCREVAL" passed 2 arguments, but takes just 1`)
+está catalogada em [01 §12.3](01-especificacao.md).
 
 ### C-05 — `SENAO` + `SE` não encadeiam (descoberto na sonda)
 
@@ -361,12 +372,19 @@ ruído; não há risco de `else` pendurado. *Reabriria*: se testes com iniciante
 confusão entre "bloco com `FIM_*`" e "bloco com `{ }`" — a alternativa é uma palavra
 `INICIO_FUNCAO`.
 
-### D-03 — Acentuação de palavras-chave · **decidido (núcleo), aberto (M1)**
-`SENAO`, `LOGICO`, `ATE`, `NAO` sem acento no perfil N; a documentação sempre mostra a
+### D-03 — Acentuação de palavras-chave · **decidido e implementado (Fase 2)**
+`SENAO`, `LOGICO`, `ATE`, `NAO` **sem** acento no perfil N; a documentação sempre mostra a
 leitura acentuada. *Justificativa*: C não garante identificadores não-ASCII (R-3), e a
-portabilidade vale mais que a estética. *Aberto*: M1 **pode** aceitar `SENÃO`, `LÓGICO`,
-`ATÉ` na entrada e reescrever para a forma ASCII — é seguro porque o transpilador vê
-bytes UTF-8. Decidir na Fase 2, com sua própria tabela de equivalência.
+portabilidade vale mais que a estética.
+
+**Fechamento (Fase 2).** O M1 aceita as formas acentuadas na entrada — `INÍCIO`, `ENTÃO`,
+`SENÃO`, `SENÃO_SE`, `FAÇA`, `ATÉ_QUE`, `LÓGICO`, `NÃO`, `VETOR`… — e reescreve para ASCII
+antes de traduzir, porque vê bytes UTF-8. A tabela de equivalência é `APELIDOS[]` em
+`tools/basicgolc.c` e a normalização acontece uma única vez, num pré-passe
+(`normaliza_apelidos`), de modo que **todos** os diagnósticos já trabalham com a forma
+ASCII. O perfil N continua exigindo ASCII puro: o mesmo arquivo com acentos **não**
+compila em M0 (R-3), e a suíte cobre os dois lados (`09` aceita em M1; `12_negativos_m1`
+não depende de acento).
 
 ### D-04 — Sintaxe livre (sem parênteses, sem `;`, indentação significativa) · **rejeitado**
 *Justificativa*: exigiria um parser completo — exatamente o que a Fase 1 demonstrou ser
@@ -379,13 +397,19 @@ custo alto, ganho didático duvidoso (todo o material de referência usa `;`).
 ### D-06 — Modelo de erros · **decidido**
 Sem exceções. Valor de retorno + `AFIRME` + `ERRO`. *Justificativa*: C-12, §13.
 
-### D-07 — Impressão automática de vários valores · **rejeitado para v1.0**
+### D-07 — Impressão automática de vários valores · **rejeitado (definitivo na Fase 2)**
 `ESCREVAL(a, b, c)` não existe; use uma chamada por valor ou `ESCREVA_FMT`.
-*Justificativa*: C-03. *Reabriria*: se a Fase 2 entregar M1 estável — o transpilador
-**poderia** transformar `ESCREVAL(a, b)` em duas chamadas, pois vê os tokens. Fica
-registrado como candidato a v1.1 (é o único açúcar em que M1 realmente agrega conforto).
+*Justificativa*: C-03.
 
-### D-08 — Nomes curtos versus prefixados · **decidido, com ponto em aberto**
+**Fechamento (Fase 2).** O M1 *poderia* transformar `ESCREVAL(a, b)` em duas chamadas,
+mas isso quebraria a promessa que sustenta a linguagem: **a mesma fonte tem a mesma
+semântica nos dois perfis** (AC-06/AC-32). Uma construção que compila em M1 e não compila
+em M0 cria exatamente a assimetria que o desenho quis evitar (por isso o açúcar
+`PARA i DE …` é declarado **X**, só M1, e nunca esconde um erro de M0). O erro de
+`ESCREVAL(a, b)` continua sendo um diagnóstico de projeto, testado em
+`06_negativos/n04_escreval_dois_valores`.
+
+### D-08 — Nomes curtos versus prefixados · **decidido (mantido na Fase 2)**
 Padrão: nomes curtos (`SE`, `E`, `OU`). Opção: `#define BG_SEM_APELIDOS` antes do
 `#include` deixa apenas `BG_SE`, `BG_ENTAO`, … *Justificativa*: legibilidade é o produto;
 prefixo em tudo mataria a proposta. *Aberto*: se a experiência de uso em projetos C
@@ -393,7 +417,7 @@ mostrar colisões frequentes, inverter o padrão na v2.0 (grande quebra — exig
 major). Mitigação imediata: documentar I-3 como prática obrigatória ao incluir
 `basicgol.h` em C existente.
 
-### D-09 — Modo estrito (`BG_ESTRITO`) · **aberto**
+### D-09 — Modo estrito (`BG_ESTRITO`) · **adiado para v1.1**
 Ideia: com `BG_ESTRITO`, `ESCREVA`/`LEIA` deixariam de usar `_Generic` frouxo e
 verificariam melhor os tipos (por exemplo, `_Static_assert` de que o argumento é escalar
 conhecido). Custo: complexidade e mensagens piores. **Recomendação**: adiar; entregar
@@ -409,20 +433,50 @@ operador que não existe em nenhuma outra linguagem derivada de C.
 funciona como macro de função que fecha o `do/while`; `ATE` fica livre para o açúcar de
 `PARA … ATE …`, evitando ambiguidade para o autômato do transpilador.
 
-### D-12 — Funções de vetor na biblioteca · **aberto**
+### D-12 — Funções de vetor na biblioteca · **fora da v1.0 (candidato a v1.1)**
 `COPIA_VETOR`, `ORDENA_VETOR`, `BUSCA_VETOR` não estão em v1.0 (ficaram fora para manter a
 biblioteca mínima). **Recomendação**: `ORDENA_VETOR(v, n)` é didaticamente valioso; incluir
 como `static inline` com `qsort` na v1.1, e **não** incluir `COPIA_VETOR` (ensinar o laço
 tem valor).
 
-### D-13 — Empacotamento · **aberto (com recomendação)**
-Recomendação: `basicgol.h` **header-only** (um arquivo, sem build), com `basicgolc` como
-binário separado opcional. Alternativa rejeitada: biblioteca `.a`/`.so` (atrito de
-instalação em laboratório de escola).
+### D-13 — Empacotamento · **decidido e implementado (Fase 2)**
+**Fechamento (Fase 2).** `basicgol.h` **header-only** (um arquivo, sem build), com
+`basicgolc` como binário separado opcional. Alternativa rejeitada: biblioteca `.a`/`.so`
+(atrito de instalação em laboratório de escola). O repositório materializa a decisão:
+`include/basicgol.h`, `tools/basicgolc.c`, `Makefile` e `tests/`.
 
-### D-14 — Extensão do arquivo-fonte · **aberto (com recomendação)**
-Recomendação: `.bg`. Alternativas: `.bgol` (mais distintivo, mais digitação), `.por`.
-Custo de mudar depois: baixo (documentação + Makefile). Decidir até o fim da Fase 2.
+### D-14 — Extensão do arquivo-fonte · **decidido: `.bg`**
+`.bg`. Alternativas descartadas: `.bgol` (mais distintivo, mais digitação) e `.por`
+(colide com arquivos de build). O `Makefile` e a suíte usam `*.bg`; mudar agora custaria
+documentação e scripts, não código.
+
+### D-19 — `LEIA` de caractere pula espaços · **decidido na Fase 2**
+A tabela `BG_SFMT` usa `" %c"` para `char`/`signed char`. Sem isso, `LEIA(n); LEIA(c);`
+leria o `'\n'` deixado pelo número e o programa "perderia" a letra — a armadilha clássica
+de `scanf("%c")`. *Custo*: não dá para ler um espaço ou uma quebra de linha como
+caractere; quem precisar usa C (`getchar()`). *Teste*:
+`05_entrada_saida/i15_leia_caractere_apos_numero`.
+
+### D-20 — `TAMANHO_TEXTO`/`TAMANHO_VETOR` devolvem `NATURAL` · **decidido na Fase 2**
+São `size_t` (é o que `sizeof`/`strlen` dão), e misturar com `INTEIRO` dispara
+`-Wsign-compare` — que é bom: ensina a usar `NATURAL` para tamanhos. O idioma canônico é
+
+```c
+NATURAL n = TAMANHO_TEXTO(s);
+NATURAL i = 0;
+ENQUANTO i < n FACA
+    ...
+```
+
+*Teste*: o caso `08_aplicacao/app_acervo` usa exatamente esse idioma em `le_id`, e a suíte
+roda com `-Wall -Wextra -Werror`.
+
+### D-21 — Queda intencional em `ESCOLHA` · **decidido na Fase 2**
+`-Wextra` transforma `-Wimplicit-fallthrough` em erro, e o comentário `/* fall through */`
+não é reconhecido quando o `case` vem de macro. Decisão: queda intencional é permitida,
+mas o projeto anota o caso com o recurso do compilador (`__attribute__((fallthrough));`)
+ou desliga só esse aviso. O caso `03_controle/c19_escolha_fallthrough` faz a segunda
+coisa e documenta o motivo no próprio fonte.
 
 ### D-15 — C++ · **rejeitado para v1.0**
 `_Generic` não existe em C++ (C-11); `bool`, `const char *` e conversões mudam de
@@ -434,12 +488,16 @@ Mensagens de `ERRO`/`AFIRME` e do transpilador em **português sem acento** por 
 bibliotecas reutilizáveis — provavelmente desnecessário; reavaliar se houver uso fora do
 Brasil.
 
-### D-17 — `locale` numérico · **aberto**
+### D-17 — `locale` numérico · **decidido: nunca chamar `setlocale`**
 `scanf("%lf")`/`printf("%g")` dependem de `LC_NUMERIC`: em locale `pt_BR.UTF-8`, o
 separador decimal é `,`. Os programas BG **não** chamam `setlocale`, logo herdam o locale
 "C" do início do processo (ponto decimal) — comportamento descrito como normativo.
-*Aberto*: se a Fase 2 quiser respeitar o locale do sistema, precisa de uma decisão
-explícita e de testes com `,` decimal.
+**Fechamento (Fase 2).** `basicgol.h` **não** chama `setlocale`: a biblioteca nunca muda
+o locale do processo, então `%g`/`%lf` usam sempre `.` como separador decimal e o
+comportamento não depende do ambiente do aluno. Quem quiser locale do sistema chama
+`setlocale` explicitamente no próprio programa (é C, é visível no fonte). O oposto — a
+biblioteca "adivinhar" o locale — foi rejeitado porque tornaria a saída dos testes
+dependente da máquina. Consequência documentada em [01 §16](01-especificacao.md).
 
 ### D-18 — Módulos e pacotes · **rejeitado para v1.0**
 `#include` de C, mais `EXTERNO`. Sem sistema de módulos (§13.3).

@@ -2,9 +2,11 @@
 
 > BASICGOL — a legibilidade do BASIC e do Portugol, entregue como uma camada de macros C.
 
-**Status: Fase 1 — especificação concluída. Nenhum código de implementação foi escrito ainda.**
-Versão da especificação: **0.1** (pré-1.0, sujeita às decisões abertas em
-[`docs/04-restricoes-e-decisoes.md`](docs/04-restricoes-e-decisoes.md)).
+**Status: Fase 1 concluída (especificação) · Fase 2 concluída (implementação + testes).**
+O cabeçalho [`include/basicgol.h`](include/basicgol.h) e o transpilador
+[`tools/basicgolc.c`](tools/basicgolc.c) existem, e a suíte em [`tests/`](tests/) roda
+**202 verificações** (cada caso de programa é executado duas vezes: caminho M0 e caminho
+M1). Versão da linguagem: **1.0.0**.
 
 ---
 
@@ -55,11 +57,30 @@ FIM
 A fonte é a mesma nos dois caminhos; a semântica é a mesma; o resultado do
 pré-processamento (M0) e o C emitido (M1) são equivalentes.
 
-Comando previsto para M0 (o cabeçalho `basicgol.h` é entrega da Fase 2):
+Comando do caminho M0 (só precisa de um compilador C11):
 
 ```sh
-cc -std=c11 -Wall -Wextra -x c programa.bg -o programa -lm
+cc -std=c11 -Wall -Wextra -x c programa.bg -o programa -lm -I include
 ```
+
+Caminho M1 (transpilador):
+
+```sh
+make                                       # constrói build/basicgolc
+build/basicgolc programa.bg -o programa.c  # translate para C
+cc -std=c11 programa.c -o programa -lm -I include
+```
+
+## Repositório
+
+| Caminho | O que é |
+|---|---|
+| [`include/basicgol.h`](include/basicgol.h) | a linguagem inteira: macros, tipos, biblioteca de execução (`bg_*`), header-only |
+| [`tools/basicgolc.c`](tools/basicgolc.c) | transpilador M1: insere chaves, desaçucara `PARA i DE …`, aceita acentos, emite W-01…W-07 |
+| [`tests/`](tests/) | suíte de testes: 85 casos em disco, 11 suítes, caminho M0 **e** M1 em cada caso |
+| [`tests/COBERTURA.md`](tests/COBERTURA.md) | matriz de rastreabilidade gerada: cada nome, aviso, critério e restrição → o teste que o fixa |
+| [`docs/`](docs/) | a especificação normativa (o código é a implementação dela) |
+| [`Makefile`](Makefile) | `make`, `make test`, `make test-v`, `make exemplos`, `make cobertura` |
 
 ## Documentos
 
@@ -69,18 +90,41 @@ cc -std=c11 -Wall -Wextra -x c programa.bg -o programa -lm
 | 2 | [`docs/02-referencia.md`](docs/02-referencia.md) | Referência de palavras-chave, operadores, tipos e biblioteca de execução |
 | 3 | [`docs/03-mapeamento-para-c.md`](docs/03-mapeamento-para-c.md) | Tabela sintaxe → C, expansões reais verificadas e o que *não* é mapeável |
 | 4 | [`docs/04-restricoes-e-decisoes.md`](docs/04-restricoes-e-decisoes.md) | Restrições de implementação (C-xx), decisões abertas (D-xx) e riscos |
-| 5 | [`docs/05-criterios-de-aceitacao.md`](docs/05-criterios-de-aceitacao.md) | Critérios de aceitação da Fase 1 e portões para a Fase 2 |
+| 5 | [`docs/05-criterios-de-aceitacao.md`](docs/05-criterios-de-aceitacao.md) | Critérios de aceitação das duas fases, com o veredito de cada um |
 | — | [`docs/exemplos/`](docs/exemplos/) | Programas de exemplo completos, no dialeto canônico |
 
-## Escopo da Fase 1
+## Fase 2 — o que foi entregue
 
-Entregue: especificação, referência, mapeamento, restrições/decisões, critérios de
-aceitação e exemplos.
+* **`basicgol.h`**: implementa as 88 formas curtas da especificação, mais as 94 macros
+  `BG_*` (sempre disponíveis) e a biblioteca `bg_*`. Sem dependências além de `libc` e
+  `-lm`. Rejeita C99 com mensagem clara.
+* **`basicgolc`**: transpilador M1 em C11 puro. Faz três coisas que macro não faz
+  (`PARA i DE a ATE b [PASSO p] FACA` → `for`, `REPITA … ATE c;` → `do/while`, e chaves
+  explícitas no C emitido), aceita palavras-chave acentuadas na entrada e diagnostica
+  W-01…W-07 com linha e coluna.
+* **Testes**: 85 casos em disco + checagens de sanidade, CLI e estresse. Cada caso de
+  programa roda no caminho M0 e no M1 e precisa produzir exatamente a mesma saída — é a
+  prova automatizada da equivalência M0 × M1 (AC-32). A cobertura por item está em
+  [`tests/COBERTURA.md`](tests/COBERTURA.md).
 
-Fora de escopo nesta fase: `basicgol.h`, `basicgolc`, suíte de testes, empacotamento,
-realce de sintaxe para editores. Os exemplos foram validados contra uma **sonda
-descartável** (não versionada) para garantir que cada construtor especificado realmente
-expande para C compilável — ver §6 de [`docs/04-restricoes-e-decisoes.md`](docs/04-restricoes-e-decisoes.md).
+### Três coisas que a implementação ensinou (e que a especificação corrigiu)
+
+1. **C-04 estava errada**: `MACRO(f(a, b))` **não** quebra — os parênteses internos
+   protegem a vírgula. Só a vírgula de nível superior é problema. Corrigido em
+   [01 §11.6](docs/01-especificacao.md), [03 §6](docs/03-mapeamento-para-c.md) e
+   [04 C-04](docs/04-restricoes-e-decisoes.md); o caso
+   `03_controle/c22_escolha_com_chamada` fixa o comportamento certo nos dois perfis.
+2. **`PARA_PASSO` com passo negativo** contava zero iterações no caminho M0 enquanto o M1
+   contava certo — divergência de semântica encontrada pela suíte. O cabeçalho passou a
+   usar o mesmo teste ternário do transpilador.
+3. **`ATE_QUE(cond)` exige `;`** (é um `do/while`): sem o ponto e vírgula o erro do C
+   aparece longe da causa. O transpilador agora acusa `'SE' exige 'ENTAO' antes de '{'`
+   e `'SENAO SE' nao encadeia` antes de o compilador C entrar em cena.
+
+## Escopo
+
+Fora da v1.0, por decisão registrada: `BG_ESTRITO` (D-09), funções de vetor na biblioteca
+(D-12), módulos/pacotes (D-18), C++ (D-15), realce de sintaxe para editores.
 
 ## Licença
 

@@ -13,7 +13,7 @@ FIM_REGISTRO(Aluno);
 
 // Procura a matricula e devolve o indice, ou -1.
 FUNCAO INTEIRO busca_por_matricula(Aluno turma[], INTEIRO n, INTEIRO matricula) {
-    INTEIRO i;
+    INTEIRO i = 0;
 
     PARA (i, 0, n - 1) {
         SE turma[i].matricula == matricula ENTAO
@@ -24,7 +24,7 @@ FUNCAO INTEIRO busca_por_matricula(Aluno turma[], INTEIRO n, INTEIRO matricula) 
 }
 
 FUNCAO REAL media_da_turma(Aluno turma[], INTEIRO n) {
-    INTEIRO i;
+    INTEIRO i = 0;
     REAL total = 0.0;
 
     SE n <= 0 ENTAO
@@ -51,7 +51,7 @@ INICIO
     FIM_SE
 
     // Leitura dos dados, um aluno por vez.
-    INTEIRO i;
+    INTEIRO i = 0;
     PARA (i, 0, quantidade - 1) {
         ESCREVA("Matricula do aluno ");
         ESCREVA(i + 1);

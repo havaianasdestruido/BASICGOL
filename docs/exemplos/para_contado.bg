@@ -5,7 +5,7 @@
 #include <basicgol.h>
 
 INICIO
-    INTEIRO i;
+    INTEIRO i = 0;
 
     ESCREVAL("Contagem crescente:");
     PARA i DE 1 ATE 5 FACA

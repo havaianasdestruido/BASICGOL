@@ -40,7 +40,7 @@ INICIO
     ESCREVA_FMT("%.1f\n", distancia(p1, p2));
 
     // Mistura dos dois mundos no mesmo bloco: um laco C e um laco BG.
-    INTEIRO i;
+    INTEIRO i = 0;
     for (i = 1; i <= 3; i++) {
         printf("[C] iteracao %d\n", i);
     }
