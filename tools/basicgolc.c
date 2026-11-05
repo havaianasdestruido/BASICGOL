@@ -29,6 +29,15 @@
 
 #define BG_VERSAO "1.0.0"
 
+/* Sem o atributo de formato, -Wformat=2 (logo -Wformat-nonliteral) faz o
+ * clang recusar o vfprintf das funções de diagnóstico com -Werror. O
+ * atributo é opcional no padrão, então fica atrás de #if. */
+#if defined(__GNUC__) || defined(__clang__)
+#  define BG_FORMATO(f, a) __attribute__((format(printf, f, a)))
+#else
+#  define BG_FORMATO(f, a)
+#endif
+
 /* =====================================================================
  * Buffer de texto dinâmico
  * ===================================================================== */
@@ -38,6 +47,8 @@ typedef struct {
     size_t tam;
     size_t cap;
 } Buf;
+
+static void bg_morte(const char *fmt, ...) BG_FORMATO(1, 2);
 
 static void bg_morte(const char *fmt, ...)
 {
@@ -585,6 +596,8 @@ typedef struct {
     int         qtd_ponteiros;
 } Estado;
 
+static void erro(Estado *e, int linha, const char *fmt, ...) BG_FORMATO(3, 4);
+
 static void erro(Estado *e, int linha, const char *fmt, ...)
 {
     va_list ap;
@@ -595,6 +608,9 @@ static void erro(Estado *e, int linha, const char *fmt, ...)
     fputc('\n', stderr);
     e->erros++;
 }
+
+static void aviso(Estado *e, int linha, const char *codigo, const char *fmt, ...)
+    BG_FORMATO(4, 5);
 
 static void aviso(Estado *e, int linha, const char *codigo, const char *fmt, ...)
 {

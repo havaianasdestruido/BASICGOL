@@ -1,1 +1,5 @@
+# Uma mensagem por linha; basta UMA casar (o texto é do compilador, não da linguagem).
+# GCC: macro "BG_ESCREVAL" passed 2 arguments, but takes just 1
 passed 2 arguments
+# Clang
+too many arguments provided to function-like macro invocation

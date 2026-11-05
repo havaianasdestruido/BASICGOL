@@ -1,1 +1,3 @@
-expected expression before '=' token
+# Uma mensagem por linha; basta UMA casar (o texto é do compilador, não da linguagem).
+# GCC: "expected expression before '=' token"; Clang: "expected expression".
+expected expression

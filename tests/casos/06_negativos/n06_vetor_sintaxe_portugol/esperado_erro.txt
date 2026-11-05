@@ -1,1 +1,5 @@
+# Uma mensagem por linha; basta UMA casar (o texto é do compilador, não da linguagem).
+# GCC
 'BG_VETOR' undeclared
+# Clang
+use of undeclared identifier 'BG_VETOR'
