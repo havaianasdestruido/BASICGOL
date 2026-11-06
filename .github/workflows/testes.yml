@@ -15,14 +15,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: compilar o transpilador
-        run: make CC=${{ matrix.cc }}
-
-      - name: suíte completa (M0 + M1)
+      - name: suíte completa (M0 + M1 + biblioteca padrão)
         env:
           CC: ${{ matrix.cc }}
           T_CFLAGS: -std=${{ matrix.std }} -Wall -Wextra -Wformat=2 -Wvla -Werror
-        run: ./tests/run.sh
+        run: make test CC=${{ matrix.cc }}
 
       - name: exemplos com saída dourada
         run: make exemplos CC=${{ matrix.cc }}

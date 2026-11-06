@@ -1,6 +1,6 @@
 // ola_mundo.c — o menor programa BASICGOL possivel.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra ola_mundo.c -o ola_mundo
+// Compilar a partir da raiz: make exemplos
 #include <basicgol.h>
 
 INICIO

@@ -1,8 +1,11 @@
 # Exemplos BASICGOL
 
-Dezenove programas completos, escritos **apenas** com construtores definidos na
-[especificação](../01-especificacao.md) e na
-[referência de tipos e expressões](../06-tipos-e-expressoes.md). Eles servem a três propósitos:
+Vinte e quatro programas completos, escritos com construtores definidos na
+[especificação](../01-especificacao.md), na
+[referência de tipos e expressões](../06-tipos-e-expressoes.md) e na
+[biblioteca padrão](../09-biblioteca-padrao.md). Os cinco exemplos `biblioteca_*.c`
+demonstram, um por arquivo, os módulos de console, matemática, texto, caractere e
+utilidades. Os programas servem a três propósitos:
 
 1. **Documentação executável** — cada exemplo demonstra um conjunto de construtores.
 2. **Especificação por exemplos** — se um exemplo não compilar, a especificação está
@@ -12,22 +15,27 @@ Dezenove programas completos, escritos **apenas** com construtores definidos na
 
 ## Como compilar
 
-Desde a Fase 2 o cabeçalho existe ([`include/basicgol.h`](../../include/basicgol.h)) e
-todos os exemplos são compilados e executados pela suíte, nos dois perfis
-(`make test`, suíte `10_exemplos`).
+Desde a Fase 5, a sintaxe e os tipos continuam no cabeçalho
+[`include/basicgol.h`](../../include/basicgol.h), e os helpers estão organizados em
+[`include/basicgol/`](../../include/basicgol/) com implementação em
+[`src/biblioteca/`](../../src/biblioteca/). Todos os exemplos são compilados e
+executados pela suíte M0/M1 (`make test`, suíte `10_exemplos`).
 
-Perfil M0 (só precisa de um compilador C11):
+Perfil M0:
 
 ```sh
-cc -std=c11 -Wall -Wextra -Wformat=2 ola_mundo.c -o ola_mundo -lm -I ../../include
+make biblioteca
+cc -std=c11 -Wall -Wextra -Wformat=2 -I ../../include ola_mundo.c \
+   ../../build/libbasicgol.a -lm -o ola_mundo
 ```
 
-Com o transpilador (perfil M1 — todos os exemplos passam por aqui):
+Com o transpilador (perfil M1):
 
 ```sh
-make                                    # constrói build/basicgolc
-build/basicgolc para_contado.c -o para_contado.c
-cc -std=c11 -Wall -Wextra -Wformat=2 para_contado.c -o para_contado -lm -I ../../include
+make
+build/basicgolc para_contado.c -o para_contado.gerado.c
+cc -std=c11 -Wall -Wextra -Wformat=2 -I ../../include para_contado.gerado.c \
+   ../../build/libbasicgol.a -lm -o para_contado
 ```
 
 ### Arquivos de ouro ao lado dos fontes
@@ -44,7 +52,7 @@ Cada exemplo tem, ao lado do `.c`, os arquivos que a suíte consome:
 Eles são a fonte de verdade da máquina; a seção "Saídas esperadas" abaixo continua sendo a
 leitura humana, e pode mostrar trechos em vez do arquivo inteiro.
 
-## Registro de validação (Fase 1)
+## Registro de validação (Fases 1–5)
 
 Compilados com GCC 12.2, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror`: **zero avisos**.
 
@@ -69,10 +77,17 @@ Compilados com GCC 12.2, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror`: **ze
 | `controle_acumuladores.c` | M0 | **contadores e acumuladores** (Fase 3): soma, produto, contagem condicional, maior/menor, média `REAL`, laço vazio, `PARA_PASSO` decrescente | ok | ok |
 | `controle_entrada.c` | M0 | **laços dirigidos por entrada** (Fase 3): validação com `REPITA` + `LEIA_INTEIRO`, sentinela com `ENQUANTO`, rodada com zero iterações, `PROCEDIMENTO` | ok | ok |
 | `controle_para_acucar.c` | **M1** | açúcar `PARA i DE … ATE … PASSO … FACA` / `FIM_PARA` aninhado, `ATE` no `REPITA`, zero iterações | ok | ok |
+| `biblioteca_consola.c` | M0 + M1 | `bg_leia_linha`, escrita literal, limite de buffer e linha do terminal | ok | ok |
+| `biblioteca_matematica.c` | M0 + M1 | `ABS`, `MINIMO`, `MAXIMO`, `POTENCIA`, `RAIZ`, `DIVIDE`, `RESTO`, `PISO`, `TETO`, `ARREDONDA` | ok | ok |
+| `biblioteca_texto.c` | M0 + M1 | cópia, acréscimo, trecho, comprimento e conversão de texto para inteiro | ok | ok |
+| `biblioteca_caractere.c` | M0 + M1 | classificação ASCII e conversão de caixa | ok | ok |
+| `biblioteca_utilidades.c` | M0 + M1 | semente explícita, `bg_sorteia_ate` e intervalo limitado de `rand()` | ok | ok |
 
-Todos os 19 exemplos compilam sem avisos com `-std=c11 -Wall -Wextra -Wformat=2 -Wvla
+Os 24 exemplos compilam sem avisos com `-std=c11 -Wall -Wextra -Wformat=2 -Wvla
 -Werror` e produzem exatamente a saída registrada — nos dois perfis, exceto
-`para_contado.c` e `controle_para_acucar.c`, que são M1 puros por desenho. É o que a suíte verifica a cada `make test`.
+`para_contado.c` e `controle_para_acucar.c`, que são M1 puros por desenho. Os cinco
+programas `biblioteca_*.c` exercitam os headers modulares e são ligados à biblioteca
+estática. A suíte verifica os dois caminhos a cada `make test`.
 
 A validação também forçou três ajustes de contrato, registrados em
 [04 §6](../04-restricoes-e-decisoes.md): o contrato de `LEIA_TEXTO` (C-20, corrigido duas

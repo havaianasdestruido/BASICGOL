@@ -1,6 +1,6 @@
 // controle_acumuladores.c — contadores, acumuladores, maior/menor e zero iteracoes.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra controle_acumuladores.c -o controle_acumuladores -I ../../include
+// Compilar a partir da raiz: make exemplos
 #include <basicgol.h>
 
 INICIO

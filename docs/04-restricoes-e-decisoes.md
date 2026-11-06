@@ -150,8 +150,9 @@ projeto C existente deve ser feito com `BG_SEM_APELIDOS`.
 **Fato.** `#define ABS(x) ((x) < 0 ? -(x) : (x))` avalia `x` duas vezes: `ABS(i++)`
 incrementa duas vezes.
 
-**Consequência.** P-11/RG-2: `ABS`, `MINIMO`, `MAXIMO` são **funções `inline`** escolhidas
-por `_Generic`; macros com argumentos só os usam **uma vez**.
+**Consequência.** P-11/RG-2: `ABS`, `MINIMO`, `MAXIMO` são funções C escolhidas por
+`_Generic`; desde a Fase 5, as implementações estão em `src/biblioteca/matematica.c`.
+Macros com argumentos só avaliam cada operando **uma vez**.
 
 **Mitigação.** Revisão obrigatória de cada `#define` com argumentos (checklist da Fase 2,
 item AC-12).
@@ -356,9 +357,9 @@ estrito (fora da seção opcional).
 | C-06 | `ENTAO`/`FACA`; chaves em função/registro; `SE x { }` proibido |
 | C-07 | tabela de erros documentada; M1 como resposta de qualidade |
 | C-08, C-09 | R-1/R-2, `BG_SEM_APELIDOS` |
-| C-10 | `ABS`/`MINIMO`/`MAXIMO` como funções `inline` |
+| C-10 | `ABS`/`MINIMO`/`MAXIMO` como funções C para avaliação única |
 | C-11 | C11 obrigatório; `ESCREVA_TEXTO` como alternativa |
-| C-13 | **eliminada**: a fonte já é `.c` (D-14), então `cc programa.c` funciona sem `-x c` |
+| C-13 | **eliminada**: a fonte já é `.c` (D-14), então o compilador a reconhece sem `-x c`; helpers ainda exigem link com o archive |
 | C-14 | `FIM_*` (herança feliz do estilo VisuAlg) |
 | C-17, C-18 | `TEXTO`/`TEXTO_FIXO`; idioma vetor+tamanho |
 | C-20 | contrato de `LEIA_TEXTO` |
@@ -485,11 +486,18 @@ biblioteca mínima). **Recomendação**: `ORDENA_VETOR(v, n)` é didaticamente v
 como `static inline` com `qsort` na v1.1, e **não** incluir `COPIA_VETOR` (ensinar o laço
 tem valor).
 
-### D-13 — Empacotamento · **decidido e implementado (Fase 2)**
-**Fechamento (Fase 2).** `basicgol.h` **header-only** (um arquivo, sem build), com
-`basicgolc` como binário separado opcional. Alternativa rejeitada: biblioteca `.a`/`.so`
-(atrito de instalação em laboratório de escola). O repositório materializa a decisão:
-`include/basicgol.h`, `tools/basicgolc.c`, `Makefile` e `tests/`.
+### D-13 — Empacotamento · **revisado na Fase 5**
+**Decisão original (Fase 2).** A sintaxe BASICGOL ficou em `basicgol.h`, sem etapa de
+build própria; na época os helpers eram `static inline` no mesmo arquivo. O custo de
+manter I/O, conversões, matemática e texto num cabeçalho monolítico cresceu com a Fase 4.
+
+**Decisão atual (Fase 5).** A sintaxe, tipos e aliases continuam em `include/basicgol.h`;
+a biblioteca padrão fica em headers por módulo (`include/basicgol/`) e implementações
+C11 em `src/biblioteca/`, ligadas como `build/libbasicgol.a`. Isso separa as interfaces,
+permite compilar/testar cada responsabilidade e mantém as dependências em libc/libm,
+sem instalar `.so` nem pacote de terceiros. O Makefile oferece `make biblioteca`; também
+é possível compilar os `.c` diretamente. A API didática em maiúsculas permanece
+compatível, mas programas que chamam helpers agora precisam ligar a implementação.
 
 ### D-14 — Extensão do arquivo-fonte · **decidido: `.c`** (revisto na Fase 2)
 A recomendação original era `.bg` ("distintivo, comunica que não é C de verdade"). O dono
@@ -497,8 +505,8 @@ do projeto reverteu, e a razão é boa: **todo `.c` do BASICGOL já é um C vál
 mesmo arquivo com `#include <basicgol.h>` no topo. Dar-lhe outra extensão só criava
 atrito:
 
-* `cc programa.c` funciona sem `-x c`; `make`, `CMakeLists.txt` e `compile_commands.json`
-  funcionam sem regra extra;
+* `cc programa.c` reconhece o fonte sem `-x c`; `make`, `CMakeLists.txt` e
+  `compile_commands.json` funcionam sem regra extra (helpers exigem linkar a biblioteca);
 * editores, realce de sintaxe, formatadores, `clangd` e `gcc -E` tratam o arquivo como C,
   que é exatamente o que ele é;
 * quem sai da linguagem leva os arquivos junto: não há "migração" de `.bg` para `.c`.
@@ -579,10 +587,10 @@ tipos largos usa `INTEIRO64` e valida a faixa manualmente. *Teste*:
 
 ### D-23 — `DIVIDE`/`RESTO` verificados em vez de mudar `/` e `MOD` · **decidido na Fase 4**
 
-`/` e `MOD` continuam sendo o C cru (P-09): a linguagem documenta o UB de divisor zero e
-de `MIN/-1`, mas não muda o operador. Para quem quer a checagem, existem `DIVIDE` e
-`RESTO`, que fazem a mesma conta com o tipo promovido dos operandos e chamam
-`bg_erro(__FILE__, __LINE__)` no caso inválido.
+`/` e `MOD` continuam sendo o C cru (P-09): a linguagem documenta o UB de divisor zero
+e de quociente assinado não representável (em geral `MIN/-1`), mas não muda o operador.
+Para quem quer a checagem, existem `DIVIDE` e `RESTO`, que fazem a mesma conta com o
+tipo promovido dos operandos e chamam `bg_erro(__FILE__, __LINE__)` no caso inválido.
 
 *Justificativa*: mudar `/` quebraria a promessa “expressões são expressões C” e
 desligaria otimizações/idiomas de C. A forma verificada é opt-in e explícita na leitura.
@@ -631,6 +639,23 @@ escalar tem o seu formato (`%hhu`, `%hu`, `%hu`, `%Lf`) e `LOGICO` continua recu
 compilador — ver §9.1 de [06](06-tipos-e-expressoes.md) e o caso
 `06_negativos/n16_leia_logico`. A versão sobe para 1.1.0 (minor), conforme §16.1 de
 [01](01-especificacao.md).
+
+### D-28 — Contrato e escopo da biblioteca padrão · **decidido na Fase 5**
+
+A biblioteca é dividida em módulos portáveis (console, matemática, texto, caractere,
+utilidades) com nomes públicos `bg_*`; os nomes de linguagem `BG_*`/curtos permanecem
+como aliases de compatibilidade. Falhas recuperáveis retornam `bool`; parâmetros de
+saída numéricos não mudam em falha; buffers de texto têm capacidade explícita, não
+retêm conteúdo parcial e continuam pertencendo ao chamador. `bg_erro` e os macros
+legados de divisão/resto/absoluto são as exceções fatais documentadas.
+
+A escolha é manter o core em C11 + libc, com libm quando separada, sem dependência de
+terceiros ou helpers de sistema operacional. Não há semeadura implícita; o sorteio usa
+`rand()` e declara seu limite `RAND_MAX + 1`, previsibilidade e qualidade não garantida.
+Funções específicas de plataforma, se necessárias no futuro, terão header/fonte separados
+e não serão incluídos por `<basicgol/biblioteca.h>`. O contrato completo está em
+[09 — Biblioteca padrão](09-biblioteca-padrao.md); cada função pública é exercitada em
+`tests/test_biblioteca.c`.
 
 ---
 

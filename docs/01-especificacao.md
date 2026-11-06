@@ -33,7 +33,7 @@ biblioteca é a biblioteca C.
 
 | ID | Objetivo | Como se verifica |
 |---|---|---|
-| O-1 | Um programa BG é compilável por um compilador C11 comum, sem ferramenta própria | `cc -std=c11 prog.c` funciona no caminho M0 (a fonte já é `.c`) |
+| O-1 | Um programa BG é compilável com C11 no caminho M0, sem transpilador; helpers da biblioteca ligam o archive portátil | `cc -std=c11 -I include prog.c build/libbasicgol.a -lm -o prog` (a fonte já é `.c`) |
 | O-2 | Nenhum construtor especificado depende de transformação impossível ao pré-processador | todo construtor tem linha na tabela de mapeamento com expansão verificada |
 | O-3 | Vocabulário em português para 100% do fluxo de controle, tipos, E/S básica e declarações | nenhum `if`/`while`/`for` obrigatório no material didático |
 | O-4 | Interoperabilidade total com C: qualquer código C é aceito dentro do programa | exemplo `interop_c.c` mistura BG e C no mesmo arquivo |
@@ -109,7 +109,7 @@ explica por que essa restrição é mais forte do que parece.
 | P-08 | **Tipos são explícitos; não há inferência.** | O pré-processador não infere tipos; `_Generic` escolhe *formatação*, não *tipo de variável*. |
 | P-09 | **Expressões são expressões C.** | Precedência, promoções e conversões são as de C — a especificação não as reescreve, apenas as documenta (§9.3). |
 | P-10 | **Açúcar nunca muda semântica.** | M1 existe para tornar a leitura melhor, não para mudar o comportamento. Todo construtor X tem expansão C definida por esta especificação. |
-| P-11 | **Toda macro com argumentos parentiza os argumentos e avalia cada um uma vez.** | Evita os erros clássicos de macro (`MAX(i++, j)`). Onde não for possível, a operação é uma função `inline` da biblioteca. |
+| P-11 | **Toda macro com argumentos parentiza os argumentos e avalia cada um uma vez.** | Evita os erros clássicos de macro (`MAX(i++, j)`). Onde não for possível, a operação é uma função C da biblioteca. |
 | P-12 | **Diagnóstico honesto > sintaxe bonita.** | Quando a sintaxe desejada produziria erro incompreensível, ela é proibida na especificação e o motivo é documentado (§12.3). |
 
 ---
@@ -118,14 +118,18 @@ explica por que essa restrição é mais forte do que parece.
 
 ### 4.1 Caminho M0 (macros)
 
-O arquivo `.c` é compilado **como C**, sem nenhuma flag especial:
+O arquivo `.c` é compilado **como C**, sem transpilador no caminho M0. Desde a Fase 5,
+helpers da biblioteca padrão são implementados em módulos separados e devem ser ligados:
 
 ```sh
-cc -std=c11 -Wall -Wextra programa.c -o programa -lm -I caminho/para/include
+make biblioteca
+cc -std=c11 -Wall -Wextra -I caminho/para/include programa.c \
+   build/libbasicgol.a -lm -o programa
 ```
 
-O cabeçalho define cada palavra-chave como macro (objeto ou função). Não há etapa
-intermediária: o texto que o compilador analisa é o resultado do pré-processamento.
+O cabeçalho define cada palavra-chave como macro (objeto ou função); o archive contém
+as funções auxiliares. Não há etapa de tradução intermediária no caminho M0: o texto que
+o compilador analisa é o resultado do pré-processamento.
 
 ### 4.2 Caminho M1 (transpilador `basicgolc`, Fase 2)
 
@@ -145,7 +149,14 @@ autômato (fora de bloco / cabeçalho de `PARA` / corpo) e faz quatro coisas:
 4. emite diagnósticos de estilo/armadilha (W-01…W-07, §12.4) e erros estruturais (§12.5).
 
 Ele **não** faz análise semântica, não valida tipos, não resolve nomes. Se ele não
-reconhece algo, repassa o texto sem tocar (o compilador C decide).
+reconhece algo, repassa o texto sem tocar (o compilador C decide). Para linkar o
+executável M1, use a mesma biblioteca da rota M0:
+
+```sh
+make
+build/basicgolc programa.c -o programa.gerado.c
+cc -std=c11 -I include programa.gerado.c build/libbasicgol.a -lm -o programa
+```
 
 ### 4.3 Equivalência obrigatória
 
@@ -167,8 +178,9 @@ comparação em todos os exemplos.
 * Codificação **UTF-8** obrigatória. Byte order mark é tolerado e ignorado.
 * Fim de linha: `LF`, `CRLF` ou `CR` (todos aceitos).
 * Extensão **`.c`** (D-14): o fonte BG é um C comum, com `#include <basicgol.h>` no topo,
-  e por isso `cc programa.c` funciona sem `-x c`, `make` e editores o reconhecem de
-  imediato. Não existe extensão própria da linguagem.
+  e por isso o compilador reconhece `programa.c` sem `-x c`; `make` e editores também o
+  reconhecem de imediato. Programas que chamam helpers ligam `build/libbasicgol.a`
+  (ver §4). Não existe extensão própria da linguagem.
 * Um arquivo `.c` **é** uma unidade de tradução C. Não há sistema de módulos em v1.0:
   usa-se `#include` e `EXTERNO` (ver §13.3). A distinção "fonte BG" × "módulo C puro" é
   de conteúdo, não de nome: o módulo C puro simplesmente não inclui `basicgol.h`.
@@ -328,8 +340,8 @@ porque o público iniciante precisa saber que existem:
 | Estouro em inteiro com sinal | **comportamento indefinido** (UB); evite, use tipos largos |
 | Estouro em natural (`NATURAL*`) | aritmética módulo 2^N, definida |
 | Divisão por zero | UB; `DIVIDE`/`RESTO` transformam em erro com linha (Fase 4) |
-| `MIN / -1` e `MIN MOD -1` | UB; `DIVIDE`/`RESTO` recusam |
-| `ABS(MINIMO_INTEIRO)` | UB (não há positivo representável); compare antes |
+| `MIN / -1` e `MIN MOD -1` | UB se o quociente não couber no tipo (como nas implementações usuais); `DIVIDE`/`RESTO` recusam só nesse caso |
+| `ABS(MINIMO_INTEIRO)` | UB se a magnitude não couber no tipo; `ABS` reporta erro nesse caso |
 | Conversão real→inteiro fora de faixa | UB; use `REAL_PARA_INTEIRO` |
 | `NAN` | diferente de tudo, inclusive de si mesmo; use `isnan` |
 | Índice fora do vetor | UB; não há verificação de limites |
@@ -533,7 +545,7 @@ linguagem para "vetor + tamanho".
 | aritmética | `+ - * / MOD` | `+ - * / %` |
 | comparação | `== != < <= > >=`, `IGUAL(a,b)`, `DIFERENTE(a,b)` | idem |
 | lógica | `E OU NAO`, `OU_EXCLUSIVO(a,b)`, `LOGICO_DE(x)` | `&& || !` |
-| divisão/resto verificados | `DIVIDE(a,b)`, `RESTO(a,b)` | — (transformam zero e `MIN/-1` em erro) |
+| divisão/resto verificados | `DIVIDE(a,b)`, `RESTO(a,b)` | — (transformam zero e quociente não representável em erro) |
 | acesso | `.` `[ ]` `( )` | idem |
 | endereço/indireção | `&` `*` | idem (C nativo) |
 | texto | `TEXTOS_IGUAIS(a,b)`, `TEXTOS_DIFERENTES(a,b)`, `COMPARA_TEXTO(a,b)` | idem |
@@ -575,7 +587,7 @@ aritmética. `SE a E b OU c ENTAO` é legal e perigoso; `SE (a E b) OU c ENTAO` 
 | `=` versus `==` | `=` atribui, `==` compara — como em C. Escrever `SE x = 5 ENTAO` é **erro ou bug**; M1 avisa (W-01). Use `IGUAL(x, 5)` quando quiser eliminar a dúvida. |
 | Comparar textos com `==` | compara **ponteiros**, não conteúdo. Use `TEXTOS_IGUAIS`. |
 | `NAO` com `E`/`OU` | `NAO a E b` = `(!a) && b` (precedência de `!`). Use parênteses. |
-| Dupla avaliação | as macros com argumentos avaliam cada argumento **uma vez** (P-11), inclusive `ABS`, `MINIMO`, `MAXIMO` (implementadas como funções `inline`). |
+| Dupla avaliação | macros com argumentos avaliam cada argumento **uma vez** (P-11); `ABS`, `MINIMO`, `MAXIMO` encaminham para funções C da biblioteca. |
 | Efeito colateral em argumento de `ESCREVA` | `ESCREVA(i++)` avalia uma vez e imprime antes do incremento — evite por legibilidade. |
 | Verdade em C | qualquer valor diferente de zero é verdadeiro; a especificação recomenda condições `LOGICO` ou `LOGICO_DE(x)`. M1 avisa (W-03). |
 | `NaN` em comparação | todas as comparações com `NaN` são falsas, inclusive `NaN == NaN`; use `isnan(x)` |
@@ -1008,9 +1020,10 @@ FIM
   colisão (ver D-08 em [04](04-restricoes-e-decisoes.md)).
 * **I-4** Ponteiros, `malloc/free`, `struct` anônima, bit-fields: C nativo, sem
   vocabulário BG. A especificação não os proíbe nem os embrulha.
-* **I-5** Chamar BG de C: as funções BG são funções C comuns com nomes comuns. Não há
-  runtime obrigatório além de `<basicgol.h>` (que é header-only, salvo a biblioteca de
-  execução, §7 de [03](03-mapeamento-para-c.md)).
+* **I-5** Chamar BG de C: as funções BG são funções C comuns com nomes comuns. Desde a
+  Fase 5, as funções da biblioteca padrão são declaradas em `include/basicgol/` e
+  implementadas em `src/biblioteca/`; programas que as usam ligam `build/libbasicgol.a`
+  (ver [09](09-biblioteca-padrao.md)). A sintaxe e os aliases continuam em `<basicgol.h>`.
 * **I-6** Não use `main` em arquivo com `INICIO`.
 
 ### 13.3 Múltiplos arquivos (v1.0)
@@ -1028,7 +1041,7 @@ FUNCAO REAL media(REAL a, REAL b) { RETORNE (a + b) / 2.0; }
 EXTERNO FUNCAO REAL media(REAL, REAL);   /* ou: #include "biblioteca.h" gerado à mão */
 ```
 
-Compilação: `cc -std=c11 principal.c biblioteca.c -o app -lm` (o `.c` é C).
+Compilação: `cc -std=c11 -Iinclude principal.c biblioteca.c build/libbasicgol.a -lm -o app` (o `.c` é C; `make biblioteca` constrói o archive).
 
 ---
 
@@ -1080,13 +1093,13 @@ Compilação: `cc -std=c11 principal.c biblioteca.c -o app -lm` (o `.c` é C).
 |---|---|
 | PT-A | Dialeto C: **C11** mínimo (`_Generic` é obrigatório). C17 e C23 são aceitos. C99 não é suportado (sem `_Generic`, `ESCREVA`/`LEIA` não funcionam). |
 | PT-B | Compiladores de referência: GCC ≥ 9, Clang ≥ 10, MSVC ≥ 19.28 (`/std:c11`). Nenhuma extensão GNU é necessária. |
-| PT-C | Bibliotecas: apenas a biblioteca padrão de C; `-lm` é necessário para `POTENCIA`, `RAIZ`, `ARREDONDA`, `PISO`, `TETO` em plataformas que separam a libm. |
+| PT-C | Dependências: biblioteca padrão C11; a biblioteca BASICGOL é compilada de `src/biblioteca/` e ligada como `libbasicgol.a` (ou com os fontes). `-lm` é necessário onde libm é separada. Nenhuma dependência de terceiros. |
 | PT-D | Código-fonte em UTF-8. Textos acentuados são apenas bytes; o terminal do usuário decide a exibição. Identificadores são ASCII (R-3). |
 | PT-E | Nenhuma garantia de tamanho de `INTEIRO`/`REAL` além do que C11 garante; use tipos de largura exata quando importar. |
 | PT-F | Nenhuma dependência de sistema operacional nas construções da linguagem. Console é `stdio`; `LIMPA_TELA` e cores **não** existem em v1.0. |
 | PT-G | Sem `#pragma` obrigatório, sem atributos de compilador, sem `__attribute__`. |
 | PT-H | Avisos recomendados: `-Wall -Wextra -Wformat=2`. Recomenda-se **não** usar `-Wpedantic` no caminho M0 em código que usa `INICIO` (o `main` gerado por macro pode gerar ruído em algumas combinações). |
-| PT-I | Windows/MSVC: como a fonte já é `.c`, basta `/I` apontando para `include`; se o arquivo for tratado como C++ por algum projeto, force `/TC`. Nada de renomear arquivos (era o custo da extensão `.bg`, descartada em D-14). |
+| PT-I | Windows/MSVC: fontes continuam `.c`; compile também os módulos de `src/biblioteca/` ou empacote-os em `.lib`. A avaliação de MSVC não foi executada neste repositório. |
 
 ---
 
@@ -1101,12 +1114,11 @@ Compilação: `cc -std=c11 principal.c biblioteca.c -o app -lm` (o `.c` é C).
 * **menor** — adiciona construtor, palavra-chave, aviso ou função de biblioteca;
 * **correção** — corrige documentação/defeito sem mudar comportamento especificado.
 
-Histórico: `1.0.0` (Fases 1–2: linguagem, cabeçalho, transpilador); `1.1.0` (Fase 4:
-tipos com contrato explícito, `OU_EXCLUSIVO`/`LOGICO_DE`, `DIVIDE`/`RESTO`, conversões
-verificadas, biblioteca de texto segura, `LEIA_INTEIRO`/`LEIA_REAL` e extensões
-opcionais). A Fase 4 é aditiva, exceto pelo endurecimento de
-`TEXTO_PARA_INTEIRO`/`TEXTO_PARA_REAL`, que passaram a recusar estouro de faixa
-(D-27 em [04](04-restricoes-e-decisoes.md)).
+Histórico: `1.0.0` (Fases 1–2: linguagem e transpilador); `1.1.0` (Fase 4: tipos,
+operadores e contratos explícitos); biblioteca padrão `1.0.0` (Fase 5: headers modulares,
+implementações C11, testes e exemplos). A Fase 4 endureceu conversões e a Fase 5 reorganiza
+o empacotamento; os detalhes estão em D-27 e D-13 de
+[04](04-restricoes-e-decisoes.md). A versão da linguagem não muda nesta fase.
 
 ### 16.2 Garantias
 
@@ -1273,8 +1285,8 @@ comando de compilação.
 3. O vocabulário em português cobre fluxo de controle, tipos, declarações, E/S de
    console e erros fatais.
 4. C está sempre disponível e se mistura sem cerimônia.
-5. Toda conversão que pode falhar tem forma verificada que devolve `LOGICO`, e as únicas
-   operações aritméticas com UB inevitável (divisão/resto por zero e `MIN/-1`) têm versão
+5. Toda conversão que pode falhar tem forma verificada que devolve `LOGICO`; divisão/
+   resto por zero e operações cujo resultado assinado não é representável têm versão
    verificada (`DIVIDE`/`RESTO`) — [06](06-tipos-e-expressoes.md) §4 e §5.
 6. O que a linguagem promete sobre estouro e ponto flutuante está escrito sem eufemismo
    em [06 §10](06-tipos-e-expressoes.md).

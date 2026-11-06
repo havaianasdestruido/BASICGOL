@@ -1,0 +1,2 @@
+letra=1 digito=1 maiusculo=B
+minusculo=z pontuacao=0

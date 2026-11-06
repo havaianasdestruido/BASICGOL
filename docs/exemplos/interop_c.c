@@ -1,6 +1,6 @@
 // interop_c.c — BASICGOL e C no mesmo arquivo, sem atrito.
 // Perfil: M0 (macros) + C nativo.
-// Compilar: cc -std=c11 -Wall -Wextra interop_c.c -o interop_c -lm
+// Compilar a partir da raiz: make exemplos
 #include <basicgol.h>
 #include <time.h>          // biblioteca C usada diretamente
 

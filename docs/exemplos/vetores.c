@@ -1,6 +1,6 @@
 // vetores.c — VETOR, TAMANHO_VETOR e o idioma "vetor + tamanho".
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra vetores.c -o vetores
+// Compilar a partir da raiz: make exemplos
 #include <basicgol.h>
 
 // Soma os n primeiros elementos.

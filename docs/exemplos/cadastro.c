@@ -1,6 +1,6 @@
 // cadastro.c — REGISTRO, vetor de registros, LEIA_TEXTO e busca.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra cadastro.c -o cadastro
+// Compilar a partir da raiz: make exemplos
 #include <basicgol.h>
 
 CONSTANTE INTEIRO k_max_alunos = 30;

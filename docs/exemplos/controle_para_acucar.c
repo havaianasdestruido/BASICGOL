@@ -1,7 +1,6 @@
 // controle_para_acucar.c — forma com acucar PARA i DE ... FACA, so no perfil M1.
 // Perfil: M1 (exige o transpilador; nao compila so com macros).
-// Compilar: build/basicgolc controle_para_acucar.c -o controle_para_acucar.gerado.c
-//           cc -std=c11 -Wall -Wextra controle_para_acucar.gerado.c -o controle_para_acucar -I ../../include
+// Compilar a partir da raiz: make exemplos
 // No perfil M0 use PARA (i, a, b) { ... } com as chaves de C (ver docs/07).
 #include <basicgol.h>
 

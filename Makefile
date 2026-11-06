@@ -1,58 +1,79 @@
 # BASICGOL — Makefile
 #
-#   make            compila o transpilador (build/basicgolc)
-#   make test       roda a suíte completa
-#   make test-v     suíte completa, mostrando cada verificação aprovada
-#   make exemplos   compila e roda os exemplos de docs/exemplos (caminho M0)
-#   make cobertura  regenera tests/COBERTURA.md a partir da árvore de testes
-#   make limpar     remove build/
+#   make                 compila o transpilador e a biblioteca estática
+#   make biblioteca      compila build/libbasicgol.a
+#   make test            roda a suíte da linguagem e os testes da biblioteca
+#   make test-biblioteca roda os testes unitários dos módulos da biblioteca
+#   make test-v          suíte completa, mostrando cada verificação aprovada
+#   make exemplos        compila os exemplos de docs/exemplos
+#   make cobertura       regenera tests/COBERTURA.md
+#   make limpar          remove build/
 
 CC       ?= cc
+AR       ?= ar
 CFLAGS   ?= -O2
 WARN     := -std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror
 INCLUDE  := include
 BUILD    := build
 FERRAMENTA := $(BUILD)/basicgolc
+BIBLIOTECA := $(BUILD)/libbasicgol.a
+TESTE_BIBLIOTECA := $(BUILD)/test-biblioteca
+FONTES_BIBLIOTECA := $(sort $(wildcard src/biblioteca/*.c))
+OBJETOS_BIBLIOTECA := $(patsubst src/biblioteca/%.c,$(BUILD)/biblioteca/%.o,$(FONTES_BIBLIOTECA))
 
-.PHONY: all test test-v smoke smoke-v exemplos cobertura limpar ajuda
+.PHONY: all biblioteca test test-v test-biblioteca smoke smoke-v exemplos cobertura limpar ajuda
 
-all: $(FERRAMENTA)
+all: $(FERRAMENTA) $(BIBLIOTECA)
 
 $(FERRAMENTA): tools/basicgolc.c
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) $(WARN) -o $@ tools/basicgolc.c
 
+$(BUILD)/biblioteca/%.o: src/biblioteca/%.c
+	@mkdir -p $(@D)
+	$(CC) $(CFLAGS) $(WARN) -I $(INCLUDE) -c -o $@ $<
+
+$(BIBLIOTECA): $(OBJETOS_BIBLIOTECA)
+	@mkdir -p $(BUILD)
+	rm -f $@
+	$(AR) rcs $@ $(OBJETOS_BIBLIOTECA)
+
+biblioteca: $(BIBLIOTECA)
+
+$(TESTE_BIBLIOTECA): tests/test_biblioteca.c $(BIBLIOTECA)
+	$(CC) $(CFLAGS) $(WARN) -I $(INCLUDE) -o $@ $< $(BIBLIOTECA) -lm
+
 # ------------------------------------------------------------------ testes
 
-test: $(FERRAMENTA)
-	@./tests/run.sh
+test: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA)
+	@T_LIBRARY="$(BIBLIOTECA)" ./tests/run.sh
+	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
 
-test-v: $(FERRAMENTA)
-	@./tests/run.sh -v
+test-v: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA)
+	@T_LIBRARY="$(BIBLIOTECA)" ./tests/run.sh -v
+	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
 
-# -------------------------------------------------------------- teste de fumaça
+test-biblioteca: $(TESTE_BIBLIOTECA)
+	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
 
-# smoke: compila o transpilador e roda a suíte completa de compile-e-rodar
-# (casos de testes, exemplos, negativos, avisos W-01..W-07, transpilador M1,
-# equivalência M0 × M1 e estresse). Um caso só passa se os dois caminhos
-# (macros e transpilador) produzirem exatamente a mesma saída.
+# smoke: suíte completa de compile-e-rodar (M0 + M1) e teste dos módulos.
 smoke: test
 
 smoke-v: test-v
 
 # ---------------------------------------------------------------- exemplos
 
-exemplos: $(FERRAMENTA)
+exemplos: $(FERRAMENTA) $(BIBLIOTECA)
 	@mkdir -p $(BUILD)/exemplos
 	@for f in docs/exemplos/*.c; do \
 	    b=$$(basename $$f .c); \
-	    printf '%-22s ' "$$b"; \
+	    printf '%-30s ' "$$b"; \
 	    if [ "$$b" = "para_contado" ] || [ "$$b" = "controle_para_acucar" ]; then \
 	        $(FERRAMENTA) "$$f" -o $(BUILD)/exemplos/$$b.c 2>/dev/null && \
-	        $(CC) $(WARN) -I $(INCLUDE) -o $(BUILD)/exemplos/$$b $(BUILD)/exemplos/$$b.c -lm 2>/dev/null && \
+	        $(CC) $(WARN) -I $(INCLUDE) -o $(BUILD)/exemplos/$$b $(BUILD)/exemplos/$$b.c $(BIBLIOTECA) -lm 2>/dev/null && \
 	        echo "ok (M1)"; \
 	    else \
-	        $(CC) $(WARN) -I $(INCLUDE) "$$f" -o $(BUILD)/exemplos/$$b -lm && echo "ok (M0)"; \
+	        $(CC) $(WARN) -I $(INCLUDE) "$$f" -o $(BUILD)/exemplos/$$b $(BIBLIOTECA) -lm && echo "ok (M0)"; \
 	    fi; \
 	done
 
@@ -67,4 +88,4 @@ limpar:
 	rm -rf $(BUILD)
 
 ajuda:
-	@sed -n '2,11p' Makefile
+	@sed -n '2,12p' Makefile

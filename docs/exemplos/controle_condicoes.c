@@ -1,6 +1,6 @@
 // controle_condicoes.c — SE, SENAO_SE, SENAO aninhados, E/OU/NAO e ordem das condicoes.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra controle_condicoes.c -o controle_condicoes -I ../../include
+// Compilar a partir da raiz: make exemplos
 //
 // Nao ha "dangling else": cada SE tem o seu FIM_SE, entao cada SENAO fecha o SE
 // em que esta. Dentro de um SE externo, um SE interno so termina no seu proprio FIM_SE.

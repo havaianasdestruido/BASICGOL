@@ -1,5 +1,9 @@
 # BASICGOL — Relatório de testes da Fase 3 (controle de fluxo)
 
+> **Registro histórico:** as contagens abaixo são o retrato da suíte no encerramento da
+> Fase 3. Fases posteriores acrescentaram testes; os totais atuais estão no [README](../README.md)
+> e são reproduzidos por `make test`.
+
 **Resultado: 294 verificações, 294 aprovadas, 0 reprovadas** (GCC 12.2, `-std=c11` e
 `-std=c17`, `-Wall -Wextra -Wformat=2 -Wvla -Werror`). Antes da fase, a suíte tinha 244
 verificações; a fase acrescentou 50 sem remover nenhuma.

@@ -48,7 +48,7 @@ compila_m0() {
         return 1
     fi
     "$T_CC" $T_CFLAGS $extras -I "$T_INCLUDE" -I "$dir" "${fontes[@]}" \
-        -o "$bin" -lm 2> "$T_TMP/err.log"
+        -o "$bin" "$T_LIBRARY" -lm 2> "$T_TMP/err.log"
 }
 
 # compila_objetos <dir> <bin>
@@ -68,7 +68,7 @@ compila_objetos() {
         fi
         objs+=("$base")
     done
-    "$T_CC" $T_CFLAGS "${objs[@]}" -o "$bin" -lm 2>> "$T_TMP/err.log"
+    "$T_CC" $T_CFLAGS "${objs[@]}" -o "$bin" "$T_LIBRARY" -lm 2>> "$T_TMP/err.log"
 }
 
 # ---------------------------------------------------------------- compilação M1
@@ -108,7 +108,7 @@ compila_m1() {
     done
     : > "$T_TMP/err.log"
     "$T_CC" $T_CFLAGS $extras -I "$T_INCLUDE" -I "$dir" "${fontes[@]}" \
-        -o "$bin" -lm 2> "$T_TMP/err.log"
+        -o "$bin" "$T_LIBRARY" -lm 2> "$T_TMP/err.log"
 }
 
 # ------------------------------------------------------------------- execução
@@ -132,6 +132,32 @@ difere() {
     ! diff -q "$1" "$2" > /dev/null 2>&1
 }
 
+# Compara com o resultado principal ou, para casos dependentes de C11/plataforma,
+# com o conjunto opcional alternativo (alternativo.txt, alternativo_rc.txt, etc.).
+resultado_confere() {
+    local dir="$1" rc="$2" saida="$3" erros="$4"
+    local rc_esperado="0" alt_rc="0"
+
+    [ -f "$dir/esperado_rc.txt" ] && rc_esperado="$(cat "$dir/esperado_rc.txt")"
+    if [ "$rc" = "$rc_esperado" ] && ! difere "$dir/esperado.txt" "$saida"; then
+        if [ ! -f "$dir/esperado_stderr.txt" ] \
+           || grep -qF -- "$(cat "$dir/esperado_stderr.txt")" "$erros"; then
+            return 0
+        fi
+    fi
+
+    [ -f "$dir/alternativo.txt" ] || return 1
+    [ -f "$dir/alternativo_rc.txt" ] && alt_rc="$(cat "$dir/alternativo_rc.txt")"
+    [ "$rc" = "$alt_rc" ] || return 1
+    difere "$dir/alternativo.txt" "$saida" && return 1
+    if [ -f "$dir/alternativo_stderr.txt" ]; then
+        grep -qF -- "$(cat "$dir/alternativo_stderr.txt")" "$erros" || return 1
+    elif [ -s "$erros" ]; then
+        return 1
+    fi
+    return 0
+}
+
 mostra_diff() {
     diff -u "$1" "$2" | sed -n '1,12p' | sed 's/^/        /'
 }
@@ -145,6 +171,7 @@ mostra_diff() {
 #   esperado.txt       stdout esperado (obrigatório neste tipo)
 #   esperado_rc.txt    código de saída esperado (padrão 0)
 #   esperado_stderr.txt  trecho que DEVE aparecer em stderr
+#   alternativo.txt + arquivos rc/stderr opcionais: alternativa; sem stderr declarado, exige stderr vazio
 #   sem_m0 / sem_m1    marcadores para pular um caminho
 #   objetos            marcador: compilar em etapas separadas (-c + link)
 caso_execucao() {
@@ -164,15 +191,17 @@ caso_execucao() {
             compila_m0 "$dir" "$bin" || { t_falhou "$nome (M0)" "compilacao falhou: $(head -3 "$T_TMP/err.log" | tr '\n' ' ')"; return; }
         fi
         rc=$(roda "$bin" "${entrada:--}" "$T_TMP/out0" "$T_TMP/err0")
-        if [ "$rc" != "$esperado_rc" ]; then
-            t_falhou "$nome (M0)" "codigo de saida $rc, esperado $esperado_rc"
-        elif difere "$dir/esperado.txt" "$T_TMP/out0"; then
-            t_falhou "$nome (M0)" "saida diferente:"
-            mostra_diff "$dir/esperado.txt" "$T_TMP/out0"
-        elif [ -f "$dir/esperado_stderr.txt" ] && ! grep -qF "$(cat "$dir/esperado_stderr.txt")" "$T_TMP/err0"; then
-            t_falhou "$nome (M0)" "stderr nao contem: $(cat "$dir/esperado_stderr.txt")"
-        else
+        if resultado_confere "$dir" "$rc" "$T_TMP/out0" "$T_TMP/err0"; then
             t_ok "$nome (M0)"
+        else
+            t_falhou "$nome (M0)" "resultado diferente (codigo $rc)"
+            if [ "$rc" != "$esperado_rc" ]; then
+                :
+            elif difere "$dir/esperado.txt" "$T_TMP/out0"; then
+                mostra_diff "$dir/esperado.txt" "$T_TMP/out0"
+            elif [ -f "$dir/esperado_stderr.txt" ]; then
+                printf '        stderr esperado: %s\n' "$(cat "$dir/esperado_stderr.txt")"
+            fi
         fi
     fi
 
@@ -184,13 +213,17 @@ caso_execucao() {
             return
         fi
         rc=$(roda "$bin" "${entrada:--}" "$T_TMP/out1" "$T_TMP/err1")
-        if [ "$rc" != "$esperado_rc" ]; then
-            t_falhou "$nome (M1)" "codigo de saida $rc, esperado $esperado_rc"
-        elif difere "$dir/esperado.txt" "$T_TMP/out1"; then
-            t_falhou "$nome (M1)" "saida diferente do esperado:"
-            mostra_diff "$dir/esperado.txt" "$T_TMP/out1"
-        else
+        if resultado_confere "$dir" "$rc" "$T_TMP/out1" "$T_TMP/err1"; then
             t_ok "$nome (M1)"
+        else
+            t_falhou "$nome (M1)" "resultado diferente (codigo $rc)"
+            if [ "$rc" != "$esperado_rc" ]; then
+                :
+            elif difere "$dir/esperado.txt" "$T_TMP/out1"; then
+                mostra_diff "$dir/esperado.txt" "$T_TMP/out1"
+            elif [ -f "$dir/esperado_stderr.txt" ]; then
+                printf '        stderr esperado: %s\n' "$(cat "$dir/esperado_stderr.txt")"
+            fi
         fi
     fi
 }

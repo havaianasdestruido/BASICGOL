@@ -1,6 +1,6 @@
 // tabuada.c — laco contado, lacos aninhados e alinhamento de colunas.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra tabuada.c -o tabuada
+// Compilar a partir da raiz: make exemplos
 #include <basicgol.h>
 
 INICIO
