@@ -130,8 +130,12 @@ roda() {
 
 # Windows CRT writes stdout in text mode (LF becomes CRLF). Compare console
 # lines, not the platform's newline spelling; keep the golden files LF-only.
+# Use real temporary files: MSYS2 process-substitution paths are not portable.
 difere() {
-    ! diff -q <(tr -d '\r' < "$1") <(tr -d '\r' < "$2") > /dev/null 2>&1
+    local esperado="$T_TMP/esperado.norm" obtido="$T_TMP/obtido.norm"
+    tr -d '\r' < "$1" > "$esperado" || return 1
+    tr -d '\r' < "$2" > "$obtido" || return 1
+    ! diff -q "$esperado" "$obtido" > /dev/null 2>&1
 }
 
 # Compara com o resultado principal ou, para casos dependentes de C11/plataforma,
@@ -161,7 +165,10 @@ resultado_confere() {
 }
 
 mostra_diff() {
-    diff -u <(tr -d '\r' < "$1") <(tr -d '\r' < "$2") | sed -n '1,12p' | sed 's/^/        /'
+    if ! difere "$1" "$2"; then
+        return
+    fi
+    diff -u "$T_TMP/esperado.norm" "$T_TMP/obtido.norm" | sed -n '1,12p' | sed 's/^/        /'
 }
 
 # --------------------------------------------------------------- caso completo

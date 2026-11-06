@@ -575,7 +575,7 @@ if selecionado 10_exemplos; then
             fi
             if [ -f "$EX/$nome.esperado.txt" ] && difere "$EX/$nome.esperado.txt" "$saida"; then
                 t_falhou "exemplo $nome ($rotulo)" "saida difere do dourado:"
-                diff -u <(tr -d '\r' < "$EX/$nome.esperado.txt") <(tr -d '\r' < "$saida") | sed -n '1,10p' | sed 's/^/        /'
+                mostra_diff "$EX/$nome.esperado.txt" "$saida"
                 falhou=1
             fi
             if [ -f "$EX/$nome.contem.txt" ]; then
