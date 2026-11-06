@@ -45,7 +45,7 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `COPIA_TEXTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/04_estruturas/e03_texto_buffer/programa.c`, `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c` (+1) |
 | `DIFERENTE` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c` |
 | `DIVIDE` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/09_tipos_expr/t10_estouro_divisao/programa.c`, `tests/casos/09_tipos_expr/t08_divisao_por_zero/programa.c`, `tests/run.sh` (+1) |
-| `E` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c` (+7) |
+| `E` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c` (+8) |
 | `ENQUANTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c06_enquanto_zero/programa.c`, `tests/casos/03_controle/c07_enquanto_pare/programa.c` (+9) |
 | `ENTAO` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c` (+44) |
 | `ENUMERACAO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/04_estruturas/e07_enumeracao/programa.c`, `tests/casos/12_negativos_m1/t10_enumeracao_com_chaves/programa.c`, `tests/casos/12_negativos_m1/t10_enumeracao_com_chaves/esperado_erro.txt` |
