@@ -17,6 +17,13 @@
 set -u
 export LC_ALL=C
 
+# No Git Bash (MSYS), argumentos que comecam com '/' sao convertidos para
+# caminhos absolutos ('/nologo' viraria 'C:/Program Files/Git/nologo').
+# O cl.exe aceita '-' como prefixo de opcao, e MSYS nunca converte argumentos
+# iniciados por '-'; as variaveis abaixo desligam a conversao por completo
+# (vale tambem para wrappers de terceiros que esperem '/').
+export MSYS2_ARG_CONV_EXCL='*' MSYS_NO_PATHCONV=1
+
 RAIZ=$(cd "$(dirname "$0")/.." && pwd)
 cd "$RAIZ"
 
@@ -27,11 +34,12 @@ BUILD=build/exemplos-msvc
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/basicgol-msvc.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
 
-DEF="/D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS"
+DEF="-D_CRT_SECURE_NO_WARNINGS -D_CRT_NONSTDC_NO_WARNINGS"
 # Núcleo do produto usa /W4 /WX no workflow; os exemplos são código didático e
-# verificam comportamento (saída dourada), não diagnósticos — aqui /W3 sem /WX:
+# verificam comportamento (saída dourada), não diagnósticos — aqui W3 sem WX:
 # um aviso do MSVC não deve reprovar um programa que produz a saída correta.
-FLAGS="/nologo /TC /std:c11 /W3 $DEF"
+# Flags com '-' (e nao '/') por causa da conversao de caminhos do MSYS.
+FLAGS="-nologo -TC -std:c11 -W3 $DEF"
 
 OK=0
 FALHAS=0
@@ -129,8 +137,8 @@ for fonte in docs/exemplos/*.c; do
 
     # ---- caminho M0 (macros); dois exemplos so existem no M1
     if [ "$nome" != "para_contado" ] && [ "$nome" != "controle_para_acucar" ]; then
-        if "$CL" $FLAGS /I include "$fonte" \
-                /Fo:"$BUILD/$nome.obj" /Fe:"$exe" /link "$T_LIBRARY" > "$TMP/log" 2>&1; then
+        if "$CL" $FLAGS -I include "$fonte" \
+                -Fo:"$BUILD/$nome.obj" -Fe:"$exe" -link "$T_LIBRARY" > "$TMP/log" 2>&1; then
             confere_saida "$nome" M0 "./$exe" "$entrada"
         else
             anota "$TMP/log"
@@ -145,8 +153,8 @@ for fonte in docs/exemplos/*.c; do
         falha "$nome (M1)" "basicgolc falhou: $(head -3 "$TMP/log" | tr '\n' ' ')"
         continue
     fi
-    if "$CL" $FLAGS /I include "$gerado" \
-            /Fo:"$BUILD/$nome-m1.obj" /Fe:"$exe" /link "$T_LIBRARY" > "$TMP/log" 2>&1; then
+    if "$CL" $FLAGS -I include "$gerado" \
+            -Fo:"$BUILD/$nome-m1.obj" -Fe:"$exe" -link "$T_LIBRARY" > "$TMP/log" 2>&1; then
         confere_saida "$nome" M1 "./$exe" "$entrada"
     else
         anota "$TMP/log"
