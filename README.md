@@ -76,6 +76,7 @@ Eu tenho planos bem ambiciosos com essa linguagem (_uns até de mais_), os que m
 - [ ] Fazer um bootloader exibindo "Olá Mundo!" em `BASICGOL` **puro**
 - [ ] Portar exemplo de Arduino pra funcionar 100% em `BASICGOL`
 - [ ] Portar funções úteis do C++ pra `BASICGOL` (só as mais úteis mesmo)
+- - [ ] Exemplos: `VETOR_DINAMICO` (alternativa simplificada a `std::vector`), `PILHA` (`std::stack`), `FILA` (`std::queue`), `PAR` (`std::pair`), `OPCIONAL` (`std::optional`), `MINIMO`/`MAXIMO` (`std::min`/`std::max`), `TROCA` (`std::swap`), `STRING` (manipulação de texto com tamanho dinâmico), `UNICO_PTR` (propriedade exclusiva de memória inspirada em `std::unique_ptr`) e `ESCOPO_RECURSO` (liberação automática de recursos inspirada em RAII). A implementação deverá usar estruturas, funções e macros C11, com gerenciamento de memória explícito quando necessário e documentação clara das diferenças em relação ao C++
 - [ ] Fazer exemplos maiores, demonstrando a capacidade da linguagem, como sistemas inteiros, servidores HTTP, projetos IoT, etc.
 - [ ] Reescrever apps feitos para DOS com `BASICGOL`
 - [ ] Adicionar camadas de abstração para facilitar programação I/O entre sistemas
