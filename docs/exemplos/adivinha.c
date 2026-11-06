@@ -11,7 +11,7 @@ INICIO
     INTEIRO tentativas = 0;
 
     /* A fixed seed repeats the sequence on the same C runtime, not across
-     * runtimes. The input covers the glibc/UCRT and MSVCRT targets. */
+     * runtimes. The input covers the glibc and MSVCRT/UCRT targets. */
     INICIA_SORTEIO(2026);
     alvo = SORTEIA(k_limite) + 1;         // 1 .. k_limite
 

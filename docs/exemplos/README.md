@@ -146,13 +146,13 @@ Buscar matricula (0 encerra): Fim do cadastro.
 ```
 (com `102` como primeira busca: `Encontrado: Bia Souza  nota 6.50`)
 
-### `adivinha.c` — semente fixa, alvo 38 (glibc/UCRT) ou 55 (MSVCRT)
+### `adivinha.c` — semente fixa, alvo 38 (glibc) ou 55 (MSVCRT/UCRT)
 
 A entrada fixa `50, 25, 38, 44, 52, 54, 55` cobre os dois alvos: `rand()` com a
 mesma semente só reproduz a sequência na mesma implementação da biblioteca C.
-No segundo caso, são sete palpites: `Muito baixo!` cinco vezes, `Muito alto!`
-uma vez e `Acertou!`; a saída termina com `Tentativas: 7` e
-`Dentro do esperado.`. Saída no glibc/UCRT:
+No segundo caso, são sete palpites: `Muito baixo!` seis vezes e `Acertou!`;
+a saída termina com `Tentativas: 7` e `Dentro do esperado.` e está registrada
+em `adivinha.alternativo.txt`. Saída no glibc:
 ```
 Adivinhe o numero entre 1 e 100
 Seu palpite: Muito alto!

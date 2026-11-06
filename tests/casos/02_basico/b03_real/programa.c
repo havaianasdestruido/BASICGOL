@@ -22,8 +22,10 @@ INICIO
         ESCREVAL("soma estranha");
     FIM_SE
 
+    /* On x87, excess precision can make this comparison equal. C permits
+     * that implementation-defined evaluation, so record both outcomes. */
     SE 0.1 + 0.2 == 0.3 ENTAO
-        ESCREVAL("igualdade exata (nao esperado)");
+        ESCREVAL("igualdade exata (precisao excedente)");
     SENAO
         ESCREVAL("igualdade exata falha (esperado)");
     FIM_SE

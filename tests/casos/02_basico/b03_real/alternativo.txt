@@ -1,0 +1,6 @@
+3.33
+3.33333
+3.33333
+5
+soma ok
+igualdade exata (precisao excedente)

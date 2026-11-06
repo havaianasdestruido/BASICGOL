@@ -573,9 +573,16 @@ if selecionado 10_exemplos; then
                 t_falhou "exemplo $nome ($rotulo)" "codigo de saida $rc"
                 return
             fi
-            if [ -f "$EX/$nome.esperado.txt" ] && difere "$EX/$nome.esperado.txt" "$saida"; then
+            # Some C-runtime behavior (notably rand()) is implementation-defined.
+            # Accept an explicitly recorded alternative, never arbitrary output.
+            local esperado="$EX/$nome.esperado.txt"
+            if [ -f "$EX/$nome.alternativo.txt" ] \
+               && ! difere "$EX/$nome.alternativo.txt" "$saida"; then
+                esperado="$EX/$nome.alternativo.txt"
+            fi
+            if [ -f "$esperado" ] && difere "$esperado" "$saida"; then
                 t_falhou "exemplo $nome ($rotulo)" "saida difere do dourado:"
-                mostra_diff "$EX/$nome.esperado.txt" "$saida"
+                mostra_diff "$esperado" "$saida"
                 falhou=1
             fi
             if [ -f "$EX/$nome.contem.txt" ]; then

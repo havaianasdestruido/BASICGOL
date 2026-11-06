@@ -54,6 +54,7 @@ tests/
 | `programa.c`, `*.c`, `*.h` | fontes do caso — a fonte BG é `.c` (todos compilados juntos) |
 | `entrada.txt` | o que vai para o `stdin` (ausente = `/dev/null`) |
 | `esperado.txt` | saída esperada em `stdout` (obrigatório em caso de execução) |
+| `alternativo.txt` | outra saída exata aceita quando a plataforma difere (ex.: precisão x87) |
 | `esperado_rc.txt` | código de saída esperado (padrão `0`) |
 | `esperado_stderr.txt` | trecho que precisa aparecer em `stderr` |
 | `esperado_erro.txt` | mensagens de erro **aceitas** (casos negativos) — ver abaixo |
