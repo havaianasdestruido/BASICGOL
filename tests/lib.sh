@@ -128,8 +128,10 @@ roda() {
 
 # ------------------------------------------------------------------ comparações
 
+# Windows CRT writes stdout in text mode (LF becomes CRLF). Compare console
+# lines, not the platform's newline spelling; keep the golden files LF-only.
 difere() {
-    ! diff -q "$1" "$2" > /dev/null 2>&1
+    ! diff -q <(tr -d '\r' < "$1") <(tr -d '\r' < "$2") > /dev/null 2>&1
 }
 
 # Compara com o resultado principal ou, para casos dependentes de C11/plataforma,
@@ -159,7 +161,7 @@ resultado_confere() {
 }
 
 mostra_diff() {
-    diff -u "$1" "$2" | sed -n '1,12p' | sed 's/^/        /'
+    diff -u <(tr -d '\r' < "$1") <(tr -d '\r' < "$2") | sed -n '1,12p' | sed 's/^/        /'
 }
 
 # --------------------------------------------------------------- caso completo

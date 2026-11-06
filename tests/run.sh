@@ -164,7 +164,7 @@ BG_INICIO
 BG_FIM
 EOF
     if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h5" "$T_TMP/h5.c" -lm 2> "$T_TMP/e" \
-       && [ "$("$T_TMP/h5" | tr '\n' '|')" = "prefixado ok|se ok|" ]; then
+       && [ "$("$T_TMP/h5" | tr -d '\r' | tr '\n' '|')" = "prefixado ok|se ok|" ]; then
         t_ok "BG_SEM_APELIDOS: forma prefixada funciona"
     else
         t_falhou "BG_SEM_APELIDOS: forma prefixada funciona" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"
@@ -224,7 +224,7 @@ INICIO
 FIM
 EOF
     if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h7" "$T_TMP/h7.c" -lm 2> "$T_TMP/e" \
-       && [ "$("$T_TMP/h7")" = "1.1.0" ]; then
+       && [ "$("$T_TMP/h7" | tr -d '\r')" = "1.1.0" ]; then
         t_ok "macros de versao consistentes"
     else
         t_falhou "macros de versao consistentes" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"
@@ -245,7 +245,7 @@ INICIO
 FIM
 EOF
     if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h8" "$T_TMP/h8.c" "$T_LIBRARY" -lm 2> "$T_TMP/e" \
-       && [ "$("$T_TMP/h8" | tr '\n' '|')" = "2 1 2|0 1|" ]; then
+       && [ "$("$T_TMP/h8" | tr -d '\r' | tr '\n' '|')" = "2 1 2|0 1|" ]; then
         t_ok "avaliacao unica de argumentos (P-11)"
     else
         t_falhou "avaliacao unica de argumentos (P-11)" "saida: $("$T_TMP/h8" 2>/dev/null | tr '\n' '|') $(head -2 "$T_TMP/e" | tr '\n' ' ')"
@@ -265,7 +265,7 @@ INICIO
 FIM
 EOF
     if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h8b" "$T_TMP/h8b.c" "$T_LIBRARY" -lm 2> "$T_TMP/e" \
-       && [ "$("$T_TMP/h8b" | tr '\n' '|')" = "2 1 1|" ]; then
+       && [ "$("$T_TMP/h8b" | tr -d '\r' | tr '\n' '|')" = "2 1 1|" ]; then
         t_ok "avaliacao unica nas macros novas (DIVIDE, OU_EXCLUSIVO)"
     else
         t_falhou "avaliacao unica nas macros novas (DIVIDE, OU_EXCLUSIVO)" \
@@ -399,7 +399,7 @@ FIM
 EOF
     if "$T_BASICGOLC" "$T_TMP/g2.c" -o "$T_TMP/g2.gerado.c" -w 2> "$T_TMP/e" \
        && $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/g2" "$T_TMP/g2.gerado.c" -lm 2>> "$T_TMP/e" \
-       && [ "$("$T_TMP/g2")" = "2" ]; then
+       && [ "$("$T_TMP/g2" | tr -d '\r')" = "2" ]; then
         t_ok "M1 aceita palavras-chave acentuadas"
     else
         t_falhou "M1 aceita palavras-chave acentuadas" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"
@@ -575,7 +575,7 @@ if selecionado 10_exemplos; then
             fi
             if [ -f "$EX/$nome.esperado.txt" ] && difere "$EX/$nome.esperado.txt" "$saida"; then
                 t_falhou "exemplo $nome ($rotulo)" "saida difere do dourado:"
-                diff -u "$EX/$nome.esperado.txt" "$saida" | sed -n '1,10p' | sed 's/^/        /'
+                diff -u <(tr -d '\r' < "$EX/$nome.esperado.txt") <(tr -d '\r' < "$saida") | sed -n '1,10p' | sed 's/^/        /'
                 falhou=1
             fi
             if [ -f "$EX/$nome.contem.txt" ]; then
@@ -630,7 +630,7 @@ if selecionado 11_estresse; then
     if $T_CC $T_CFLAGS -I "$T_INCLUDE" "$T_TMP/deep.c" -o "$T_TMP/deep0" -lm 2> "$T_TMP/e" \
        && "$T_BASICGOLC" "$T_TMP/deep.c" -o "$T_TMP/deep.gerado.c" 2>> "$T_TMP/e" \
        && $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/deep1" "$T_TMP/deep.c" -lm 2>> "$T_TMP/e" \
-       && [ "$("$T_TMP/deep0")" = "1" ] && [ "$("$T_TMP/deep1")" = "1" ]; then
+       && [ "$("$T_TMP/deep0" | tr -d '\r')" = "1" ] && [ "$("$T_TMP/deep1" | tr -d '\r')" = "1" ]; then
         t_ok "40 niveis de SE aninhados (M0 e M1)"
     else
         t_falhou "40 niveis de SE aninhados (M0 e M1)" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"
@@ -650,7 +650,7 @@ if selecionado 11_estresse; then
         echo 'FIM'
     } > "$T_TMP/deepw.c"
     if $T_CC $T_CFLAGS -I "$T_INCLUDE" "$T_TMP/deepw.c" -o "$T_TMP/deepw0" -lm 2> "$T_TMP/e" \
-       && [ "$("$T_TMP/deepw0")" = "100" ]; then
+       && [ "$("$T_TMP/deepw0" | tr -d '\r')" = "100" ]; then
         t_ok "20 niveis de ENQUANTO aninhados"
     else
         t_falhou "20 niveis de ENQUANTO aninhados" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"
@@ -677,7 +677,7 @@ if selecionado 11_estresse; then
     if $T_CC $T_CFLAGS -I "$T_INCLUDE" "$T_TMP/many.c" -o "$T_TMP/many0" -lm 2> "$T_TMP/e" \
        && "$T_BASICGOLC" "$T_TMP/many.c" -o "$T_TMP/many.gerado.c" 2>> "$T_TMP/e" \
        && $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/many1" "$T_TMP/many.c" -lm 2>> "$T_TMP/e" \
-       && [ "$("$T_TMP/many0")" = "$("$T_TMP/many1")" ]; then
+       && [ "$("$T_TMP/many0" | tr -d '\r')" = "$("$T_TMP/many1" | tr -d '\r')" ]; then
         t_ok "300 funcoes + 5000 iteracoes (M0 == M1)"
     else
         t_falhou "300 funcoes + 5000 iteracoes" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"
@@ -696,7 +696,7 @@ if selecionado 11_estresse; then
         echo 'FIM'
     } > "$T_TMP/grande.c"
     if $T_CC $T_CFLAGS -I "$T_INCLUDE" "$T_TMP/grande.c" -o "$T_TMP/grande0" -lm 2> "$T_TMP/e" \
-       && [ "$("$T_TMP/grande0" | wc -c)" -eq 4001 ]; then
+       && [ "$("$T_TMP/grande0" | tr -d '\r' | wc -c)" -eq 4001 ]; then
         t_ok "literal de 4000 caracteres"
     else
         t_falhou "literal de 4000 caracteres" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"

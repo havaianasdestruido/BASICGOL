@@ -23,7 +23,7 @@ falha() {
 
 printf '%s\n' '== biblioteca padrão: módulos e limites'
 if "$TESTE" > "$TMP/out" 2> "$TMP/err" \
-   && grep -Eq '^biblioteca: [0-9]+ verificacoes aprovadas$' "$TMP/out" \
+   && tr -d '\r' < "$TMP/out" | grep -Eq '^biblioteca: [0-9]+ verificacoes aprovadas$' \
    && [ ! -s "$TMP/err" ]; then
     cat "$TMP/out"
     OK=$((OK + 1))
@@ -32,7 +32,7 @@ else
 fi
 
 if printf '42\nlinha de texto\n-7\n3.5\n' | "$TESTE" --stdin > "$TMP/out" 2> "$TMP/err" \
-   && [ "$(cat "$TMP/out")" = 'stdin: ok' ] && [ ! -s "$TMP/err" ]; then
+   && [ "$(tr -d '\r' < "$TMP/out")" = 'stdin: ok' ] && [ ! -s "$TMP/err" ]; then
     printf '  ok   wrappers de stdin + LEIA_TEXTO depois de scanf\n'
     OK=$((OK + 1))
 else
@@ -40,7 +40,7 @@ else
 fi
 
 if printf 'abc\n1e9999\n' | "$TESTE" --stdin-invalido > "$TMP/out" 2> "$TMP/err" \
-   && [ "$(cat "$TMP/out")" = 'stdin invalido: ok' ] && [ ! -s "$TMP/err" ]; then
+   && [ "$(tr -d '\r' < "$TMP/out")" = 'stdin invalido: ok' ] && [ ! -s "$TMP/err" ]; then
     printf '  ok   falhas numéricas preservam o destino\n'
     OK=$((OK + 1))
 else
@@ -48,7 +48,7 @@ else
 fi
 
 if printf 'linha-longa\nok\n' | "$TESTE" --stdin-texto-longo > "$TMP/out" 2> "$TMP/err" \
-   && [ "$(cat "$TMP/out")" = 'linha longa: ok' ] && [ ! -s "$TMP/err" ]; then
+   && [ "$(tr -d '\r' < "$TMP/out")" = 'linha longa: ok' ] && [ ! -s "$TMP/err" ]; then
     printf '  ok   linha longa é descartada sem perder a próxima\n'
     OK=$((OK + 1))
 else

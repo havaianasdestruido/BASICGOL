@@ -66,7 +66,8 @@ jobs:
         run: |
           if ! make test CC=gcc AR=ar > build/test.log 2>&1; then
             cat build/test.log
-            head -12 build/test.log | sed 's/^/::error::/'
+            grep -A1 'FALHA' build/test.log | head -40 | sed 's/^/::error::/'
+            tail -8 build/test.log | sed 's/^/::error::/'
             exit 1
           fi
           cat build/test.log
