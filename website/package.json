@@ -1,0 +1,37 @@
+{
+  "name": "basicgol-documentacao",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Documentação viva do BASICGOL, gerada a partir do código e dos testes.",
+  "scripts": {
+    "generate": "python3 ../tools/gerar_documentacao.py",
+    "docs:check": "python3 ../tools/gerar_documentacao.py --check",
+    "start": "python3 ../tools/gerar_documentacao.py && docusaurus start --host 0.0.0.0 --port 3000",
+    "build": "python3 ../tools/gerar_documentacao.py && docusaurus build",
+    "build:only": "docusaurus build",
+    "serve": "docusaurus serve --host 0.0.0.0 --port 3000",
+    "typecheck": "tsc --noEmit",
+    "test:python": "python3 -m unittest discover -s ../tests/documentacao -v"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.10.2",
+    "@docusaurus/preset-classic": "3.10.2",
+    "@docusaurus/theme-mermaid": "3.10.2",
+    "@easyops-cn/docusaurus-search-local": "0.55.3",
+    "@mdx-js/react": "^3.1.1",
+    "@mermaid-js/layout-elk": "^0.1.9",
+    "clsx": "^2.1.1",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@docusaurus/module-type-aliases": "3.10.2",
+    "@docusaurus/tsconfig": "3.10.2",
+    "@docusaurus/types": "3.10.2",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -1,0 +1,45 @@
+---
+title: Compiladores, sistemas operacionais e portabilidade
+sidebar_label: Portabilidade
+sidebar_position: 4
+---
+
+# Compiladores, sistemas operacionais e portabilidade
+
+## Regra de leitura
+
+**Implementação compartilhada não é certificação universal.** Uma página de símbolo mostra o que o fonte faz; a matriz e os logs dizem onde isso foi exercitado. O projeto distingue *executado*, *compilado*, *avaliado* e *não testado*.
+
+## Diferenças que aparecem no código
+
+| Ponto | Onde está | Consequência |
+|---|---|---|
+| C11 / `_Generic` | `basicgol.h` | C99/C89 são recusados; seleção de formato/divisão depende de C11 |
+| `BG_NORETURN` | `consola.h` | `_Noreturn` em C, `[[noreturn]]` em C++, fallback vazio |
+| `__USE_MINGW_ANSI_STDIO` | antes dos headers padrão | MinGW usa a família printf/scanf ANSI quando o usuário não escolheu outra |
+| `BG_USAR_EXTENSOES` | seção opcional do cabeçalho | `__builtin_*_overflow` em GCC/Clang; `#error` se pedido sem suporte |
+| `BG_FORMATO` | `basicgolc.c` | atributo printf em GCC/Clang; removido nos demais |
+| pragma de formato | `bg_formata_texto` | ajuste isolado para avisos do Clang em formato não literal |
+| limites de tipos | matemática e conversões | `int`, `long`, `long double` e representação de sinal vêm do alvo |
+| modo binário | leitura/escrita do transpilador | evita tradução automática de newline no Windows |
+| stdout em modo texto | console e runners | Windows pode emitir CRLF; comparações normalizam CR |
+| locale | conversões reais | `strtod` segue a locale C corrente; ASCII do módulo caractere não segue locale |
+
+## Sistemas e shells
+
+- A biblioteca e a linguagem são C; não há API de sistema operacional escondida nas operações de texto/caractere.
+- Os runners de teste são Bash e usam utilitários Unix. No Windows, os workflows usam Git Bash/MSYS2 e normalizam finais de linha.
+- O gerador de documentação é Python 3.10+ e não precisa de compilador C para extrair o inventário.
+- O site é estático; o GitHub Pages serve os arquivos gerados, não executa C nem Python no servidor.
+
+## Como auditar uma função
+
+1. Abra a página da função e leia **Assinatura e expansão** e **Como funciona**.
+2. Confira os guards em **Compiladores, padrão C e sistema operacional**.
+3. Siga os links de teste direto e os modos fatais, quando existirem.
+4. Para código interno, leia também os chamadores e a ressalva de caixa-preta.
+5. Consulte a [matriz histórica](/projeto/11-matriz-compatibilidade), o [relatório da fase](/projeto/12-relatorio-fase-6) e os logs atuais de [CI](/guias/build).
+
+:::warning[Não extrapole]
+AArch64 compilado sem execução, MSVC apenas avaliado em um relatório histórico ou um fallback de macro não equivalem a uma suíte verde naquele alvo. As páginas preservam essa distinção em vez de inventar uma coluna “funciona” por compilador.
+:::

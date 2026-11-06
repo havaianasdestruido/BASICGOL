@@ -129,6 +129,25 @@ exemplos: $(FERRAMENTA) $(BIBLIOTECA)
 cobertura:
 	@python3 tools/cobertura.py $(COBERTURA_ARGS)
 
+# ------------------------------------------------------- documentação viva
+# Python 3.10+ e dependências de tools/documentacao/requirements.txt.
+# Ex.: make docs-gerar PYTHON=.venv/bin/python
+PYTHON ?= python3
+
+.PHONY: docs-gerar docs-check docs-test docs-build
+
+docs-gerar:
+	@$(PYTHON) tools/gerar_documentacao.py --strict
+
+docs-check:
+	@$(PYTHON) tools/gerar_documentacao.py --check
+
+docs-test:
+	@$(PYTHON) -m unittest discover -s tests/documentacao -v
+
+docs-build: docs-gerar docs-test
+	cd website && npm ci --no-audit --no-fund && npm run build:only
+
 # --------------------------------------------------------------- limpeza
 
 limpar:

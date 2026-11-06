@@ -151,6 +151,7 @@ ESTRESSE = [
 
 
 def main() -> None:
+    """Regenera tests/COBERTURA.md de forma determinística a partir dos nomes e casos."""
     # A saída é DETERMINÍSTICA: nada de data no arquivo. O CI compara
     # `make cobertura` com o arquivo versionado (`git diff --exit-code`), e uma
     # data embutida fazia essa checagem falhar todo dia seguinte ao commit.

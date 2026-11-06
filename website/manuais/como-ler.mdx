@@ -1,0 +1,34 @@
+---
+title: Como ler a referência e as evidências
+sidebar_label: Como ler
+sidebar_position: 3
+---
+
+# Como ler a referência e as evidências
+
+## Uma página por contrato, apelidos reunidos
+
+`SE` e `BG_SE` aparecem juntos porque um é alias textual do outro. A página reúne os usos dos dois nomes, mostra a definição canônica e a cadeia de expansão. O mesmo vale para os demais nomes curtos. Quando uma macro encaminha para uma função `bg_*`, a página mostra a relação e o contrato da função.
+
+## Tipos de evidência
+
+| Evidência | O que significa | O que não significa |
+|---|---|---|
+| Referência direta | O identificador aparece no código de teste ou na tabela de expansões | Que todos os ramos foram executados |
+| Uso via apelido | O teste usa um nome que expande para a macro documentada | Que o nome prefixado foi escrito literalmente naquele teste |
+| Modo de integração | O runner passa um modo ao binário e confere status/diagnóstico | Que o teste unitário comum cobriu o mesmo caminho |
+| Evidência indireta | Um chamador do símbolo aparece nos testes | Que a função interna foi instrumentada ou medida |
+| Ramo condicional | Existe `#if`/`#ifdef`/`#else` no fonte | Que o ramo foi compilado em todos os alvos |
+| Matriz histórica | Registro de execução/compilação/avaliação da fase documentada | Resultado automático do build atual deste site |
+
+## Contagens
+
+As contagens do site são **estáticas**: símbolos definidos, casos em disco, ocorrências e modos localizados. O total impresso por `make test` é **dinâmico** e inclui verificações repetidas, sanitizers, ferramentas disponíveis e caminhos realmente executados. Não compare os dois números como se fossem a mesma métrica.
+
+## Lacunas são visíveis
+
+O [JSON de cobertura](pathname:///api/cobertura.json) lista símbolos sem referência direta e contratos sem resumo editorial. Uma guarda de inclusão pode legitimamente não ter teste direto; uma função exercitada apenas por um chamador precisa de evidência indireta. O gerador não transforma ausência em aprovação.
+
+## Fontes e permalinks
+
+Os links de fonte usam o commit do build quando disponível. Assim, a linha mostrada continua correspondendo ao código que gerou aquela página. Em uma árvore local ainda não commitada, o permalink usa o HEAD atual como referência; o build de CI usa o SHA do evento.

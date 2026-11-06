@@ -106,6 +106,7 @@ def muta(rng: random.Random, base: bytes) -> tuple[bytes, str]:
 
 
 def roda(basicgolc: Path, dados: bytes, tmp: Path, limite: float = 10.0) -> tuple[int, str]:
+    """Executa uma mutação sob timeout e classifica crash, sinal ou sanitizer."""
     alvo = tmp / "mutado.c"
     alvo.write_bytes(dados)
     try:
@@ -128,6 +129,7 @@ def roda(basicgolc: Path, dados: bytes, tmp: Path, limite: float = 10.0) -> tupl
 
 
 def main() -> int:
+    """CLI do fuzz determinístico: muta o corpus, preserva falhas e resume resultados."""
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--basicgolc", default=str(RAIZ / "build" / "basicgolc"))

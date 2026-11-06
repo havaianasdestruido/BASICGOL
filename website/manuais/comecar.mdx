@@ -1,0 +1,89 @@
+---
+title: Começar com BASICGOL
+sidebar_label: Começar
+sidebar_position: 1
+---
+
+# Começar com BASICGOL
+
+BASICGOL é uma camada de macros sobre C11. Um programa é um arquivo `.c` que inclui `basicgol.h`; não há máquina virtual nem interpretador no caminho de execução.
+
+## 1. Compilar a biblioteca e o transpilador
+
+```bash
+make
+```
+
+Isso produz `build/basicgolc` e `build/libbasicgol.a`. No Windows, o projeto usa os workflows MSYS2/MinGW e MSVC documentados no repositório; o Makefile pressupõe um ambiente Unix-like.
+
+## 2. Escrever um programa
+
+```c
+#include <basicgol.h>
+
+FUNCAO REAL media(REAL a, REAL b) {
+    RETORNE (a + b) / 2.0;
+}
+
+INICIO
+    REAL n1 = 0.0;
+    REAL n2 = 0.0;
+
+    ESCREVA("Nota 1: ");
+    LEIA(n1);
+    ESCREVA("Nota 2: ");
+    LEIA(n2);
+
+    SE media(n1, n2) >= 7.0 ENTAO
+        ESCREVAL("Aprovado");
+    SENAO
+        ESCREVAL("Ainda nao aprovado");
+    FIM_SE
+FIM
+```
+
+## 3. Compilar diretamente — M0
+
+```bash
+cc -std=c11 -Wall -Wextra -Wformat=2 -I include programa.c \
+   build/libbasicgol.a -lm -o programa
+./programa
+```
+
+M0 usa as macros do cabeçalho. Construtores como `SE ... ENTAO`, `ENQUANTO ... FACA` e `PARA (i, a, b)` são redutíveis no pré-processador.
+
+## 4. Usar a sintaxe açucarada — M1
+
+```c
+INICIO
+    INTEIRO i = 0;
+    PARA i DE 1 ATE 3 FACA
+        ESCREVAL(i);
+    FIM_PARA
+FIM
+```
+
+```bash
+build/basicgolc programa.c -o programa.gerado.c
+cc -std=c11 -I include programa.gerado.c build/libbasicgol.a -lm -o programa
+./programa
+```
+
+M1 traduz blocos e açúcar sintático; o compilador C continua responsável por tipos, semântica, otimização e ligação.
+
+## 5. Conferir antes de integrar
+
+```bash
+make test
+make test-biblioteca
+make test-portabilidade
+```
+
+- [Referência de palavras-chave](/referencia/linguagem/)
+- [Funções da biblioteca](/referencia/funcoes/)
+- [Exemplos versionados](/exemplos/)
+- [Restrições e decisões](/projeto/04-restricoes-e-decisoes)
+
+:::tip[Texto, números e falhas]
+`LEIA` é leitura formatada e pode deixar newline no fluxo. `LEIA_INTEIRO`/`LEIA_REAL` leem uma linha e devolvem sucesso. Para texto use `LEIA_TEXTO` com capacidade explícita. Operações de texto retornam `LOGICO` em vez de truncar silenciosamente.
+:::

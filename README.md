@@ -22,6 +22,30 @@ chamado de "suportado" em lugar nenhum.
 
 ---
 
+## Documentação viva (Docusaurus)
+
+A referência completa é gerada por Python a partir do código, dos testes e dos documentos
+originais: cada função/macro, expansão, contrato, usos nos testes, chamadores, guards de
+compilador e ressalvas de OS. Novos símbolos e casos aparecem automaticamente no build.
+
+- Site: <https://havaianasdestruido.github.io/BASICGOL/>
+- Gerador: [`tools/gerar_documentacao.py`](tools/gerar_documentacao.py)
+- Contratos editoriais: [`tools/documentacao/contratos.json`](tools/documentacao/contratos.json)
+- Publicação/manutenção: [`website/manuais/publicacao.mdx`](website/manuais/publicacao.mdx)
+- Workflow: [`.github/workflows/docs.yml`](.github/workflows/docs.yml) (GitHub Pages)
+
+```bash
+python3 -m venv .venv
+.venv/bin/python -m pip install -r tools/documentacao/requirements.txt
+. .venv/bin/activate
+cd website && npm ci && npm start
+```
+
+Para publicar, selecione **Settings → Pages → Build and deployment → GitHub Actions** uma vez.
+Pushes em `main` geram e publicam o site; pull requests fazem build de validação sem publicar.
+
+---
+
 ## O que é
 
 BASICGOL (dialeto **BG**) é uma linguagem de programação *didática* cuja sintaxe usa

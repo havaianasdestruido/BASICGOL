@@ -1,0 +1,1206 @@
+{
+  "symbols": {
+    "bg_erro": {
+      "resumo": "Emite um diagnóstico padronizado em stderr e encerra o processo com status 1; não retorna ao chamador.",
+      "mecanica": "Descarrega stdout antes de escrever arquivo:linha: erro: mensagem. Arquivo NULL vira ?. Mensagem NULL vira texto vazio. A saída é imediata e definitiva: use apenas para erros fatais, não para validação recuperável.",
+      "cuidados": [
+        "Encerra todo o processo, não apenas a função chamadora.",
+        "O descarregamento de stdout pode tornar visível saída produzida antes do erro."
+      ],
+      "exemplo": "ERRO(\"divisor nao pode ser zero\");",
+      "portabilidade": [
+        "BG_NORETURN usa [[noreturn]] em C++, _Noreturn em C11/MSVC moderno e fica vazio no fallback.",
+        "O formato de stderr é do projeto; o mecanismo de saída é exit da libc."
+      ]
+    },
+    "bg_passo_zero": {
+      "resumo": "Diagnóstico fatal de PARA_PASSO quando o passo é zero.",
+      "mecanica": "Encaminha arquivo e linha a bg_erro. O retorno int existe somente para encaixar a chamada na expressão de condição do for; a função não retorna normalmente.",
+      "cuidados": [
+        "Não é uma validação recuperável: o processo termina com status 1.",
+        "A condição de PARA_PASSO reavalia o passo; use um valor estável durante o laço."
+      ],
+      "exemplo": "INTEIRO i = 0;\nPARA_PASSO (i, 1, 3, 0) { ESCREVAL(i); } /* fatal antes do corpo */",
+      "portabilidade": [
+        "Mesma implementação em todos os alvos; depende do diagnóstico BG_NORETURN."
+      ]
+    },
+    "bg_leia_linha": {
+      "resumo": "Lê uma linha inteira de um FILE para um buffer limitado, sem perder a sincronização do fluxo em linha longa.",
+      "mecanica": "Consome bytes com fgetc até LF, CR, CRLF ou EOF. Remove o terminador, rejeita NUL embutido e continua consumindo a linha quando ela não cabe. Linha vazia terminada por newline é sucesso; EOF sem nenhum byte é falha. Verifica ferror e o resultado de ungetc.",
+      "retorno": "true somente quando a linha inteira coube e foi lida sem erro. Em falha, um destino válido fica vazio; capacidade zero não autoriza escrita.",
+      "cuidados": [
+        "capacidade inclui o NUL: capacidade 1 só comporta linha vazia.",
+        "Não interpreta UTF-8; limites são bytes.",
+        "Uma última linha sem newline antes de EOF é aceita se couber."
+      ],
+      "exemplo": "TEXTO_FIXO(linha, 128);\nSE bg_leia_linha(stdin, linha, TAMANHO_DE(linha)) ENTAO\n    ESCREVAL(linha);\nFIM_SE",
+      "portabilidade": [
+        "LF, CRLF e CR são tratados explicitamente, não se presume mode-binário do stdin.",
+        "O comportamento de streams e ferror é fornecido pela libc do sistema."
+      ]
+    },
+    "bg_leia_texto": {
+      "resumo": "Wrapper de stdin compatível com LEIA_TEXTO, descartando um newline deixado por leitura formatada anterior.",
+      "mecanica": "Inspeciona o próximo byte de stdin. Se for LF ou CRLF pendente, consome esse terminador antes de chamar bg_leia_linha. Caso contrário devolve o byte com ungetc e lê a linha atual.",
+      "cuidados": [
+        "Uma linha vazia intencional pode ser confundida com o newline pendente; prefira bg_leia_linha(stdin, ...) quando isso importar.",
+        "Não mistura leitura de texto com scanf depois de começar a usar bg_leia_linha sem entender o estado do fluxo."
+      ],
+      "exemplo": "TEXTO_FIXO(nome, 80);\nSE LEIA_TEXTO(nome, TAMANHO_DE(nome)) ENTAO\n    ESCREVAL(nome);\nFIM_SE",
+      "portabilidade": [
+        "O tratamento explícito de CR/LF cobre a diferença de fim de linha entre Windows e Unix."
+      ]
+    },
+    "bg_leia_inteiro": {
+      "resumo": "Lê uma linha de stdin e converte exatamente um inteiro decimal para int.",
+      "mecanica": "Usa um buffer de BG_TAMANHO_LINHA_NUMERO bytes, bg_leia_texto e bg_texto_para_inteiro. Consumir a linha evita deixar dígitos ou lixo para a próxima leitura.",
+      "retorno": "true em conversão completa; false preserva o inteiro de saída.",
+      "exemplo": "INTEIRO idade = 0;\nSE LEIA_INTEIRO(idade) ENTAO ESCREVAL(idade); FIM_SE",
+      "portabilidade": [
+        "Conversão decimal em base 10; espaços são os seis whitespace ASCII reconhecidos pelo conversor."
+      ]
+    },
+    "bg_leia_real": {
+      "resumo": "Lê uma linha de stdin e converte exatamente um número real para double.",
+      "mecanica": "Lê a linha com a compatibilidade de newline de bg_leia_texto e delega a bg_texto_para_real. Rejeita sobra não whitespace e estouro sinalizado pela libc.",
+      "retorno": "true em sucesso; false não altera o double de saída.",
+      "exemplo": "REAL media = 0.0;\nSE LEIA_REAL(media) ENTAO ESCREVAL(media); FIM_SE",
+      "portabilidade": [
+        "strtod usa a locale C corrente. O projeto não chama setlocale; se a aplicação mudar a locale, o separador decimal pode mudar."
+      ]
+    },
+    "bg_leia_inteiro_de": {
+      "resumo": "Versão de bg_leia_inteiro que recebe um FILE explícito.",
+      "mecanica": "Lê uma linha com bg_leia_linha, sem o descarte especial de newline de stdin, e converte com bg_texto_para_inteiro.",
+      "retorno": "false para fluxo/ponteiro inválido, linha inválida ou conversão inválida; a saída é preservada em falha.",
+      "exemplo": "INTEIRO valor = 0;\nLOGICO ok = bg_leia_inteiro_de(stdin, &valor);",
+      "portabilidade": [
+        "Mesmo contrato decimal e limites de int da plataforma em todos os sistemas."
+      ]
+    },
+    "bg_leia_real_de": {
+      "resumo": "Versão de bg_leia_real que recebe um FILE explícito.",
+      "mecanica": "Lê uma linha limitada com bg_leia_linha e delega a conversão a bg_texto_para_real, preservando errno e a saída em falha.",
+      "exemplo": "REAL valor = 0.0;\nLOGICO ok = bg_leia_real_de(stdin, &valor);",
+      "portabilidade": [
+        "Depende da convenção numérica da locale C atual e do suporte de strtod da libc."
+      ]
+    },
+    "bg_escreva_texto": {
+      "resumo": "Escreve texto literal em um FILE, sem interpretar formatos printf.",
+      "mecanica": "Valida fluxo e texto e usa fputs. Assim, %s e %n dentro do texto continuam caracteres literais.",
+      "retorno": "true se fputs não indicar erro; false para NULL ou falha de escrita.",
+      "exemplo": "ESCREVA_TEXTO(\"100% literal\\n\");",
+      "portabilidade": [
+        "Em stdout no Windows, o CRT pode traduzir LF para CRLF no modo texto; os runners normalizam CR nas comparações."
+      ]
+    },
+    "bg_escreva_linha": {
+      "resumo": "Escreve texto literal seguido de LF em um FILE.",
+      "mecanica": "Valida argumentos, escreve com fputs e acrescenta um newline com fputc. Não interpreta o texto como formato.",
+      "retorno": "false se qualquer escrita falhar; pode ter escrito o texto antes de falhar no newline.",
+      "exemplo": "bg_escreva_linha(stdout, \"operacao concluida\");",
+      "portabilidade": [
+        "A representação física de LF pode ser CRLF em streams de texto do Windows."
+      ]
+    },
+    "bg_tamanho_texto": {
+      "resumo": "Conta bytes antes do NUL; NULL é tratado como texto vazio.",
+      "mecanica": "Retorna zero para NULL e strlen nos demais casos. Não conta codepoints Unicode nem caracteres de terminal.",
+      "exemplo": "ESCREVAL(TAMANHO_TEXTO(\"abc\")); /* 3 */",
+      "portabilidade": [
+        "O resultado é em bytes da codificação de execução; não há decodificação UTF-8 dependente de OS."
+      ]
+    },
+    "bg_copia_texto": {
+      "resumo": "Copia uma string NUL-terminada para capacidade explícita, sem truncamento silencioso.",
+      "mecanica": "Mede a origem, valida destino e capacidade e exige espaço para o NUL. Usa memmove, então origem e destino podem se sobrepor. Se não couber, esvazia um destino válido e retorna false.",
+      "cuidados": [
+        "Origem NULL significa texto vazio.",
+        "A origem deve ser uma string C válida quando não NULL.",
+        "capacidade é bytes, incluindo NUL."
+      ],
+      "exemplo": "TEXTO_FIXO(destino, 8);\nLOGICO ok = COPIA_TEXTO(destino, TAMANHO_DE(destino), \"BASICGOL\");",
+      "portabilidade": [
+        "Implementação C padrão; não usa strcpy_s, strncpy_s ou APIs específicas de Windows."
+      ]
+    },
+    "bg_junta_texto": {
+      "resumo": "Concatena dois textos em um destino limitado, aceitando NULL e sobreposição.",
+      "mecanica": "Verifica a soma dos comprimentos sem overflow, aloca um temporário, copia as partes e usa memmove para o destino. A cópia temporária permite que as origens apontem para o próprio destino. Libera a alocação antes de retornar.",
+      "retorno": "false em argumento inválido, falta de espaço ou falha de malloc; nesses casos um destino válido fica vazio.",
+      "exemplo": "TEXTO_FIXO(nome, 32);\nLOGICO ok = JUNTA_TEXTO(nome, TAMANHO_DE(nome), \"BASIC\", \"GOL\");",
+      "portabilidade": [
+        "Usa malloc/memmove padrão; não depende de asprintf ou strlcat, que variam entre sistemas."
+      ]
+    },
+    "bg_acrescenta_texto": {
+      "resumo": "Acrescenta origem ao conteúdo atual de destino, inclusive autoacréscimo.",
+      "mecanica": "Confere o comprimento existente e o espaço restante antes de escrever. memmove copia a origem para o fim, permitindo sobreposição, e acrescenta NUL. Não cabe significa destino esvaziado e false.",
+      "cuidados": [
+        "O destino precisa conter uma string C válida antes da chamada.",
+        "Capacidade inclui NUL; não há realocação automática."
+      ],
+      "exemplo": "TEXTO_FIXO(saudacao, 32) = \"ola \";\nACRESCENTA_TEXTO(saudacao, TAMANHO_DE(saudacao), \"mundo\");",
+      "portabilidade": [
+        "Sem strcat_s/strlcat; mesmo contrato nos compiladores exercitados."
+      ]
+    },
+    "bg_trecho_texto": {
+      "resumo": "Copia um intervalo de bytes de uma string para um destino limitado.",
+      "mecanica": "inicio é índice zero-based em bytes. Quantidade é limitada ao fim da string; início além do fim produz vazio com sucesso. Se o trecho escolhido não couber no destino, esvazia-o e retorna false. memmove permite origem no próprio destino.",
+      "cuidados": [
+        "Não fatia codepoints UTF-8: pode dividir um caractere multibyte.",
+        "SIZE_MAX como quantidade é limitado com segurança pelo comprimento restante."
+      ],
+      "exemplo": "TEXTO_FIXO(parte, 8);\nTRECHO_TEXTO(parte, TAMANHO_DE(parte), \"abcdef\", 2, 3); /* cde */",
+      "portabilidade": [
+        "Aritmética de tamanhos usa subtração apenas depois de verificar limites."
+      ]
+    },
+    "bg_compara_texto": {
+      "resumo": "Compara conteúdo lexicograficamente e normaliza o resultado para -1, 0 ou 1.",
+      "mecanica": "Substitui cada NULL por string vazia, chama strcmp e normaliza o sinal. Não compara endereços de ponteiros.",
+      "cuidados": [
+        "A ordem é a de strcmp para os bytes da string, não uma collação Unicode consciente de locale."
+      ],
+      "exemplo": "SE IGUAL(COMPARA_TEXTO(\"a\", \"b\"), -1) ENTAO ESCREVAL(\"menor\"); FIM_SE",
+      "portabilidade": [
+        "strcmp pode depender da representação de char da plataforma; não promete ordem linguística de acentos."
+      ]
+    },
+    "bg_texto_vazio": {
+      "resumo": "Indica se o texto é NULL ou tem comprimento zero.",
+      "mecanica": "Compara bg_tamanho_texto com zero. Espaços não são vazios e não são removidos.",
+      "exemplo": "LOGICO vazio = TEXTO_VAZIO(\"\"); /* VERDADEIRO */",
+      "portabilidade": [
+        "Independente de locale e compilador."
+      ]
+    },
+    "bg_formata_texto": {
+      "resumo": "Formata em buffer limitado com semântica de snprintf e rejeita truncamento.",
+      "mecanica": "Valida destino/capacidade/formato, inicia uma va_list e chama vsnprintf. Um retorno negativo ou tamanho maior/igual à capacidade é falha e esvazia o destino. O formato e os argumentos devem ser compatíveis como em printf.",
+      "cuidados": [
+        "Formato dinâmico não pode ser integralmente conferido pelo compilador.",
+        "Não passe texto externo como formato sem argumentos correspondentes.",
+        "Capacidade zero não escreve no destino."
+      ],
+      "exemplo": "TEXTO_FIXO(linha, 64);\nFORMATA_TEXTO(linha, TAMANHO_DE(linha), \"%s=%d\", \"idade\", 18);",
+      "portabilidade": [
+        "GCC/Clang recebem diagnóstico de formato quando o formato é literal.",
+        "Há pragma isolado para __clang__ suprimir avisos de formato não literal nesta função variádica; não existe ramo equivalente para GCC/MSVC.",
+        "Formatação numérica pode depender da locale corrente."
+      ]
+    },
+    "bg_texto_para_inteiro": {
+      "resumo": "Converte decimal assinado completo para int, recusando sobra, estouro e ponteiros inválidos.",
+      "mecanica": "Pula whitespace ASCII, salva errno, chama strtol em base 10 e restaura errno. Exige consumo de pelo menos um dígito, sobra apenas whitespace e valor dentro de INT_MIN..INT_MAX.",
+      "retorno": "true escreve a saída; false preserva a saída e o errno do chamador.",
+      "exemplo": "INTEIRO valor = 0;\nLOGICO ok = TEXTO_PARA_INTEIRO(\" -42 \", &valor);",
+      "portabilidade": [
+        "Faixa final é a de int da plataforma. A faixa intermediária de long e a representação de errno vêm da libc."
+      ]
+    },
+    "bg_texto_para_natural": {
+      "resumo": "Converte decimal não negativo para unsigned sem aceitar sinal negativo.",
+      "mecanica": "Pula whitespace ASCII, rejeita '-' antes de strtoul, salva/restaura errno e exige consumo completo até whitespace final. Confere ERANGE e UINT_MAX antes de atribuir a saída.",
+      "cuidados": [
+        "Base fixa 10: prefixos hexadecimais não são aceitos como número completo.",
+        "Embora strtoul aceite sinal em C, este contrato rejeita '-' explicitamente."
+      ],
+      "exemplo": "NATURAL quantidade = 0;\nLOGICO ok = TEXTO_PARA_NATURAL(\"42\", &quantidade);",
+      "portabilidade": [
+        "Limites de unsigned long e unsigned são os da plataforma."
+      ]
+    },
+    "bg_texto_para_real": {
+      "resumo": "Converte uma string completa em double usando strtod e preservando errno e saída em falha.",
+      "mecanica": "Pula whitespace ASCII, chama strtod com errno temporariamente zerado, restaura o valor anterior e exige fim da string após whitespace. ERANGE é falha, inclusive resultados subnormais que a libc sinalize.",
+      "exemplo": "REAL valor = 0.0;\nLOGICO ok = TEXTO_PARA_REAL(\"3.125\", &valor);",
+      "portabilidade": [
+        "O separador decimal e a forma de expoente dependem da locale C atual; a aplicação pode mudar essa locale.",
+        "Precisão e errno seguem a implementação de strtod; não se promete conversão corretamente arredondada idêntica entre libcs."
+      ]
+    },
+    "bg_numero_para_inteiro": {
+      "resumo": "Converte double para int truncando em direção a zero, recusando NaN, infinito e faixa não representável.",
+      "mecanica": "Detecta NaN por valor != valor, amplia para long double para comparar com INT_MIN/INT_MAX e só então usa a conversão C. A comparação ampliada evita perder a fronteira por arredondamento em double.",
+      "exemplo": "INTEIRO destino = 0;\nLOGICO ok = REAL_PARA_INTEIRO(-3.9, &destino); /* -3 */",
+      "portabilidade": [
+        "A largura de long double varia; é usada apenas para comparar com a faixa de int, não como tipo de retorno."
+      ]
+    },
+    "bg_e_digito": {
+      "resumo": "Classifica exclusivamente os bytes ASCII de 0 a 9.",
+      "mecanica": "Compara o caractere com as faixas positivas '0'..'9'; não chama ctype nem depende de locale.",
+      "exemplo": "LOGICO digito = E_DIGITO('7');",
+      "portabilidade": [
+        "O sinal de char não altera o resultado: bytes não ASCII não pertencem à faixa positiva testada."
+      ]
+    },
+    "bg_e_letra": {
+      "resumo": "Reconhece somente letras ASCII A-Z e a-z.",
+      "mecanica": "Testa duas faixas ASCII explícitas. Não reconhece letras acentadas nem usa locale/ctype.",
+      "exemplo": "LOGICO letra = E_LETRA('A');",
+      "portabilidade": [
+        "Mesmo resultado com char assinado ou não assinado."
+      ]
+    },
+    "bg_caractere_maiusculo": {
+      "resumo": "Converte ASCII a-z para A-Z e preserva todos os outros bytes.",
+      "mecanica": "Aplica a diferença constante entre 'a' e 'A' apenas dentro da faixa ASCII. Não transforma É, ç ou bytes UTF-8.",
+      "exemplo": "CARACTERE c = CARACTERE_MAIUSCULO('a'); /* A */",
+      "portabilidade": [
+        "Não depende de toupper nem de locale; o cálculo permanece na faixa ASCII."
+      ]
+    },
+    "bg_caractere_minusculo": {
+      "resumo": "Converte ASCII A-Z para a-z e preserva todos os outros bytes.",
+      "mecanica": "Aplica a diferença ASCII apenas à faixa A-Z; não faz lowercase Unicode.",
+      "exemplo": "CARACTERE c = CARACTERE_MINUSCULO('Z'); /* z */",
+      "portabilidade": [
+        "Independente de locale e do sinal de char para a faixa transformada."
+      ]
+    },
+    "bg_inicia_sorteio": {
+      "resumo": "Define a semente do gerador pseudoaleatório global de forma reprodutível.",
+      "mecanica": "Deriva um estado de 64 bits com splitmix64 e substitui um eventual zero por uma constante não nula. O estado alimenta xorshift64*.",
+      "cuidados": [
+        "Estado compartilhado pelo processo, sem lock ou estado por thread.",
+        "Não é fonte criptográfica de aleatoriedade."
+      ],
+      "exemplo": "INICIA_SORTEIO(42);\nESCREVAL(SORTEIA(100));",
+      "portabilidade": [
+        "Aritmética usa uint64_t, não rand da libc. A interface recebe unsigned; os alvos documentados usam unsigned de pelo menos 32 bits."
+      ]
+    },
+    "bg_sorteia_ate": {
+      "resumo": "Sorteia uniformemente no intervalo [0, limite_exclusivo), removendo o viés do módulo por rejeição.",
+      "mecanica": "Obtém amostras de 32 bits do xorshift64*, calcula o maior múltiplo do limite dentro de 2^32 e rejeita amostras acima dele. Só então aplica módulo e escreve a saída.",
+      "retorno": "false para limite zero ou saída NULL, preservando a saída; true escreve um valor menor que o limite.",
+      "cuidados": [
+        "Não é criptográfico nem thread-safe.",
+        "O número de rejeições é variável, embora o limite válido seja aceito sem teto adicional."
+      ],
+      "exemplo": "NATURAL valor = 0;\nSE bg_sorteia_ate(100, &valor) ENTAO ESCREVAL(valor); FIM_SE",
+      "portabilidade": [
+        "O universo interno é fixo em 2^32. A representação de unsigned na interface é a da plataforma; não se extrapala para alvos exóticos não testados."
+      ]
+    },
+    "bg_sorteia": {
+      "resumo": "Wrapper de compatibilidade de SORTEIA(n): devolve um inteiro em [0,n), ou zero para n não positivo.",
+      "mecanica": "Valida n, chama bg_sorteia_ate e converte o resultado para int. Prefira bg_sorteia_ate quando precisar distinguir argumento inválido de sorteio válido.",
+      "exemplo": "INICIA_SORTEIO(7);\nINTEIRO dado = SORTEIA(6) + 1;",
+      "portabilidade": [
+        "Herda o gerador determinístico e as ressalvas de unsigned/thread do módulo utilidades."
+      ]
+    },
+    "bg_prng_proximo": {
+      "resumo": "Avança o estado global xorshift64* e devolve 64 bits pseudoaleatórios.",
+      "mecanica": "Aplica shifts/XOR de 12, 25 e 27 bits, guarda o novo estado e multiplica pelo multiplicador de Vigna. O estado nunca deve ser zero; a inicialização garante isso.",
+      "visibility": "interna (static)",
+      "portabilidade": [
+        "Overflow unsigned de uint64_t é modular e definido em C; não depende do rand do sistema."
+      ]
+    },
+    "bg_pula_espaco_ascii": {
+      "resumo": "Avança um ponteiro sobre os seis caracteres whitespace ASCII usados pelas conversões.",
+      "mecanica": "Compara explicitamente espaço, tab, LF, CR, form-feed e vertical-tab, parando no NUL ou no primeiro caractere diferente.",
+      "portabilidade": [
+        "Não usa isspace nem locale; o conjunto é o mesmo em todos os sistemas."
+      ]
+    },
+    "bg_pula_espaco_ascii_final": {
+      "resumo": "Valida a cauda de uma conversão numérica avançando sobre whitespace ASCII restante.",
+      "mecanica": "Recebe o ponteiro fim de strtol/strtoul/strtod e reutiliza bg_pula_espaco_ascii. O chamador exige que o byte seguinte seja NUL; não remove espaços inplace.",
+      "portabilidade": [
+        "Mesmo conjunto ASCII explícito em todas as plataformas."
+      ]
+    },
+    "bg_soma_segura": {
+      "resumo": "Soma dois int com detecção de overflow via extensão de compilador, habilitada somente por BG_USAR_EXTENSOES.",
+      "mecanica": "Chama __builtin_add_overflow e inverte o indicador de overflow: true significa resultado exato.",
+      "exemplo": "#define BG_USAR_EXTENSOES\n#include <basicgol.h>\nINTEIRO resultado = 0;\nLOGICO exato = SOMA_SEGURA(MAXIMO_INTEIRO, 1, &resultado); /* FALSO */",
+      "portabilidade": [
+        "Requer __GNUC__ ou __clang__; pedir a extensão em outro compilador produz #error.",
+        "Não faz parte da superfície C11 estrita padrão."
+      ]
+    },
+    "bg_subtrai_segura": {
+      "resumo": "Subtrai dois int com detecção de overflow, sob a opção BG_USAR_EXTENSOES.",
+      "mecanica": "Encaminha a operação a __builtin_sub_overflow; devolve true quando não houve overflow.",
+      "portabilidade": [
+        "Somente GCC/Clang ou compiladores que definem esses macros e implementam o builtin; outros recebem #error ao habilitar a opção."
+      ]
+    },
+    "bg_multiplica_segura": {
+      "resumo": "Multiplica dois int com detecção de overflow, sob a opção BG_USAR_EXTENSOES.",
+      "mecanica": "Encaminha a operação a __builtin_mul_overflow; devolve true quando o produto é representável.",
+      "portabilidade": [
+        "Extensão opcional isolada; não está disponível no caminho C11 estrito nem é prometida em MSVC."
+      ]
+    },
+    "BG_SE": {
+      "resumo": "Abre um condicional if de C; a condição é fechada por ENTAO.",
+      "mecanica": "Expande para if ( e ENTAO para ) {. SENAO_SE, SENAO e FIM_SE completam a cadeia. O bloco tem escopo C normal.",
+      "exemplo": "SE idade >= 18 ENTAO\n    ESCREVAL(\"maior de idade\");\nSENAO\n    ESCREVAL(\"menor de idade\");\nFIM_SE",
+      "cuidados": [
+        "Use SENAO_SE, não SENAO SE.",
+        "Não misture chaves de abertura C com FIM_SE no mesmo construtor."
+      ]
+    },
+    "BG_ENTAO": {
+      "resumo": "Fecha a condição de SE/SENAO_SE e abre o bloco then.",
+      "mecanica": "Expande para ) {; emparelha com BG_SE ou BG_SENAO_SE."
+    },
+    "BG_SENAO_SE": {
+      "resumo": "Fecha o ramo anterior e abre else if na mesma cadeia.",
+      "mecanica": "Expande para } else if (; precisa de ENTAO depois da condição."
+    },
+    "BG_SENAO": {
+      "resumo": "Abre o ramo else final de um SE.",
+      "mecanica": "Expande para } else { e compartilha o FIM_SE da cadeia inteira."
+    },
+    "BG_FIM_SE": {
+      "resumo": "Fecha a cadeia condicional inteira.",
+      "mecanica": "Expande para uma chave de fechamento C; há um FIM_SE por cadeia, não por ramo."
+    },
+    "BG_ENQUANTO": {
+      "resumo": "Abre um laço while com teste antes de cada iteração.",
+      "mecanica": "Expande para while (; FACA fecha a condição e abre o corpo; FIM_ENQUANTO fecha o corpo.",
+      "exemplo": "INTEIRO i = 0;\nENQUANTO i < 3 FACA\n    ESCREVAL(i);\n    i = i + 1;\nFIM_ENQUANTO"
+    },
+    "BG_FACA": {
+      "resumo": "Fecha a condição de ENQUANTO e abre seu corpo.",
+      "mecanica": "Expande para ) {. No açúcar M1 PARA ... DE ... ATE ... FACA, o transpilador gera o for completo."
+    },
+    "BG_FIM_ENQUANTO": {
+      "resumo": "Fecha o corpo de ENQUANTO.",
+      "mecanica": "Expande para }; o teste volta a ser avaliado antes da próxima iteração."
+    },
+    "BG_REPITA": {
+      "resumo": "Abre um laço cujo teste acontece depois do corpo.",
+      "mecanica": "Expande para do {; o corpo executa pelo menos uma vez antes de ATE_QUE.",
+      "exemplo": "INTEIRO i = 0;\nREPITA\n    ESCREVAL(i);\n    i = i + 1;\nATE_QUE(i >= 3);"
+    },
+    "BG_ATE_QUE": {
+      "resumo": "Fecha REPITA e repete enquanto a condição de parada for falsa.",
+      "mecanica": "Expande para } while (!(c)); o ponto-e-vírgula depois da macro é obrigatório. M1 também aceita ATE cond;.",
+      "cuidados": [
+        "A condição é de PARADA, não de continuação.",
+        "PROSSIGA salta para o teste, não para o início sem testar."
+      ]
+    },
+    "BG_PARA": {
+      "resumo": "Laço contado M0 com limite superior inclusivo e passo +1.",
+      "mecanica": "Expande para for ((i)=(a); (i)<=(b); ++(i)). O corpo usa chaves C ou um comando simples.",
+      "exemplo": "INTEIRO i = 0;\nPARA (i, 1, 3) { ESCREVAL(i); }",
+      "cuidados": [
+        "Os argumentos são expressões de macro: efeitos colaterais podem ser avaliados mais de uma vez.",
+        "O incremento de um contador no limite máximo assinado pode estourar; escolha limites representáveis.",
+        "A forma açucarada PARA i DE a ATE b FACA é M1, não esta macro."
+      ]
+    },
+    "BG_PARA_PASSO": {
+      "resumo": "Laço contado inclusivo com passo positivo ou negativo; passo zero é erro fatal de execução.",
+      "mecanica": "Inicializa i, escolhe comparação pelo sinal de p e incrementa i por p. Se p for zero na condição, chama bg_passo_zero com arquivo/linha.",
+      "cuidados": [
+        "p é reavaliado na condição e no incremento; mantenha-o estável.",
+        "Limites e incrementos devem evitar overflow assinado.",
+        "PROSSIGA executa o incremento normalmente."
+      ],
+      "exemplo": "INTEIRO i = 0;\nPARA_PASSO (i, 3, 1, -1) { ESCREVAL(i); }"
+    },
+    "BG_ESCOLHA": {
+      "resumo": "Abre switch C para seleção por valores inteiros/enumerados.",
+      "mecanica": "Expande para switch (e) {. CASO e CONTRARIO são case/default; PARE evita fallthrough.",
+      "cuidados": [
+        "Sem PARE, a execução continua no próximo caso, como em C."
+      ]
+    },
+    "BG_CASO": {
+      "resumo": "Introduz um rótulo case dentro de ESCOLHA.",
+      "mecanica": "Expande para case; requer valor constante e dois-pontos."
+    },
+    "BG_CONTRARIO": {
+      "resumo": "Introduz o rótulo default de ESCOLHA.",
+      "mecanica": "Expande para default; não recebe expressão."
+    },
+    "BG_FIM_ESCOLHA": {
+      "resumo": "Fecha o bloco de ESCOLHA.",
+      "mecanica": "Expande para }."
+    },
+    "BG_PARE": {
+      "resumo": "Interrompe o laço ou switch mais interno.",
+      "mecanica": "Expande para break; não sai de múltiplos níveis nem de funções."
+    },
+    "BG_PROSSIGA": {
+      "resumo": "Passa à próxima iteração do laço mais interno.",
+      "mecanica": "Expande para continue. Em PARA/PARA_PASSO executa o incremento; em REPITA salta ao teste ATE_QUE."
+    },
+    "BG_INICIO": {
+      "resumo": "Abre a função de entrada C int main(void).",
+      "mecanica": "Expande literalmente para int main(void) {; FIM fecha a função.",
+      "cuidados": [
+        "Destina-se a um único programa executável, não a bibliotecas com outro main."
+      ]
+    },
+    "BG_FIM": {
+      "resumo": "Fecha o bloco aberto por INICIO.",
+      "mecanica": "Expande para }. Não insere return; o retorno implícito de main segue C."
+    },
+    "BG_FUNCAO": {
+      "resumo": "Marcador didático vazio antes do tipo de retorno de uma função.",
+      "mecanica": "Não emite tokens: FUNCAO REAL f(...) é REAL f(...). Não transforma a gramática de C.",
+      "exemplo": "FUNCAO REAL dobro(REAL x) { RETORNE 2.0 * x; }"
+    },
+    "BG_PROCEDIMENTO": {
+      "resumo": "Declara uma função sem valor de retorno.",
+      "mecanica": "Expande para void."
+    },
+    "BG_RETORNE": {
+      "resumo": "Devolve controle e, opcionalmente, um valor da função.",
+      "mecanica": "Expande para return; a expressão e o ponto-e-vírgula são do chamador."
+    },
+    "BG_CONSTANTE": {
+      "resumo": "Qualificador didático que expande para static const.",
+      "mecanica": "Combina duração/vinculação static com const. Não torna uma variável local uma constante de expressão C para tamanho de vetor no MSVC.",
+      "cuidados": [
+        "Use literal ou #define para capacidade de vetor portátil; W-07 sinaliza CONSTANTE nesse contexto."
+      ]
+    },
+    "BG_VETOR": {
+      "resumo": "Declara um vetor C de tipo, nome e capacidade.",
+      "mecanica": "Expande para t n[k]; índices vão de zero a k-1 e não há verificação automática de limites.",
+      "cuidados": [
+        "Capacidade deve ser compatível com C11 e com o compilador; evite VLA para manter o alvo MSVC.",
+        "Não há ownership nem redimensionamento automático."
+      ]
+    },
+    "BG_TAMANHO_VETOR": {
+      "resumo": "Calcula o número de elementos de um vetor real em escopo.",
+      "mecanica": "Divide sizeof(v) por sizeof(v[0]). Em um parâmetro ponteiro, sizeof mede o ponteiro, não o array original.",
+      "cuidados": [
+        "Passe capacidade explicitamente para funções; W-06 sinaliza o uso em parâmetros [] ou *."
+      ]
+    },
+    "BG_TEXTO_FIXO": {
+      "resumo": "Declara buffer mutável de texto com capacidade em bytes.",
+      "mecanica": "Expande para char n[k]; a capacidade inclui o terminador NUL quando usado pelas rotinas de texto."
+    },
+    "BG_REGISTRO": {
+      "resumo": "Abre typedef struct nomeado.",
+      "mecanica": "Expande para typedef struct n {; declare campos C e feche com FIM_REGISTRO(n);."
+    },
+    "BG_FIM_REGISTRO": {
+      "resumo": "Fecha a definição de registro e seu typedef.",
+      "mecanica": "Expande para } n; exige ponto-e-vírgula depois da macro."
+    },
+    "BG_ENUMERACAO": {
+      "resumo": "Abre typedef enum nomeado.",
+      "mecanica": "Expande para typedef enum n {; valores e regras de representação são os de C."
+    },
+    "BG_FIM_ENUMERACAO": {
+      "resumo": "Fecha a definição de enumeração e seu typedef.",
+      "mecanica": "Expande para } n; exige ponto-e-vírgula depois da macro."
+    },
+    "BG_TAMANHO_DE": {
+      "resumo": "Obtém sizeof de um tipo ou expressão convertido para size_t.",
+      "mecanica": "Expande para ((size_t) sizeof(t)); o argumento pode exigir parênteses se for um tipo composto."
+    },
+    "BG_BITS_DE": {
+      "resumo": "Obtém a largura em bits de um tipo/objeto na plataforma.",
+      "mecanica": "Multiplica sizeof por CHAR_BIT e converte para size_t; não presume que todo byte tenha oito bits."
+    },
+    "BG_DIVIDE": {
+      "resumo": "Divisão verificada selecionada por _Generic sobre o tipo promovido de a+b.",
+      "mecanica": "Escolhe bg_divide_* e passa arquivo/linha. Recusa divisor zero e quociente assinado não representável; a divisão real também recusa divisor zero.",
+      "cuidados": [
+        "Não é igual ao operador / cru: transforma esses casos em erro fatal.",
+        "O tipo de controle é (a)+(b), com as promoções/conversões usuais de C."
+      ],
+      "portabilidade": [
+        "Requer _Generic de C11; MSVC moderno é tratado pelo projeto, mas a matriz histórica deve ser consultada antes de chamar um alvo de suportado."
+      ]
+    },
+    "BG_RESTO": {
+      "resumo": "Resto inteiro verificado por _Generic, sem associações reais.",
+      "mecanica": "Seleciona bg_resto_* pelo tipo promovido e passa arquivo/linha. Divisor zero e quociente não representável são fatais.",
+      "cuidados": [
+        "Operandos reais não casam com a seleção e falham na compilação.",
+        "MOD continua sendo o operador % cru, sem essas verificações."
+      ]
+    },
+    "BG_ABS": {
+      "resumo": "Valor absoluto com seleção por _Generic e avaliação única do argumento.",
+      "mecanica": "Seleciona a primitiva por tipo. Inteiros assinados cujo módulo não cabe são erro fatal; reais usam fabs/fabsf.",
+      "cuidados": [
+        "ABS(INT_MIN) normalmente falha em vez de causar overflow assinado.",
+        "unsigned não tem associação própria nesta seleção."
+      ]
+    },
+    "BG_MINIMO": {
+      "resumo": "Menor de dois valores, selecionado por _Generic sobre o tipo comum.",
+      "mecanica": "Despacha para bg_min_i, bg_min_l ou bg_min_d. Cada argumento é avaliado uma vez; a variante double usa fmin.",
+      "cuidados": [
+        "A seleção possui apenas int, long e default double; não é uma função genérica para todos os tipos imagináveis.",
+        "NaN e empates seguem a semântica da variante selecionada."
+      ]
+    },
+    "BG_MAXIMO": {
+      "resumo": "Maior de dois valores, selecionado por _Generic sobre o tipo comum.",
+      "mecanica": "Despacha para bg_max_i, bg_max_l ou bg_max_d. Cada argumento é avaliado uma vez; a variante double usa fmax.",
+      "cuidados": [
+        "O tipo comum pode ser double mesmo quando os argumentos originais são menores.",
+        "NaN e empates seguem a semântica da variante selecionada."
+      ]
+    },
+    "BG_FMT": {
+      "resumo": "Seleciona um formato printf em tempo de compilação pelo tipo do valor.",
+      "mecanica": "_Generic mapeia escalares e strings para formatos C. O default %p é intencional para outros ponteiros.",
+      "cuidados": [
+        "A tabela reflete os tipos C da plataforma, não um sistema de tipos dinâmico.",
+        "Impressão de inteiros de largura exata depende dos typedefs dessa plataforma."
+      ]
+    },
+    "BG_SFMT": {
+      "resumo": "Seleciona um formato scanf pelo tipo do destino, sem default.",
+      "mecanica": "_Generic opera sobre &(x), exigindo ponteiro compatível. Tipo não suportado é erro de compilação, não fallback %p.",
+      "cuidados": [
+        "LOGICO, TEXTO e buffers de texto não são aceitos por LEIA; use LEIA_TEXTO para texto.",
+        "O espaço antes de %c permite consumir whitespace pendente."
+      ]
+    },
+    "BG_ESCREVA": {
+      "resumo": "Imprime um valor escalar ou texto sem acrescentar newline.",
+      "mecanica": "Chama printf(BG_FMT(x), x). A seleção de formato é estática.",
+      "cuidados": [
+        "Uma chamada recebe um valor; para múltiplos use ESCREVA_FMT.",
+        "NULL em %s não é portable entre CRTs; valide antes de imprimir."
+      ]
+    },
+    "BG_ESCREVAL": {
+      "resumo": "Imprime um valor e acrescenta newline.",
+      "mecanica": "Usa o operador vírgula para executar printf formatado e fputc de LF. O resultado da expressão é o de fputc, não uma contagem de caracteres.",
+      "cuidados": [
+        "Windows pode representar LF como CRLF no stdout em modo texto."
+      ]
+    },
+    "BG_ESCREVA_LINHA": {
+      "resumo": "Emite somente um newline em stdout.",
+      "mecanica": "Chama fputc('\\n', stdout)."
+    },
+    "BG_ESCREVA_FMT": {
+      "resumo": "Acesso direto a printf para formatação de múltiplos valores.",
+      "mecanica": "Encaminha __VA_ARGS__ a printf; exige pelo menos o formato.",
+      "cuidados": [
+        "Formato e argumentos são responsabilidade do chamador; não passe formato externo sem validação."
+      ]
+    },
+    "BG_LEIA": {
+      "resumo": "Lê um valor escalar com scanf e descarta explicitamente o indicador de sucesso.",
+      "mecanica": "Seleciona BG_SFMT pelo endereço do destino e converte o resultado de scanf em void. Falha não é propagada por esta forma.",
+      "cuidados": [
+        "Use LEIA_OK para testar sucesso.",
+        "scanf pode deixar newline e caracteres não consumidos no fluxo.",
+        "TEXTO, TEXTO_FIXO e LOGICO são recusados pela seleção sem default."
+      ]
+    },
+    "BG_LEIA_OK": {
+      "resumo": "Lê um valor escalar e informa se scanf converteu exatamente um item.",
+      "mecanica": "Compara scanf(BG_SFMT(x), &x) com 1; não consome necessariamente a linha inteira.",
+      "cuidados": [
+        "Em falha, o valor lido parcialmente pode não ter sido alterado; trate o destino como não validado."
+      ]
+    },
+    "BG_ERRO": {
+      "resumo": "Erro fatal com localização automática do fonte do chamador.",
+      "mecanica": "Passa __FILE__ e __LINE__ a bg_erro; não retorna.",
+      "cuidados": [
+        "A localização é a da expansão da macro no ponto de uso."
+      ]
+    },
+    "BG_AFIRME": {
+      "resumo": "Avalia uma condição e emite erro fatal se ela for falsa.",
+      "mecanica": "Usa ((c) ? (void)0 : bg_erro(...)); não é a macro assert da libc e não é desligada por NDEBUG.",
+      "cuidados": [
+        "A mensagem é avaliada apenas no ramo de falha da expressão condicional."
+      ]
+    },
+    "BG_OU_EXCLUSIVO": {
+      "resumo": "XOR lógico normalizado, avaliando cada operando uma vez.",
+      "mecanica": "Compara (a != 0) com (b != 0) e converte o resultado para bool. Não é XOR bit a bit."
+    },
+    "BG_LOGICO_DE": {
+      "resumo": "Normaliza um valor escalar para bool 0 ou 1.",
+      "mecanica": "Usa (x != 0), evitando a conversão de literal real que fazia Clang emitir -Wliteral-conversion com !!.",
+      "portabilidade": [
+        "A escolha != 0 é deliberada para GCC e Clang; NaN compara diferente de zero."
+      ]
+    },
+    "BG_TEXTOS_IGUAIS": {
+      "resumo": "Compara conteúdo de duas strings com strcmp.",
+      "mecanica": "Expande para strcmp(a,b)==0; não compara endereços.",
+      "cuidados": [
+        "Argumentos NULL não têm o tratamento de bg_compara_texto; passe strings válidas."
+      ]
+    },
+    "BG_TEXTOS_DIFERENTES": {
+      "resumo": "Indica diferença de conteúdo entre duas strings válidas.",
+      "mecanica": "Expande para strcmp(a,b)!=0.",
+      "cuidados": [
+        "Não aceita o contrato NULL=vazio das funções bg_* de texto."
+      ]
+    },
+    "BG_IGUAL": {
+      "resumo": "Comparação prefixada de igualdade entre expressões.",
+      "mecanica": "Expande para ((a)==(b)); não é operador infixo e não é atribuição."
+    },
+    "BG_DIFERENTE": {
+      "resumo": "Comparação prefixada de desigualdade.",
+      "mecanica": "Expande para ((a)!=(b))."
+    },
+    "BG_SORTEIA": {
+      "resumo": "Interface curta para sorteio inteiro com fallback zero em limite inválido.",
+      "mecanica": "Encaminha n a bg_sorteia; veja o contrato e a inicialização da semente.",
+      "cuidados": [
+        "SORTEIA(0) e SORTEIA(-1) devolvem zero; isso não distingue erro de resultado válido."
+      ]
+    },
+    "BG_INICIA_SORTEIO": {
+      "resumo": "Inicializa a sequência pseudoaleatória global.",
+      "mecanica": "Converte a semente para unsigned e chama bg_inicia_sorteio.",
+      "cuidados": [
+        "Conversões de valores fora da faixa de unsigned seguem C; prefira uma semente nessa faixa."
+      ]
+    },
+    "BG_VERSAO_MINIMA": {
+      "resumo": "Predicado de pré-processador para exigir versão mínima da linguagem.",
+      "mecanica": "Compara componente maior e menor; pode ser usado em _Static_assert ou #if.",
+      "exemplo": "_Static_assert(BG_VERSAO_MINIMA(1, 1), \"requer BASICGOL 1.1\");"
+    },
+    "BG_NORETURN": {
+      "resumo": "Compatibilidade de atributo noreturn entre C, C++ e fallback.",
+      "mecanica": "Seleciona [[noreturn]] em C++, _Noreturn em C11/MSVC >=1928 ou nada em outro ambiente.",
+      "portabilidade": [
+        "O fallback vazio preserva a compilação, mas não fornece a garantia de não retorno ao compilador."
+      ]
+    },
+    "__USE_MINGW_ANSI_STDIO": {
+      "resumo": "Seleciona a família printf/scanf ANSI do MinGW antes dos cabeçalhos padrão.",
+      "mecanica": "É definido como 1 somente em __MINGW32__ se o usuário ainda não escolheu um valor.",
+      "portabilidade": [
+        "Ramo específico de MinGW-w64/MinGW; afeta suporte de formatos C99/C11 em MSVCRT e UCRT. Não se aplica a GCC Linux ou MSVC puro."
+      ]
+    },
+    "BG_FORMATO": {
+      "resumo": "Anotação opcional de formato printf usada nos diagnósticos do transpilador.",
+      "mecanica": "Em __GNUC__ ou __clang__, expande para __attribute__((format(printf,f,a))); nos demais compiladores expande para nada.",
+      "portabilidade": [
+        "A ausência do atributo em MSVC não muda a execução, apenas reduz a verificação estática de formatos."
+      ]
+    },
+    "bg_morte": {
+      "resumo": "Erro fatal interno do transpilador, com status 70.",
+      "mecanica": "Escreve o prefixo basicgolc: erro fatal:, formata a mensagem com va_list/vfprintf e chama exit(70).",
+      "portabilidade": [
+        "BG_FORMATO ativa diagnóstico printf em GCC/Clang; o atributo desaparece em outros compiladores."
+      ]
+    },
+    "buf_ini": {
+      "resumo": "Inicializa um buffer dinâmico vazio com capacidade inicial 256.",
+      "mecanica": "Aloca dados, zera tamanho e escreve NUL; falha de malloc chama bg_morte."
+    },
+    "buf_adiciona": {
+      "resumo": "Acrescenta uma string C ao buffer, crescendo a capacidade por dobramento.",
+      "mecanica": "Mede a entrada, dobra a capacidade até caber texto+NUL, realloc e copia com memcpy. Atualiza tamanho e terminador.",
+      "cuidados": [
+        "A implementação atual não preserva o ponteiro antigo em falha de realloc; o processo é encerrado por bg_morte."
+      ]
+    },
+    "buf_limpa": {
+      "resumo": "Reutiliza o buffer sem liberar sua alocação.",
+      "mecanica": "Zera o tamanho lógico e escreve NUL no primeiro byte."
+    },
+    "buf_libera": {
+      "resumo": "Libera a memória do buffer e zera seus metadados.",
+      "mecanica": "Chama free e redefine dados/tamanho/capacidade para NULL/zero, permitindo encerramento limpo sob LeakSanitizer."
+    },
+    "emite_seguro": {
+      "resumo": "Emite texto de tradução garantindo separação do próximo token.",
+      "mecanica": "Adiciona o texto e, se ele não terminar em espaço/newline/tab, acrescenta um espaço. Evita junções acidentais de operadores."
+    },
+    "lista_novo": {
+      "resumo": "Reserva e devolve a próxima posição da lista de tokens.",
+      "mecanica": "Dobra a capacidade quando necessário, começando em 256, realloc o vetor e incrementa a quantidade.",
+      "cuidados": [
+        "Falha de realloc encerra o processo; não há recuperação parcial."
+      ]
+    },
+    "lista_adiciona": {
+      "resumo": "Cria um token com cópia própria do texto e linha de origem.",
+      "mecanica": "Obtém uma posição com lista_novo, aloca n+1 bytes, copia o intervalo e acrescenta NUL."
+    },
+    "lista_libera": {
+      "resumo": "Libera todos os textos de tokens e o vetor da lista.",
+      "mecanica": "Percorre a quantidade lógica, libera cada texto e depois o vetor; zera os metadados."
+    },
+    "le_arquivo": {
+      "resumo": "Lê um arquivo de entrada em modo binário para uma string C alocada.",
+      "mecanica": "Abre rb, mede com fseek/ftell, aloca tamanho+NUL, lê com fread e fecha o fluxo. Falhas de abertura/medição/leitura são fatais.",
+      "portabilidade": [
+        "Modo binário evita tradução automática de newlines na entrada do transpilador no Windows.",
+        "O caminho '-' é tratado pelo chamador/main como entrada especial, não por esta função."
+      ]
+    },
+    "byte_ident": {
+      "resumo": "Reconhece bytes que podem continuar um identificador ASCII/UTF-8 no lexer.",
+      "mecanica": "Aplica as faixas de bytes aceitas pelo tokenizador, sem validar semântica de nomes C."
+    },
+    "inicio_ident": {
+      "resumo": "Reconhece bytes que podem iniciar um identificador no lexer.",
+      "mecanica": "Aplica as faixas iniciais aceitas pelo tokenizador; bytes acentados UTF-8 são preservados para normalização posterior."
+    },
+    "tokeniza": {
+      "resumo": "Separa a fonte em identificadores, números, literais, pontuação, espaço, comentários e diretivas, preservando linhas.",
+      "mecanica": "Percorre bytes sem reordenar tokens, trata escapes e delimitadores, acumula texto em tokens alocados e preserva newlines. É a base comum de --checar e da tradução.",
+      "portabilidade": [
+        "Opera byte a byte; aceita CRLF e preserva BOM, conforme os testes de portabilidade.",
+        "Não é um pré-processador C completo nem um analisador de tipos."
+      ]
+    },
+    "em_lista": {
+      "resumo": "Testa pertencimento de uma string a uma lista NULL-terminada.",
+      "mecanica": "Percorre entradas e compara com strcmp até encontrar o valor ou o sentinela NULL."
+    },
+    "busca_traducao": {
+      "resumo": "Consulta a tabela estática de palavras-chave e tokens de sotaque ASCII.",
+      "mecanica": "Percorre a tabela de tradução e devolve a entrada correspondente ao identificador, ou NULL."
+    },
+    "desacentua": {
+      "resumo": "Resolve apelidos acentuados conhecidos para sua forma ASCII.",
+      "mecanica": "Consulta a tabela de apelidos do transpilador; não faz normalização Unicode genérica de identificadores do usuário."
+    },
+    "normaliza_apelidos": {
+      "resumo": "Substitui tokens de palavras-chave acentuadas por seus equivalentes ASCII antes da tradução.",
+      "mecanica": "Visita apenas TK_IDENT, consulta desacentua e troca a cópia alocada do texto quando há equivalência.",
+      "cuidados": [
+        "Literais e comentários não são reescritos por este passo."
+      ]
+    },
+    "erro": {
+      "resumo": "Registra diagnóstico estrutural do transpilador e incrementa o contador de erros.",
+      "mecanica": "Escreve arquivo:linha: erro: em stderr, formata com va_list e incrementa e.erros. Não encerra imediatamente, permitindo acumular diagnósticos."
+    },
+    "aviso": {
+      "resumo": "Emite aviso W-xx sem transformar sucesso em erro.",
+      "mecanica": "Retorna cedo com -w; caso contrário escreve arquivo/linha/código e incrementa e.avisos.",
+      "portabilidade": [
+        "BG_FORMATO fornece verificação printf em GCC/Clang quando disponível."
+      ]
+    },
+    "ja_avisado": {
+      "resumo": "Deduplica avisos por nome dentro da tabela limitada do estado.",
+      "mecanica": "Procura o nome entre os já vistos e, se novo e houver espaço, aloca uma cópia. A tabela tem capacidade 512."
+    },
+    "estado_libera": {
+      "resumo": "Libera todos os recursos de propriedade pelo Estado de tradução.",
+      "mecanica": "Libera nomes já avisados, enumeradores, parâmetros ponteiro e o buffer de saída, zerando contadores."
+    },
+    "finaliza": {
+      "resumo": "Caminho comum de encerramento que libera fonte, tokens e estado e devolve o código de saída.",
+      "mecanica": "Chama lista_libera, free(src) e estado_libera antes de return rc."
+    },
+    "nome_bloco": {
+      "resumo": "Traduz o código interno de bloco para o nome usado em diagnósticos.",
+      "mecanica": "Switch sobre BLOCO_*; valor desconhecido vira ?."
+    },
+    "fechador_de": {
+      "resumo": "Informa qual fechador seria válido para um tipo de bloco.",
+      "mecanica": "Switch sobre BLOCO_* e retorna FIM correspondente, ou a forma ATE_QUE/ATE para REPITA."
+    },
+    "empilha": {
+      "resumo": "Registra abertura de bloco e sua linha na pilha do transpilador.",
+      "mecanica": "Verifica o limite de 256 níveis, guarda tipo e linha e incrementa o topo.",
+      "cuidados": [
+        "Ao exceder o limite, emite erro e não aumenta a pilha."
+      ]
+    },
+    "desempilha": {
+      "resumo": "Valida e remove o bloco mais interno ao encontrar um fechador.",
+      "mecanica": "Detecta pilha vazia e tipo incompatível, informa o fechador esperado e a linha de abertura, e decrementa o topo para continuar a análise."
+    },
+    "significado": {
+      "resumo": "Indica se um token participa da estrutura, ignorando espaço e comentário.",
+      "mecanica": "Retorna false apenas para TK_ESPACO e TK_COMENTARIO."
+    },
+    "proximo_significativo": {
+      "resumo": "Encontra o próximo token não triviais depois de um índice.",
+      "mecanica": "Avança sobre espaço/comentário e devolve o índice ou -1 no fim da lista."
+    },
+    "ajusta_profundidade": {
+      "resumo": "Atualiza profundidade de delimitadores durante coleta de expressões.",
+      "mecanica": "Incrementa em ( [ { e decrementa em ) ] }; opera sobre o texto de um token."
+    },
+    "coleta_ate": {
+      "resumo": "Coleta uma expressão até um terminador de nível superior.",
+      "mecanica": "Mantém profundidade de delimitadores, só reconhece terminadores no nível zero e acusa diretiva no meio da expressão ou fechamento excedente. Não consome o terminador."
+    },
+    "buf_limpa_espacos": {
+      "resumo": "Remove whitespace ASCII das extremidades do buffer de tradução.",
+      "mecanica": "Move o conteúdo com memmove para remover o prefixo, recua o fim sobre whitespace e atualiza NUL/tamanho."
+    },
+    "em_bloco": {
+      "resumo": "Consulta se há um tipo de bloco em qualquer nível da pilha atual.",
+      "mecanica": "Percorre a pilha até o topo comparando o código de bloco."
+    },
+    "eh_enumerador": {
+      "resumo": "Consulta a tabela de enumeradores conhecidos para a exceção do aviso W-05.",
+      "mecanica": "Compara o nome com as cópias coletadas no fonte e em cabeçalhos locais."
+    },
+    "le_arquivo_ou_nulo": {
+      "resumo": "Lê um cabeçalho opcional devolvendo NULL quando ele não pode ser usado.",
+      "mecanica": "Abre em binário, mede e copia para memória; ausência/erro de leitura retorna NULL em vez de derrubar a tradução. Falta de memória ainda é fatal."
+    },
+    "registra_enumerador_nome": {
+      "resumo": "Adiciona um enumerador único à tabela limitada do estado.",
+      "mecanica": "Ignora duplicatas e excesso de 256 nomes; caso contrário aloca e guarda uma cópia."
+    },
+    "coleta_de_cabecalho": {
+      "resumo": "Coleta enumeradores de cabeçalhos locais para reduzir falsos positivos de W-05.",
+      "mecanica": "Tokeniza o cabeçalho, reconhece ENUMERACAO/FIM_ENUMERACAO e segue includes locais recursivamente. Usa guarda de arquivos visitados e limites de profundidade/tabela.",
+      "cuidados": [
+        "É uma coleta heurística de nomes, não resolução completa do pré-processador C.",
+        "Os limites atuais são profundidade 4, oito caminhos visitados e 256 enumeradores no estado."
+      ],
+      "portabilidade": [
+        "A resolução de diretório procura '/' no caminho; a suíte Windows exercita os caminhos fornecidos pelo runner."
+      ]
+    },
+    "coleta_enumeradores": {
+      "resumo": "Inicia a coleta de enumeradores a partir do arquivo de entrada.",
+      "mecanica": "Chama coleta_de_cabecalho com profundidade inicial zero."
+    },
+    "eh_ponteiro": {
+      "resumo": "Consulta se um nome foi registrado como parâmetro ponteiro/vetor.",
+      "mecanica": "Compara o nome com a tabela preenchida por coleta_parametros."
+    },
+    "coleta_parametros": {
+      "resumo": "Pré-passe que registra parâmetros declarados como *nome ou nome[].",
+      "mecanica": "Examina tokens vizinhos, ignora triviais e guarda cópias únicas até o limite de 128 nomes. Alimenta W-06.",
+      "cuidados": [
+        "É heurística sobre tokens, não análise de escopo/tipo completa."
+      ]
+    },
+    "verifica_w06": {
+      "resumo": "Emite W-06 para TAMANHO_VETOR aplicado a parâmetro ponteiro/vetor.",
+      "mecanica": "Captura o argumento da macro e consulta eh_ponteiro; sizeof de ponteiro não fornece a capacidade do array do chamador."
+    },
+    "verifica_w04": {
+      "resumo": "Emite W-04 quando a variável de controle de um laço parece modificada no corpo.",
+      "mecanica": "Varre tokens com profundidade para localizar atribuições/incrementos relevantes ao controle, respeitando a estrutura reconhecida pelo transpilador.",
+      "cuidados": [
+        "É aviso heurístico, não prova de todas as formas possíveis de aliasing/modificação."
+      ]
+    },
+    "exige_parenteses": {
+      "resumo": "Informa se uma palavra-chave de valor exige argumentos entre parênteses.",
+      "mecanica": "Consulta a lista de construtores prefixados que devem ser seguidos de captura_parenteses."
+    },
+    "captura_parenteses": {
+      "resumo": "Captura argumentos balanceados de uma chamada de macro no fluxo de tokens.",
+      "mecanica": "Consome a abertura, acompanha profundidade e copia o conteúdo até o fechamento correspondente, reportando erro se não o encontrar."
+    },
+    "verifica_cabecalho": {
+      "resumo": "Valida a estrutura de cabeçalhos como SE/ENQUANTO/PARA antes de emitir C.",
+      "mecanica": "Coleta expressão até o terminador esperado, confere delimitadores e emite diagnóstico com a linha da fonte."
+    },
+    "verifica_w02": {
+      "resumo": "Emite W-02 para variáveis locais declaradas sem inicializador no contexto analisado.",
+      "mecanica": "Examina a sequência de declaração e distingue inicialização/atribuição posterior; opera sobre tokens, sem dataflow completo."
+    },
+    "verifica_w05": {
+      "resumo": "Emite W-05 para identificadores do usuário totalmente maiúsculos, com exceções registradas.",
+      "mecanica": "Aplica as regras de nomes reservados e consulta enumeradores/NOMES_C para evitar avisos em nomes legitimamente maiúsculos."
+    },
+    "verifica_w07": {
+      "resumo": "Emite W-07 quando capacidade de vetor/texto usa CONSTANTE em vez de literal/#define.",
+      "mecanica": "Inspeciona o argumento de capacidade e o contexto de declaração para alertar sobre portabilidade de VLA/const em C."
+    },
+    "emite_identificador": {
+      "resumo": "Núcleo de tradução de palavras-chave, blocos e açúcar sintático M1.",
+      "mecanica": "Despacha o token conforme a tabela e o contexto de pilha; emite C para blocos, coleta cabeçalhos/argumentos, converte PARA e ATE e registra diagnósticos. Construtores de valor permanecem prefixados para o cabeçalho.",
+      "cuidados": [
+        "Não faz análise de tipos C; erros semânticos continuam com o compilador C.",
+        "A função é extensa: a fonte completa abaixo é a referência normativa desta página."
+      ]
+    },
+    "traduz": {
+      "resumo": "Percorre a lista de tokens e produz a saída C, verificando blocos não fechados ao final.",
+      "mecanica": "Encaminha identificadores a emite_identificador e copia os demais tokens. Se não houve erro anterior, desempilha diagnósticos de aberturas sem fechamento."
+    },
+    "uso": {
+      "resumo": "Imprime a ajuda de linha de comando do basicgolc no FILE fornecido.",
+      "mecanica": "Escreve opções, formas de uso e códigos de saída 0/1/2; é usada tanto em stdout para --ajuda quanto em stderr para erro de uso."
+    },
+    "VERIFICA": {
+      "resumo": "Macro do harness unitário que conta uma condição e registra falha sem abortar o grupo.",
+      "mecanica": "Incrementa verificacoes, avalia a condição uma vez e, em falha, incrementa falhas e imprime a expressão stringificada com arquivo/linha. O main retorna 1 se houver falhas.",
+      "cuidados": [
+        "Contagem estática de macro expansões não é igual ao número de verificações executadas em loops/plataformas."
+      ]
+    },
+    "executa_caso_fatal": {
+      "resumo": "Despacha um modo de teste que deve terminar em erro fatal ou, em representação alternativa, código 3.",
+      "mecanica": "Compara o argumento com nomes de modo e chama a primitiva correspondente. O runner verifica status 1 e trecho de stderr; nos casos de representabilidade também aceita status 3 sem stderr.",
+      "portabilidade": [
+        "Ramos #if MIN == -MAX reconhecem representações alternativas de sinal previstas por C."
+      ]
+    },
+    "cria_arquivo_temporario": {
+      "resumo": "Cria um FILE temporário contendo um cenário de entrada e o reposiciona no início.",
+      "mecanica": "Usa tmpfile, escreve com fputs, fecha em falha e faz rewind em sucesso.",
+      "portabilidade": [
+        "tmpfile depende das permissões/diretório temporário do sistema; o teste trata NULL como falha do harness."
+      ]
+    },
+    "caso_execucao": {
+      "resumo": "Executa um caso dourado nos caminhos M0 e M1 e compara stdout, stderr e status.",
+      "mecanica": "Resolve arquivos opcionais, compila/linka conforme marcadores, roda com entrada ou /dev/null e usa resultado_confere para aceitar o resultado principal ou alternativo.",
+      "portabilidade": [
+        "Comparações removem CR para tolerar o modo texto do CRT Windows sem ignorar o conteúdo."
+      ]
+    },
+    "resultado_confere": {
+      "resumo": "Compara o resultado de um caso com o contrato principal ou alternativo.",
+      "mecanica": "Confere status e stdout; stderr esperado é procurado como trecho literal. A alternativa só é tentada quando existe e pode exigir stderr vazio.",
+      "cuidados": [
+        "Saída alternativa não é aprovação genérica: precisa corresponder ao conjunto declarado para aquele caso."
+      ]
+    },
+    "difere": {
+      "resumo": "Compara dois arquivos normalizando CR e distinguindo igualdade, diferença e erro de diff.",
+      "mecanica": "Cria arquivos temporários normalizados com tr e interpreta o status de diff: igual retorna 1, diferente retorna 0, erro retorna 2.",
+      "portabilidade": [
+        "Usa arquivos temporários reais em vez de process substitution para funcionar no MSYS2."
+      ]
+    },
+    "fatal_esperado": {
+      "resumo": "Verifica que um modo do binário unitário termina com status 1 e diagnóstico esperado.",
+      "mecanica": "Executa o binário com o modo, captura stdout/stderr e exige rc 1 mais trecho literal em stderr."
+    },
+    "representabilidade_esperada": {
+      "resumo": "Aceita erro fatal ou o protocolo de caso representável nesta plataforma.",
+      "mecanica": "Aceita rc 3 com stderr vazio, ou rc 1 com o trecho de erro esperado; qualquer outro resultado falha.",
+      "portabilidade": [
+        "Evita presumir representação complemento de dois ao testar MIN/-1 e ABS(MIN)."
+      ]
+    },
+    "bg_round_l": {
+      "resumo": "Arredonda um double para long long com empate longe de zero.",
+      "mecanica": "Encaminha diretamente a llround da libm. Diferente de banker rounding: 0.5 vira 1 e -0.5 vira -1. Valores fora da faixa de long long ou NaN seguem o contrato de llround e podem sinalizar erro de domínio/faixa.",
+      "exemplo": "INTEIRO_LONGO n = ARREDONDA(2.5); /* 3 */",
+      "portabilidade": [
+        "Requer libm no caminho GCC/Clang documentado (-lm). O tipo long long e a representação de long double não são presumidos além do padrão C11."
+      ]
+    },
+    "BG_POTENCIA": {
+      "resumo": "Potência de ponto flutuante via pow da libm.",
+      "mecanica": "Expande para pow(base, expoente), com argumentos avaliados uma vez. Domínio/erro seguem pow; não é operador ** nem potência inteira verificada.",
+      "exemplo": "REAL area = POTENCIA(2.0, 3.0);",
+      "portabilidade": [
+        "Liga com -lm em GCC/Clang; errno/erros de domínio seguem a libm do alvo."
+      ]
+    },
+    "BG_RAIZ": {
+      "resumo": "Raiz quadrada via sqrt da libm.",
+      "mecanica": "Expande para sqrt(x). Argumento negativo segue o contrato de sqrt e pode sinalizar erro de domínio; não há verificação fatal própria do BASICGOL.",
+      "exemplo": "REAL h = RAIZ(9.0);",
+      "portabilidade": [
+        "Requer libm no caminho GCC/Clang documentado."
+      ]
+    },
+    "BG_ARREDONDA": {
+      "resumo": "Arredondamento para long long com empate longe de zero.",
+      "mecanica": "Converte o argumento para double e chama bg_round_l/llround. Não devolve REAL nem usa arredondamento bancário.",
+      "exemplo": "ESCREVAL(ARREDONDA(2.5)); /* 3 */",
+      "portabilidade": [
+        "A conversão para double pode perder precisão de um long double antes de llround."
+      ]
+    },
+    "BG_PISO": {
+      "resumo": "Maior inteiro não maior que x, via floor.",
+      "mecanica": "Expande para floor(x); o resultado continua sendo real, não um tipo inteiro.",
+      "exemplo": "REAL p = PISO(2.9); /* 2.0 */",
+      "portabilidade": [
+        "libm do alvo; -lm no caminho GCC/Clang documentado."
+      ]
+    },
+    "BG_TETO": {
+      "resumo": "Menor inteiro não menor que x, via ceil.",
+      "mecanica": "Expande para ceil(x); o resultado continua sendo real.",
+      "exemplo": "REAL t = TETO(2.1); /* 3.0 */",
+      "portabilidade": [
+        "libm do alvo; -lm no caminho GCC/Clang documentado."
+      ]
+    },
+    "BG_TEM_EXTENSOES": {
+      "resumo": "Marcador interno de que a seção opcional de extensões foi habilitada com suporte.",
+      "mecanica": "É definido como 1 apenas dentro de BG_USAR_EXTENSOES quando __GNUC__ ou __clang__ está presente; controla também os apelidos curtos das operações seguras.",
+      "portabilidade": [
+        "Não defina manualmente para fingir suporte; a seção valida o compilador e emite #error sem builtin."
+      ]
+    },
+    "BG_VERSAO": {
+      "resumo": "String de versão usada pelo diagnóstico --versao do transpilador.",
+      "mecanica": "Macro de objeto do tools/basicgolc.c, separada das constantes de versão da linguagem em basicgol.h.",
+      "portabilidade": [
+        "Texto literal do pré-processador, sem dependência de OS."
+      ]
+    },
+    "t_ok": {
+      "resumo": "Conta uma verificação aprovada no runner principal e opcionalmente a imprime.",
+      "mecanica": "Incrementa T_OK e imprime ok apenas quando T_VERBOSO está ativo."
+    },
+    "t_falhou": {
+      "resumo": "Registra falha do runner com contexto e acumula a lista de falhas.",
+      "mecanica": "Incrementa T_FALHOU, imprime FALHA e o detalhe opcional, e acrescenta o nome a T_LISTA_FALHAS."
+    },
+    "t_titulo": {
+      "resumo": "Imprime o título de uma seção da suíte.",
+      "mecanica": "Escreve uma linha separadora e o nome da seção em stdout."
+    },
+    "selecionado": {
+      "resumo": "Filtra suítes pelo prefixo passado ao runner.",
+      "mecanica": "Sem filtro aceita tudo; com filtro usa case/prefix matching do shell para decidir se a seção roda."
+    },
+    "falha": {
+      "resumo": "Registra falha no runner da biblioteca e imprime detalhe opcional.",
+      "mecanica": "Incrementa FALHAS e escreve FALHA mais contexto em stdout."
+    },
+    "mostra_diff": {
+      "resumo": "Mostra um diff curto e normalizado quando dois resultados diferem.",
+      "mecanica": "Usa difere para decidir se há diferença e limita diff -u às primeiras linhas com prefixo de indentação."
+    },
+    "ok": {
+      "resumo": "Conta aprovação nos runners auxiliares.",
+      "mecanica": "Incrementa o contador local e imprime a linha de aprovação conforme o modo verboso do script."
+    },
+    "falhou": {
+      "resumo": "Conta e reporta falha nos runners auxiliares.",
+      "mecanica": "Incrementa o contador de falhas, imprime contexto e registra a linha na matriz/relatório quando o runner mantém um."
+    },
+    "ignorado": {
+      "resumo": "Reporta verificação não executada por ferramenta/alvo ausente.",
+      "mecanica": "Incrementa IGNORADO e registra IGNORADO na matriz; não conta como aprovação."
+    },
+    "titulo": {
+      "resumo": "Imprime seção da matriz salvo modo quieto.",
+      "mecanica": "Escreve o título apenas quando QUIETO é zero."
+    },
+    "primeira_linha": {
+      "resumo": "Obtém a primeira linha de um arquivo sem CR final.",
+      "mecanica": "Usa head -1 e tr -d CR para normalizar a saída de versão/diagnóstico."
+    },
+    "registra_compilador": {
+      "resumo": "Adiciona um compilador disponível à matriz, deduplicando pelo caminho resolvido.",
+      "mecanica": "Verifica command -v, captura versão, resolve caminho real e evita repetir o mesmo binário sob nomes diferentes."
+    },
+    "confere_saida": {
+      "resumo": "Compara saída de exemplo no runner MSVC normalizando newlines.",
+      "mecanica": "Remove CR dos lados antes de comparar o conteúdo dourado, tolerando o modo texto do CRT."
+    },
+    "roda": {
+      "resumo": "Executa um binário de teste com entrada opcional e captura stdout/stderr/status.",
+      "mecanica": "Redireciona stdin de arquivo ou /dev/null, grava saídas em arquivos temporários e ecoa o código de saída para o chamador."
+    }
+  },
+  "patterns": [
+    {
+      "prefix": "bg_divide_",
+      "resumo": "Variante tipada da divisão verificada de BASICGOL.",
+      "mecanica": "Recusa divisor zero antes de executar a divisão. Nas variantes assinadas, verifica também o quociente não representável (usualmente MIN/-1) antes do operador C. O diagnóstico usa bg_erro com arquivo e linha; a variante real não usa a regra de quociente inteiro.",
+      "cuidados": [
+        "Esta função é fatal nos casos inválidos; não devolve código de erro.",
+        "O tipo e as promoções são os de C; a seleção pública é feita por DIVIDE."
+      ],
+      "exemplo": "INTEIRO resultado = DIVIDE(10, 2);",
+      "portabilidade": [
+        "Faixa e largura dos tipos vêm de limits.h da plataforma.",
+        "A guarda MIN < -MAX evita presumir uma única representação de inteiro assinado."
+      ]
+    },
+    {
+      "prefix": "bg_resto_",
+      "resumo": "Variante tipada do resto inteiro verificado.",
+      "mecanica": "Recusa divisor zero e, nas variantes assinadas, verifica se o quociente a/b seria representável antes de aplicar %. Isso evita o caso MIN % -1 que pode ser indefinido em C mesmo quando o resto matemático é zero.",
+      "cuidados": [
+        "Não existe variante real; RESTO com operandos reais falha na seleção _Generic.",
+        "O sinal do resto segue o dividendo nas regras C11."
+      ],
+      "exemplo": "INTEIRO resto = RESTO(10, 3);",
+      "portabilidade": [
+        "Limites de int/long/long long são os do alvo; a guarda de representação é explícita."
+      ]
+    },
+    {
+      "prefix": "bg_abs_",
+      "resumo": "Variante tipada de valor absoluto usada por ABS.",
+      "mecanica": "Para inteiros assinados, calcula a magnitude via -(valor+1) em domínio representável e converte para unsigned antes de acrescentar um. Se a magnitude excede o máximo assinado, emite erro fatal. As variantes reais encaminham a fabsf/fabs.",
+      "cuidados": [
+        "ABS do mínimo assinado normalmente não cabe no tipo de retorno e é fatal.",
+        "Não há variante unsigned na seleção atual de ABS."
+      ],
+      "exemplo": "INTEIRO magnitude = ABS(-12);",
+      "portabilidade": [
+        "A largura de int/long/long long e a representação de sinal são as do alvo; não se assume int de 32 bits."
+      ]
+    },
+    {
+      "prefix": "bg_min_",
+      "resumo": "Variante tipada de mínimo usada por MINIMO.",
+      "mecanica": "Compara os dois argumentos uma vez. As variantes inteiras usam operador relacional; a variante double usa fmin da libm.",
+      "exemplo": "INTEIRO menor = MINIMO(7, 3);",
+      "portabilidade": [
+        "NaN e zeros com sinal na variante double seguem fmin da libm; não se extrapola esse comportamento para as variantes inteiras."
+      ]
+    },
+    {
+      "prefix": "bg_max_",
+      "resumo": "Variante tipada de máximo usada por MAXIMO.",
+      "mecanica": "Compara os dois argumentos uma vez. As variantes inteiras usam operador relacional; a variante double usa fmax da libm.",
+      "exemplo": "INTEIRO maior = MAXIMO(7, 3);",
+      "portabilidade": [
+        "NaN e zeros com sinal na variante double seguem fmax da libm."
+      ]
+    },
+    {
+      "prefix": "testa_",
+      "resumo": "Grupo executável do harness da biblioteca padrão.",
+      "mecanica": "Prepara cenários de sucesso, fronteira e falha, chama a API e registra condições com VERIFICA ou retorna um código de erro ao modo de integração. O fonte completo e as referências extraídas aparecem abaixo."
+    },
+    {
+      "prefix": "buf_",
+      "resumo": "Utilidade interna de manipulação de buffers do transpilador.",
+      "mecanica": "Opera sobre o estado Buf e as rotinas de alocação/emit do arquivo; consulte o corpo extraído e os chamadores para o contrato exato."
+    },
+    {
+      "prefix": "lista_",
+      "resumo": "Utilidade interna de gerenciamento da lista de tokens do transpilador.",
+      "mecanica": "Opera sobre Lista/Token e a propriedade da memória alocada; o corpo e os chamadores são extraídos diretamente do fonte."
+    },
+    {
+      "prefix": "verifica_w",
+      "resumo": "Verificação heurística de um aviso W-xx do transpilador.",
+      "mecanica": "Examina tokens e estado de blocos/nomes, emitindo aviso sem interromper a tradução. O caso correspondente em tests/casos/13_avisos fixa o comportamento observável."
+    }
+  ],
+  "macro_groups": {
+    "tipos": "Alias de tipo C: não cria um novo sistema de tipos. Largura, alinhamento, sinal e promoções são os do compilador/alvo; consulte limites.h/float.h por meio das macros de faixa.",
+    "versão": "Constante ou predicado de versão avaliado pelo pré-processador; não há consulta de versão em tempo de execução.",
+    "configuração": "Macro de configuração ou guarda de inclusão. Defina opções antes de incluir basicgol.h; guardas tornam inclusões repetidas seguras.",
+    "operadores": "Reescrita tokenizada de operadores C. Precedência, conversões e efeitos colaterais seguem C, salvo proteção explícita mostrada na expansão.",
+    "declarações": "Declaração C emitida pelo pré-processador; não há coleta de lixo, bounds checking ou redimensionamento automático."
+  }
+}
