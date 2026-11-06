@@ -1,9 +1,14 @@
 # Suíte de testes — BASICGOL
 
 ```sh
-make test         # tudo
-make test-v       # tudo, listando cada verificação aprovada
-./tests/run.sh 03 # só uma suíte (prefixo do nome)
+make test               # tudo
+make test-v             # tudo, listando cada verificação aprovada
+./tests/run.sh 03       # só uma suíte (prefixo do nome)
+make test-portabilidade # matriz de compiladores, avisos, multi-UO, C++, alvos cruzados
+make test-sanitize      # a suíte inteira sob ASan + UBSan + LeakSanitizer
+make test-matriz        # a suíte inteira com cada compilador encontrado
+make fuzz               # mutação determinística do transpilador
+make test-checkout      # os comandos do README, a partir de um checkout limpo
 ```
 
 A suíte de linguagem usa `bash`, um compilador C11, `build/basicgolc` e
@@ -57,7 +62,7 @@ tests/
 | `esperado_rc.txt` | código de saída esperado (padrão `0`) |
 | `esperado_stderr.txt` | trecho que precisa aparecer em `stderr` |
 | `esperado_erro.txt` | mensagens de erro **aceitas** (casos negativos) — ver abaixo |
-| `cflags.txt` | flags extras só deste caso (ex.: `-Wno-implicit-fallthrough`) |
+| `cflags.txt` | flags extras só deste caso — **evite**: a Fase 6 trocou a única que havia (`-Wno-implicit-fallthrough` no caso `c19`) por `__attribute__((fallthrough))` no ponto exato |
 | `objetos` | marcador: compilar cada fonte com `-c` e ligar depois (multi-arquivo real) |
 | `sem_m0` / `sem_m1` | marcador: pular um dos caminhos |
 
@@ -91,6 +96,38 @@ Duas salvaguardas completam isso, para que a suíte não dependa da máquina:
 Os diagnósticos do **basicgolc** (`12_negativos_m1`) usam o mesmo formato — ali o texto é
 nosso e vem da especificação (§4.3), então basta uma linha por caso.
 
+## Programas de portabilidade (`tests/portabilidade/`)
+
+Fora da árvore `casos/` — porque não são casos M0×M1 com saída dourada, e sim
+**programas que exercitam a portabilidade** — ficam os arquivos consumidos por
+`tests/run_portabilidade.sh`:
+
+| Arquivo | O que prova |
+|---|---|
+| `precedencia.c` | a precedência documentada (E/OU/NAO, aritmética, comparação) avaliada em execução |
+| `controle.c` | `SE`/`ENQUANTO`/`REPITA`/`ESCOLHA`/`PARE`/`PROSSIGA` em casos de borda, nos dois perfis |
+| `entrada.c` (`.entrada.txt`, `.esperado.txt`) | contrato de `LEIA`/`LEIA_TEXTO`/`LEIA_INTEIRO` e o comportamento em entrada inválida, com saída **dourada** |
+| `fronteira.c` | limites de tipo (176 verificações): `INT_MAX`, estouro, `MIN/-1`, `NaN`, `long double` |
+| `cabecalhos_tu{1,2,3}.c` + `cabecalhos_principal.c` | 4 unidades de tradução, inclusão múltipla do mesmo cabeçalho, `BG_SEM_APELIDOS`, `BG_USAR_EXTENSOES` por UO, e **nenhum símbolo global extra** (auditado com `nm`) |
+| `cpp_inclusao.cpp` | os cabeçalhos de módulo em C++17 (`extern "C"` + `BG_NORETURN`) |
+
+O runner tem 11 seções (padrões de C, cabeçalhos autocontidos, programas por
+compilador, M0×M1, saída dourada, multi-UO, `nm`, conjunto estrito de avisos,
+sanitizers, C++, alvos cruzados) e grava uma linha por verificação em
+`build/relatorio/portabilidade.tsv`. Ele **ignora** (não aprova) o que não pode
+executar: sem `zig` no `PATH`, as verificações de alvo cruzado não rodam; sem
+`wine`, os binários Windows não são executados.
+
+## Ferramentas auxiliares
+
+| Script | Função |
+|---|---|
+| `run_portabilidade.sh` | a matriz acima (`-v` lista as aprovadas, `-q` só o resumo) |
+| `run_matriz.sh` | roda as três suítes com cada compilador encontrado, em `build-matriz/<nome>/` |
+| `run_checkout_limpo.sh` | copia só o que o Git versionaria e roda os comandos da documentação |
+| `fuzz_basicgolc.py` | mutações determinísticas (seed fixa) do `basicgolc`; contrato: não derrubar, não travar |
+| `tools/cobertura.py` | gera `COBERTURA.md` **sem data** (determinístico, para o CI comparar); `--data` gera a versão datada |
+
 ## Como adicionar um caso
 
 1. Crie `tests/casos/<suíte>/<nome>/programa.c`.
@@ -98,6 +135,7 @@ nosso e vem da especificação (§4.3), então basta uma linha por caso.
    programa a produziu: o teste existe para pegar erro, não para congelar erro).
 3. Salve como `esperado.txt` e rode `./tests/run.sh <suíte>`.
 4. Rode `make cobertura` para atualizar a matriz — ela lista o caso automaticamente.
+   O arquivo gerado é determinístico (sem data), então o commit mostra só a linha nova.
 
 Se o caso documenta uma decisão da especificação, cite o `C-xx`/`D-xx` no comentário do
 fonte: quem lê o teste depois entende **por que** ele existe.

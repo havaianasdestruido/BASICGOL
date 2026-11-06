@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import re
 import subprocess
+import sys
 from datetime import date
 from pathlib import Path
 
@@ -150,10 +151,15 @@ ESTRESSE = [
 
 
 def main() -> None:
+    # A saída é DETERMINÍSTICA: nada de data no arquivo. O CI compara
+    # `make cobertura` com o arquivo versionado (`git diff --exit-code`), e uma
+    # data embutida fazia essa checagem falhar todo dia seguinte ao commit.
+    # Para um relatório datado, use --data (a data vai só no texto do rodapé).
+    datado = "--data" in sys.argv[1:] or "--data-com-hoje" in sys.argv[1:]
     nomes = nomes_curtos()
     suites = casos_por_suite()
     total_casos = sum(n for _, n, _ in suites)
-    hoje = date.today().isoformat()
+    hoje = date.today().isoformat() if datado else None
 
     saida: list[str] = []
     w = saida.append
@@ -161,7 +167,13 @@ def main() -> None:
     w("# Cobertura de testes — BASICGOL")
     w("")
     w("> Documento **gerado** por `python3 tools/cobertura.py` (ou `make cobertura`).")
-    w(f"> Gerado em {hoje}. Não edite à mão: as seções 1–3 saem da árvore de testes.")
+    if hoje is not None:
+        w(f"> Gerado em {hoje} (`python3 tools/cobertura.py --data`). Não edite à mão: as"
+          " seções 1–3 saem da árvore de testes.")
+    else:
+        w("> Não edite à mão: as seções 1–3 saem da árvore de testes. A saída é"
+          " determinística (sem data) para o CI poder compará-la com a versão"
+          " versionada; use `--data` para um relatório datado.")
     w("")
     w("## 0. Como rodar")
     w("")

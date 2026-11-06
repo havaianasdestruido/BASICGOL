@@ -5,9 +5,14 @@
 #   make test            roda a suíte da linguagem e os testes da biblioteca
 #   make test-biblioteca roda os testes unitários dos módulos da biblioteca
 #   make test-v          suíte completa, mostrando cada verificação aprovada
+#   make test-portabilidade  matriz de compiladores, avisos, sanitizers e alvos
+#   make test-sanitize   suíte completa sob ASan + UBSan (build-sanitize/)
+#   make test-matriz     suíte completa com cada compilador encontrado
+#   make fuzz            mutação determinística do transpilador
+#   make test-checkout   roda os comandos do README a partir de um checkout limpo
 #   make exemplos        compila os exemplos de docs/exemplos
 #   make cobertura       regenera tests/COBERTURA.md
-#   make limpar          remove build/
+#   make limpar          remove build/ e os diretórios de build alternativos
 
 CC       ?= cc
 AR       ?= ar
@@ -21,7 +26,9 @@ TESTE_BIBLIOTECA := $(BUILD)/test-biblioteca
 FONTES_BIBLIOTECA := $(sort $(wildcard src/biblioteca/*.c))
 OBJETOS_BIBLIOTECA := $(patsubst src/biblioteca/%.c,$(BUILD)/biblioteca/%.o,$(FONTES_BIBLIOTECA))
 
-.PHONY: all biblioteca test test-v test-biblioteca smoke smoke-v exemplos cobertura limpar ajuda
+.PHONY: all biblioteca test test-v test-biblioteca smoke smoke-v exemplos cobertura \
+        limpar ajuda test-portabilidade test-portabilidade-v test-sanitize test-matriz fuzz \
+        test-checkout
 
 all: $(FERRAMENTA) $(BIBLIOTECA)
 
@@ -46,11 +53,11 @@ $(TESTE_BIBLIOTECA): tests/test_biblioteca.c $(BIBLIOTECA)
 # ------------------------------------------------------------------ testes
 
 test: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA)
-	@T_LIBRARY="$(BIBLIOTECA)" ./tests/run.sh
+	@T_BASICGOLC="$(FERRAMENTA)" T_LIBRARY="$(BIBLIOTECA)" ./tests/run.sh
 	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
 
 test-v: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA)
-	@T_LIBRARY="$(BIBLIOTECA)" ./tests/run.sh -v
+	@T_BASICGOLC="$(FERRAMENTA)" T_LIBRARY="$(BIBLIOTECA)" ./tests/run.sh -v
 	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
 
 test-biblioteca: $(TESTE_BIBLIOTECA)
@@ -60,6 +67,44 @@ test-biblioteca: $(TESTE_BIBLIOTECA)
 smoke: test
 
 smoke-v: test-v
+
+# ------------------------------------------------- Fase 6: portabilidade
+#
+# Nada disto é obrigatório para usar a linguagem: são verificações de
+# compilador, aviso e sanitizer. Ferramenta ausente é REPORTADA como ignorada.
+
+test-portabilidade: $(FERRAMENTA) $(BIBLIOTECA)
+	@T_BASICGOLC="$(FERRAMENTA)" T_LIBRARY="$(BIBLIOTECA)" \
+	    ./tests/run_portabilidade.sh
+
+test-portabilidade-v: $(FERRAMENTA) $(BIBLIOTECA)
+	@T_BASICGOLC="$(FERRAMENTA)" T_LIBRARY="$(BIBLIOTECA)" \
+	    ./tests/run_portabilidade.sh -v
+
+# A suíte inteira sob ASan+UBSan, em um diretório de build separado para não
+# misturar objetos instrumentados com os normais (o Makefile não rastreia
+# mudança de flags; é por isso que existe BUILD).
+SAN_FLAGS := -O1 -g -fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all
+
+test-sanitize:
+	@command -v $(CC) > /dev/null 2>&1 || { echo "test-sanitize: $(CC) nao encontrado" >&2; exit 2; }
+	@rm -rf build-sanitize
+	@$(MAKE) --no-print-directory BUILD=build-sanitize \
+	    CFLAGS="$(SAN_FLAGS)" \
+	    T_CFLAGS="$(WARN) $(SAN_FLAGS)" \
+	    ASAN_OPTIONS=detect_leaks=1 UBSAN_OPTIONS=print_stacktrace=1 test
+
+# A mesma suíte com cada compilador C que existir nesta máquina.
+test-matriz:
+	@./tests/run_matriz.sh
+
+# Mutação determinística do transpilador: contrato = não derrubar, não travar.
+fuzz: $(FERRAMENTA)
+	@python3 tests/fuzz_basicgolc.py --basicgolc "$(FERRAMENTA)"
+
+# Os comandos documentados funcionam a partir de um checkout limpo (sem build/)?
+test-checkout:
+	@./tests/run_checkout_limpo.sh
 
 # ---------------------------------------------------------------- exemplos
 
@@ -79,13 +124,15 @@ exemplos: $(FERRAMENTA) $(BIBLIOTECA)
 
 # ------------------------------------------------------------- cobertura
 
+# A saída é determinística (sem data) para o CI comparar com o arquivo
+# versionado; `make cobertura COBERTURA_ARGS=--data` gera uma versão datada.
 cobertura:
-	@python3 tools/cobertura.py
+	@python3 tools/cobertura.py $(COBERTURA_ARGS)
 
 # --------------------------------------------------------------- limpeza
 
 limpar:
-	rm -rf $(BUILD)
+	rm -rf $(BUILD) build-sanitize build-matriz
 
 ajuda:
-	@sed -n '2,12p' Makefile
+	@sed -n '2,16p' Makefile

@@ -1,3 +1,6 @@
+# artefatos de build (um diretório por configuração; ver Makefile)
 build/
+build-*/
 *.o
 *.gerado.c
+__pycache__/

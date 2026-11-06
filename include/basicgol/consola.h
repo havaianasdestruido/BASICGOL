@@ -16,11 +16,25 @@ extern "C" {
 /* Tamanho máximo, em bytes incluindo NUL, usado por LEIA_INTEIRO/LEIA_REAL. */
 #define BG_TAMANHO_LINHA_NUMERO 128
 
+/* `_Noreturn` é palavra-chave de C11; C++ usa o atributo `[[noreturn]]`.
+ * Sem isto o cabeçalho não podia ser incluído em C++ nem com `extern "C"`
+ * (erro: "'_Noreturn' does not name a type") — e a promessa do `extern "C"`
+ * é justamente permitir chamar a biblioteca de um programa C++. */
+#if defined(__cplusplus)
+#  define BG_NORETURN [[noreturn]]
+#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 201112L)
+#  define BG_NORETURN _Noreturn
+#elif defined(_MSC_VER) && (_MSC_VER >= 1928)
+#  define BG_NORETURN _Noreturn
+#else
+#  define BG_NORETURN
+#endif
+
 /**
  * Imprime `arquivo:linha: erro: mensagem` em stderr e encerra com status 1.
  * NULL em `arquivo` ou `mensagem` é aceito como "?" ou texto vazio.
  */
-_Noreturn void bg_erro(const char *arquivo, int linha, const char *mensagem);
+BG_NORETURN void bg_erro(const char *arquivo, int linha, const char *mensagem);
 
 /**
  * Diagnóstico interno do laço PARA_PASSO. Não retorna: chama bg_erro.

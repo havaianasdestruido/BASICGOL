@@ -168,7 +168,7 @@ diferença entre eles está em [06 §5.4–5.5](06-tipos-e-expressoes.md).
 | `ESCREVA_TEXTO(s);` | N | escreve texto como `%s` (sem consultar tipo) |
 | `ESCREVA_FMT(fmt, …);` | N | `printf` direto (formatação fina, múltiplos valores) |
 | `ESCREVA_ERRO(s);` | N | escreve texto em `stderr` |
-| `LEIA(x);` | N | lê **um** valor escalar para `x`; o formato sai de `_Generic` pelo tipo do destino (`NATURAL8`→`%hhu`, `NATURAL_CURTO`→`%hu`, `REAL_LONGO`→`%Lf`, `CARACTERE`→` %c`); `LOGICO`, `TEXTO` e `TEXTO_FIXO` são **recusados** pelo compilador (`-Wformat`) |
+| `LEIA(x);` | N | lê **um** valor escalar para `x`; o formato sai de `_Generic` pelo tipo do destino (`NATURAL8`→`%hhu`, `NATURAL_CURTO`→`%hu`, `REAL_LONGO`→`%Lf`, `CARACTERE`→` %c`); `LOGICO`, `TEXTO` e `TEXTO_FIXO` são **recusados pelo compilador** (erro de `_Generic`, não aviso); texto se lê com `LEIA_TEXTO` |
 | `LEIA_OK(x);` | N | lê e devolve `LOGICO` (sucesso/falha) |
 | `LEIA_TEXTO(buf, tam);` | N | lê uma linha para `TEXTO_FIXO`; consome o `\n` pendente de um `LEIA` anterior, se houver |
 | `LEIA_INTEIRO(x);` | N | lê **uma linha** e converte para `INTEIRO`; devolve `LOGICO`; não deixa lixo no `stdin` |

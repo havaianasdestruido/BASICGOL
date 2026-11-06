@@ -1,0 +1,3 @@
+# GCC 12: '_Generic' selector of type 'const char **' is not compatible with any association
+# Clang 20: controlling expression type 'const char **' not compatible with any generic association type
+not compatible with any

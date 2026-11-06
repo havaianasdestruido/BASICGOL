@@ -1,2 +1,6 @@
-# Ambos recusam: GCC fala em "format %p expects ...", Clang em "format specifies".
-format
+# LEIA(LOGICO) nao tem formato: o _Generic de BG_SFMT nao tem `default`, entao
+# o tipo de controle sem associacao e violacao de restricao (C11 6.5.1.1p3) e o
+# erro e de compilacao — com ou sem -Werror.
+# GCC 12: '_Generic' selector of type '_Bool *' is not compatible with any association
+# Clang 20: controlling expression type 'bool *' not compatible with any generic association type
+not compatible with any

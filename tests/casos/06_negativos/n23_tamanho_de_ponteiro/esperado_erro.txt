@@ -1,0 +1,5 @@
+# GCC e Clang avisam com o mesmo nome de aviso; o texto é que muda.
+# GCC 12: "does not compute the number of array elements"
+# Clang 20: "will return the size of the pointer, not the array itself"
+-Wsizeof-pointer-div
+sizeof
