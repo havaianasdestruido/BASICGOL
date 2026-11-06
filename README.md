@@ -48,6 +48,24 @@ INICIO
 FIM
 ```
 
+## Por que criar uma línguagem nova?
+
+Eu decidi desenvolver esse projeto pois estava frustrado com os defeitos de linguagens em Portugues, como o `Portugol`.
+
+Na minha escola, por um longo período nós tivemos que estudar essa línguagem, e ela é repleta de furos e inconsistências, o que me motivou a desenvolver o `BASICGOL`.
+
+A grande vantagem de usar o `BASICGOL` ao invés de `Portugol`, é o fato de que o `BASICGOL` é um header C11 simples, basta incluir ele no topo do seu arquivo que ele já está pronto para uso.
+
+Meu foco principal é em compatibilidade multi-plataforma e multi-compilador, não quero que `BASICGOL` fique "preso" num estado aonde só compila no MSVC no Windows, quero que também funcione, por exemplo, no GCC sob Linux.
+
+Eu tenho planos bem ambiciosos com essa linguagem (_uns até de mais_), os que me vem na cabeça nesse momento são:
+
+- [ ] Fazer um bootloader exibindo "Olá Mundo!" em `BASICGOL` **puro**
+- [ ] Portar exemplo de Arduino pra funcionar 100% em `BASICGOL`
+- [ ] Portar funções úteis do C++ pra `BASICGOL` (só as mais úteis mesmo)
+- [ ] Fazer exemplos maiores, demonstrando a capacidade da linguagem, como sistemas inteiros, servidores HTTP, projetos IoT, etc.
+- [ ] Reescrever apps feitos para DOS com `BASICGOL`
+
 ## Como isso será executado (dois caminhos, uma linguagem)
 
 | Caminho | O que exige | Cobre |
