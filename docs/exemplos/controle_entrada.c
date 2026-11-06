@@ -1,6 +1,6 @@
 // controle_entrada.c — laços dirigidos por entrada: validacao com REPITA e sentinela com ENQUANTO.
 // Perfil: M0 (macros). Entrada: controle_entrada.entrada.txt
-// Compilar: cc -std=c11 -Wall -Wextra controle_entrada.c -o controle_entrada -I ../../include
+// Compilar a partir da raiz: make exemplos
 //
 // LEIA_INTEIRO le uma linha inteira: uma linha invalida nao deixa lixo no stdin,
 // entao o laco que pede de novo nao trava (diferente de scanf sobre texto).

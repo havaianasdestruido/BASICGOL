@@ -23,6 +23,7 @@ RAIZ=$(cd "$(dirname "$0")/.." && pwd)
 T_CASOS="$RAIZ/tests/casos"
 T_INCLUDE="$RAIZ/include"
 T_BASICGOLC="${T_BASICGOLC:-$RAIZ/build/basicgolc}"
+T_LIBRARY="${T_LIBRARY:-$RAIZ/build/libbasicgol.a}"
 T_CC="${CC:-cc}"
 T_CFLAGS="${T_CFLAGS:--std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror}"
 T_TMP=$(mktemp -d "${TMPDIR:-/tmp}/basicgol-teste.XXXXXX")
@@ -40,7 +41,12 @@ trap 'rm -rf "$T_TMP"' EXIT
 
 if [ ! -x "$T_BASICGOLC" ]; then
     echo "run.sh: basicgolc nao encontrado em $T_BASICGOLC" >&2
-    echo "        rode  make  (ou  make basicgolc ) antes dos testes." >&2
+    echo "        rode  make  antes dos testes." >&2
+    exit 2
+fi
+if [ ! -f "$T_LIBRARY" ]; then
+    echo "run.sh: biblioteca nao encontrada em $T_LIBRARY" >&2
+    echo "        rode  make biblioteca  antes dos testes." >&2
     exit 2
 fi
 
@@ -238,7 +244,7 @@ INICIO
     ESCREVA(i++); ESCREVA(" "); ESCREVAL(i);   /* imprime 0 e depois 1 */
 FIM
 EOF
-    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h8" "$T_TMP/h8.c" -lm 2> "$T_TMP/e" \
+    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h8" "$T_TMP/h8.c" "$T_LIBRARY" -lm 2> "$T_TMP/e" \
        && [ "$("$T_TMP/h8" | tr '\n' '|')" = "2 1 2|0 1|" ]; then
         t_ok "avaliacao unica de argumentos (P-11)"
     else
@@ -258,7 +264,7 @@ INICIO
     ESCREVAL(x);
 FIM
 EOF
-    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h8b" "$T_TMP/h8b.c" -lm 2> "$T_TMP/e" \
+    if $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$T_TMP/h8b" "$T_TMP/h8b.c" "$T_LIBRARY" -lm 2> "$T_TMP/e" \
        && [ "$("$T_TMP/h8b" | tr '\n' '|')" = "2 1 1|" ]; then
         t_ok "avaliacao unica nas macros novas (DIVIDE, OU_EXCLUSIVO)"
     else
@@ -540,7 +546,7 @@ if selecionado 10_exemplos; then
 
         # caminho M0 (todos, menos os exemplos que so existem em M1: acucar PARA i DE)
         if [ "$nome" != "para_contado" ] && [ "$nome" != "controle_para_acucar" ]; then
-            if $T_CC $T_CFLAGS -I "$T_INCLUDE" "$arq" -o "$bin0" -lm 2> "$T_TMP/e"; then
+            if $T_CC $T_CFLAGS -I "$T_INCLUDE" "$arq" -o "$bin0" "$T_LIBRARY" -lm 2> "$T_TMP/e"; then
                 ok_m0=1
             else
                 t_falhou "exemplo $nome (M0)" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"
@@ -549,7 +555,7 @@ if selecionado 10_exemplos; then
 
         # caminho M1 (todos)
         if "$T_BASICGOLC" "$arq" -o "$T_TMP/$nome.gerado.c" 2> "$T_TMP/e" \
-           && $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$bin1" "$T_TMP/$nome.gerado.c" -lm 2>> "$T_TMP/e"; then
+           && $T_CC $T_CFLAGS -I "$T_INCLUDE" -o "$bin1" "$T_TMP/$nome.gerado.c" "$T_LIBRARY" -lm 2>> "$T_TMP/e"; then
             ok_m1=1
         else
             t_falhou "exemplo $nome (M1)" "$(head -2 "$T_TMP/e" | tr '\n' ' ')"

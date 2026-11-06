@@ -1,6 +1,6 @@
 // tipos.c — um valor de cada tipo suportado, com a representacao C visivel.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra tipos.c -o tipos -lm
+// Compilar a partir da raiz: make exemplos
 //
 // Versao executavel da tabela de tipos de docs/06-tipos-e-expressoes.md:
 // cada bloco imprime valor, largura em bits e faixa quando faz sentido.

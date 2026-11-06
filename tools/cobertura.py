@@ -71,9 +71,9 @@ def casos_por_suite() -> list[tuple[str, int, str]]:
 # ---------------------------------------------------------------- seções 4 e 5
 
 AC = [
-    ("AC-21", "cabeçalho header-only, idempotente, compila sozinho", "01_sanidade"),
+    ("AC-21", "cabeçalho compila sozinho e é idempotente", "01_sanidade"),
     ("AC-22", "expansões idênticas às de 03 §3", "01_sanidade + tests/expansoes.txt"),
-    ("AC-23", "12 exemplos compilam e produzem a saída esperada", "10_exemplos"),
+    ("AC-23", "todos os exemplos compilam e produzem a saída esperada", "10_exemplos"),
     ("AC-24", "`BG_SEM_APELIDOS` desliga os nomes curtos", "01_sanidade"),
     ("AC-25", "nenhuma macro avalia o argumento duas vezes", "01_sanidade"),
     ("AC-26", "C11, C17 e clang", "01_sanidade"),
@@ -99,7 +99,7 @@ AC = [
      "t01_inteiros, t07_divisao (conversões e sinais reais)"),
     ("AC-42", "texto seguro com limite de buffer", "t11_texto_seguro"),
     ("AC-43", "divisão por zero, conversão inválida, buffer e entrada numérica",
-     "t08, t09, t10 (erro + rc), t06, t11, t12"),
+     "t08, t09; t10 testa erro ou resultado conforme a faixa assinada; t06, t11, t12"),
     ("AC-44", "estouro inteiro e ponto flutuante documentados com precisão",
      "[06 §10](../docs/06-tipos-e-expressoes.md) + t01, t02, t13"),
     ("AC-45", "extensões de compilador opcionais e isoladas",
@@ -108,6 +108,12 @@ AC = [
      "10_exemplos (tipos.c, expressoes.c)"),
     ("AC-47", "diferenças semânticas em relação a BASIC e Portugol",
      "[06 §13](../docs/06-tipos-e-expressoes.md)"),
+    ("AC-49", "biblioteca padrão separada em módulos C11 e arquivo estático",
+     "include/basicgol/ + src/biblioteca/ + Makefile"),
+    ("AC-50", "API documentada e testes válidos, inválidos e de fronteira",
+     "[09](../docs/09-biblioteca-padrao.md) + tests/test_biblioteca.c"),
+    ("AC-51", "um exemplo executável por módulo e dependências inventariadas",
+     "10_exemplos + [09 §5–6](../docs/09-biblioteca-padrao.md)"),
 ]
 
 RESTRICOES = [
@@ -120,7 +126,7 @@ RESTRICOES = [
     ("C-07", "tabela de erros + M1 como resposta de qualidade", "06_negativos, 12_negativos_m1"),
     ("C-08", "R-1/R-2 (nomes reservados)", "06_avisos/w05"),
     ("C-09", "`BG_SEM_APELIDOS`", "01_sanidade"),
-    ("C-10", "`ABS`/`MINIMO`/`MAXIMO` inline", "01_sanidade (avaliação única) + 02_basico"),
+    ("C-10", "`ABS`/`MINIMO`/`MAXIMO` avaliam cada argumento uma vez", "01_sanidade + tests/test_biblioteca.c"),
     ("C-11", "C11 obrigatório", "01_sanidade (C99 é rejeitado)"),
     ("C-12", "sem `MOD=`", "06_negativos/n07"),
     ("C-13", "documento de compilação", "README.md + este arquivo"),
@@ -160,8 +166,9 @@ def main() -> None:
     w("## 0. Como rodar")
     w("")
     w("```sh")
-    w("make                 # compila o transpilador em build/basicgolc")
-    w("make test            # suíte completa (M0 + M1 em cada caso)")
+    w("make                 # compila o transpilador e build/libbasicgol.a")
+    w("make test            # suíte completa (M0 + M1 + biblioteca)")
+    w("make test-biblioteca # somente os módulos da biblioteca padrão")
     w("make test-v          # idem, listando cada verificação aprovada")
     w("./tests/run.sh 03    # uma suíte só (prefixo do nome)")
     w("```")
@@ -223,28 +230,40 @@ def main() -> None:
     for suite, n, desc in suites:
         w(f"| `{suite}` | {n} | {desc} |")
     w("")
-    w("## 4. Critérios de aceitação (Fases 2 e 4)")
+    w("## 4. Biblioteca padrão (Fase 5)")
+    w("")
+    w("| módulo | helpers exercitados | cobertura executável |")
+    w("|---|---|---|")
+    w("| Console | `bg_erro`, `bg_passo_zero`, `bg_leia_linha`, `bg_leia_texto`, `bg_leia_inteiro[_de]`, `bg_leia_real[_de]`, `bg_escreva_texto`, `bg_escreva_linha` | `tests/test_biblioteca.c` + `tests/run_biblioteca.sh`: EOF, linha vazia/longa, CRLF, NUL, argumentos de fluxo inválidos e casos fatais |")
+    w("| Matemática | `bg_divide_*`, `bg_resto_*`, `bg_abs_*`, `bg_min_*`, `bg_max_*`, `bg_round_l` e macros `ABS`/`MINIMO`/`MAXIMO`/`POTENCIA`/`RAIZ`/`ARREDONDA`/`PISO`/`TETO` | teste unitário por tipo, sinais, limites e subprocessos para divisor zero/overflow |")
+    w("| Texto | `bg_tamanho_texto`, `bg_copia_texto`, `bg_junta_texto`, `bg_acrescenta_texto`, `bg_trecho_texto`, `bg_compara_texto`, `bg_texto_vazio`, `bg_formata_texto`, conversões texto/número | capacidades, sobreposição, NULL, texto vazio, truncamento, conversões inválidas e overflow |")
+    w("| Caractere | `bg_e_digito`, `bg_e_letra`, `bg_caractere_maiusculo`, `bg_caractere_minusculo` | ASCII, pontuação, limites e macros curtas |")
+    w("| Utilidades | `bg_inicia_sorteio`, `bg_sorteia_ate`, `bg_sorteia` | semente reproduzível, limites aceitos/rejeitados e intervalo de retorno |")
+    w("")
+    w("A biblioteca tem **230 verificações unitárias** e 30 verificações de integração/falha fatal; rode `make test-biblioteca`.")
+    w("")
+    w("## 5. Critérios de aceitação (Fases 2–5)")
     w("")
     w("| AC | critério | verificação automatizada |")
     w("|---|---|---|")
     for ac, criterio, onde in AC:
         w(f"| {ac} | {criterio} | {onde} |")
     w("")
-    w("## 5. Restrições técnicas e o teste que as fixa")
+    w("## 6. Restrições técnicas e o teste que as fixa")
     w("")
     w("| restrição | o que a suíte faz |")
     w("|---|---|")
     for c, o_que, onde in RESTRICOES:
         w(f"| {c} | {o_que} — {onde} |")
     w("")
-    w("## 6. Estresse")
+    w("## 7. Estresse")
     w("")
     w("| situação | onde |")
     w("|---|---|")
     for o_que, onde in ESTRESSE:
         w(f"| {o_que} | `{onde}` |")
     w("")
-    w("## 7. O que ainda não é automatizado")
+    w("## 8. O que ainda não é automatizado")
     w("")
     w("* **AC-17 / AC-18** (leitura por pessoa de fora): não há como um programa julgar")
     w("  legibilidade. O que a Fase 2 fez foi a parte verificável — percorrer a tabela de")

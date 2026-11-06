@@ -1,6 +1,6 @@
 // expressoes.c — precedencia, conversoes, verdade e operacoes verificadas.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra expressoes.c -o expressoes -lm
+// Compilar a partir da raiz: make exemplos
 //
 // Cada bloco mostra uma regra de docs/06-tipos-e-expressoes.md com o resultado
 // concreto. Onde a regra depende do tipo, o tipo aparece na etiqueta.

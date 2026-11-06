@@ -1,6 +1,6 @@
 // utilidades.c — catalogo das funcoes e tipos de conveniencia da biblioteca.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra utilidades.c -o utilidades -lm
+// Compilar a partir da raiz: make exemplos
 //
 // Serve como folha de referencia executavel: cada bloco imprime o resultado de
 // um grupo de funcoes. Os valores sao fixos, entao a saida e reproduzivel.
@@ -69,7 +69,7 @@ PROCEDIMENTO mostra_matematica(void) {
     ESCREVA("IGUAL(4, 4)      = "); ESCREVAL(IGUAL(4, 4));
     ESCREVA("DIFERENTE(4, 5)  = "); ESCREVAL(DIFERENTE(4, 5));
 
-    // ABS, MINIMO e MAXIMO sao funcoes inline escolhidas por _Generic:
+    // ABS, MINIMO e MAXIMO encaminham para funcoes C escolhidas por _Generic:
     // o argumento e avaliado uma unica vez (P-11), ao contrario de uma macro
     // ingenua do tipo "((x) < 0 ? -(x) : (x))".
 }

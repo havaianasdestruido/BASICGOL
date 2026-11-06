@@ -1,6 +1,6 @@
 # BASICGOL — Referência de Tipos e Expressões
 
-> Documento **normativo** da Fase 4. Ele responde a três perguntas:
+> Documento **normativo** da Fase 4. A implementação dos helpers foi organizada na Fase 5; consulte [09 — Biblioteca padrão](09-biblioteca-padrao.md) para headers, linkagem e ownership. Este documento responde a três perguntas:
 > *que tipo é este?*, *que operação posso fazer com ele?* e *o que acontece quando
 > algo dá errado?* — sempre dizendo **o que é C** e **o que é BASICGOL**.
 >
@@ -256,8 +256,8 @@ FIM_SE
 Detalhes contratuais:
 
 * o destino só é alterado em caso de sucesso (como `scanf`);
-* as funções de texto usam `strtol`/`strtoul`/`strtod` e portanto **podem alterar
-  `errno`** — é o único efeito colateral da biblioteca, documentado em RB-2;
+* as funções de texto usam `strtol`/`strtoul`/`strtod`, mas preservam `errno`; falhas
+  são devolvidas por `LOGICO` (não há código global de erro),
 * `TEXTO_PARA_REAL("1e999")` devolve `FALSO` (estouro) e `"1e-999"` também (underflow);
 * `TEXTO_PARA_REAL` aceita o que o `strtod` aceita: `"inf"`, `"-inf"` e `"nan"` são
   **valores representáveis**, não erros de faixa, e são aceitos (com `NAN`, `x == x` é
@@ -299,7 +299,7 @@ deliberado: em C não existe retorno múltiplo, e usar um “valor mágico” pa
 | incremento | `++x`, `x++`, `--x`, `x--` | idem | tipo do operando |
 | aritmética | `+`, `-`, `*`, `/` | idem | tipo comum dos operandos |
 | resto | `a MOD b` ou `a % b` | `a % b` | inteiro; sinal do dividendo |
-| divisão/resto verificados | `DIVIDE(a, b)`, `RESTO(a, b)` | — | tipo promovido; erro se divisor 0 ou `MIN/-1` |
+| divisão/resto verificados | `DIVIDE(a, b)`, `RESTO(a, b)` | — | tipo promovido; erro se divisor 0 ou quociente assinado não representável |
 | comparação | `==`, `!=`, `<`, `<=`, `>`, `>=` | idem | `LOGICO` (na prática `int` 0/1) |
 | comparação prefixada | `IGUAL(a, b)`, `DIFERENTE(a, b)` | `((a) == (b))`, `((a) != (b))` | `LOGICO` |
 | comparação de texto | `TEXTOS_IGUAIS(a, b)`, `TEXTOS_DIFERENTES(a, b)` | `strcmp(a,b) == 0` | `LOGICO` |
@@ -355,8 +355,9 @@ compilação (teste `06_negativos/n14`), porque C não tem resto real. Para reai
   `SOMA_SEGURA`/`MULTIPLICA_SEGURA` (§11).
 * Estouro em tipo **sem sinal** é definido: aritmética módulo 2ᴺ
   (`(NATURAL8) 255 + 1 == 0`).
-* `INT_MIN / -1` e `INT_MIN % -1` são a única divisão/resto inteira que estouram; `DIVIDE`
-  e `RESTO` recusam com erro.
+* `INT_MIN / -1` e `INT_MIN % -1` causam UB se o quociente não couber no tipo (caso comum
+  em representação de complemento de dois); `DIVIDE`/`RESTO` recusam qualquer quociente
+  não representável antes da operação.
 * Divisão ou resto por zero inteiro é **indefinido** em C. `DIVIDE`/`RESTO` recusam com
   erro; `/` e `MOD` crus continuam sendo UB, como em C.
 
@@ -446,8 +447,9 @@ atribuição em condição.
 
 ## 8. Texto: contrato da biblioteca
 
-Todas as funções abaixo são `static inline`, recebem o tamanho do destino e **reportam
-truncamento por valor de retorno**. Regra de ouro (RB-3): *truncamento nunca é
+As funções de texto são helpers C compilados em `src/biblioteca/texto.c` e os headers
+públicos estão em `include/basicgol/texto.h`. Elas recebem o tamanho do destino e
+**reportam truncamento por valor de retorno**. Regra de ouro (RB-3): *truncamento nunca é
 silencioso*; em caso de falha, `dest[0] == '\0'` quando o destino é utilizável.
 
 | Forma | Devolve | Contrato |
@@ -469,10 +471,11 @@ Sobreposição e `NULL`:
   `ACRESCENTA_TEXTO`, `TRECHO_TEXTO`, `COMPARA_TEXTO`, `TAMANHO_TEXTO`) — nunca
   desreferenciada. `TEXTOS_IGUAIS`/`TEXTOS_DIFERENTES` são `strcmp` cru e exigem
   ponteiros válidos (é a forma curta, de uma linha).
-* **origem e destino podem ser o mesmo buffer**: as cópias usam `memmove`, então
-  `TRECHO_TEXTO(buf, sizeof buf, buf, 2, 3)` e `ACRESCENTA_TEXTO(buf, sizeof buf, buf)`
-  são definidos. Com `memcpy` seriam comportamento indefinido — é o tipo de detalhe que a
-  linguagem prefere resolver na biblioteca a documentar como armadilha.
+* **origem e destino podem se sobrepor**: cópia, acréscimo e trecho usam `memmove`;
+  `JUNTA_TEXTO` monta a saída em temporário antes de copiar. Assim, por exemplo,
+  `TRECHO_TEXTO(buf, sizeof buf, buf, 2, 3)` e `JUNTA_TEXTO(buf, sizeof buf, buf, buf+1)`
+  não destroem a origem durante a operação. `JUNTA_TEXTO` também pode falhar se não
+  conseguir alocar esse temporário; nesse caso devolve `FALSO` e limpa o destino.
 * falha **limpa** o destino (`d[0] = '\0'`): depois de `ACRESCENTA_TEXTO(buf, 6, buf)`
   que não coube, `TAMANHO_TEXTO(buf)` é 0. Nunca sobra conteúdo parcial.
 
@@ -546,9 +549,9 @@ Esta seção existe porque a alternativa é repetir frases otimistas que C não 
 | Situação | Comportamento | Como evitar |
 |---|---|---|
 | soma/subtração/multiplicação estoura | **UB** (C11 6.5p5) | tipo mais largo (`INTEIRO64`), checagem antes, ou `SOMA_SEGURA`/`MULTIPLICA_SEGURA` (§11) |
-| `MIN / -1` ou `MIN % -1` | **UB** | `DIVIDE`/`RESTO` recusam com erro |
+| Quociente assinado não representável (em geral `MIN / -1`) | **UB** | `DIVIDE`/`RESTO` recusam com erro |
 | divisão/resto por 0 | **UB** | `DIVIDE`/`RESTO` recusam com erro |
-| `ABS(MINIMO_INTEIRO)` | **UB** (não há positivo representável) | compare antes, ou use real |
+| `ABS(MINIMO_INTEIRO)` quando a magnitude não cabe | erro fatal documentado | compare antes, use real ou uma faixa/representação maior |
 | conversão real→inteiro fora de faixa | **UB** | `REAL_PARA_INTEIRO` devolve `FALSO` |
 | deslocamento negativo ou ≥ largura | **UB** | use `NATURAL` e valide o valor |
 | conversão para tipo menor com sinal | definido pela implementação | use tipo sem sinal (módulo) ou valide |
@@ -577,7 +580,7 @@ podem ficar negativos.
 * `printf("%g")` mostra 6 algarismos significativos — o que é **menos** que a precisão
   de `double`. Para ver o valor completo use `ESCREVA_FMT("%.17g", x)`; o padrão é
   escolha didática, não perda de dado (o valor na memória está intacto).
-* O separador decimal é sempre `.` porque a biblioteca não chama `setlocale` (D-17).
+* BASICGOL não chama `setlocale` (D-17); por padrão o processo começa na locale C e usa `.`. Se a aplicação alterar a locale, `strtod` segue a configuração corrente.
   Se o programa chamar `setlocale`, `%f`/`%g` passam a usar a vírgula — decisão do
   programa, visível no fonte.
 * `REAL_LONGO` tem precisão diferente por plataforma (80/128/64 bits). Não imprima a
@@ -779,7 +782,7 @@ qualquer “modo texto” que esconda a memória. Todas essas escolhas estão re
 | Precedência | `tests/casos/09_tipos_expr/t05_precedencia` |
 | Conversões válidas e inválidas | `tests/casos/09_tipos_expr/t06_conversoes` |
 | `DIVIDE`/`RESTO` válidos | `tests/casos/09_tipos_expr/t07_divisao` |
-| Divisão por zero, resto por zero, `MIN/-1` | `tests/casos/09_tipos_expr/t08…t10` (erro e código de saída 1) |
+| Divisão/resto por zero e quociente mínimo não representável | `tests/casos/09_tipos_expr/t08…t10` (t10 verifica erro ou resultado válido conforme a representação) |
 | Texto seguro e truncamento | `tests/casos/09_tipos_expr/t11_texto_seguro` |
 | `LEIA_INTEIRO`/`LEIA_REAL` e entrada inválida | `tests/casos/09_tipos_expr/t12_leia_numeros` |
 | Extensões opcionais | `tests/casos/09_tipos_expr/t13_extensoes` |

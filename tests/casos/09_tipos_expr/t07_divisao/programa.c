@@ -17,7 +17,7 @@ INICIO
     ESCREVA_FMT("%.2f\n", DIVIDE(7.0, 2.0));
     ESCREVA_FMT("%.2f\n", DIVIDE(-7.0, 2.0));
 
-    // MINIMO_INTEIRO / 1 é válido; / -1 seria indefinido em C (caso t10)
+    // MINIMO_INTEIRO / 1 é válido; / -1 é indefinido se o quociente não couber (caso t10)
     ESCREVAL(DIVIDE(MINIMO_INTEIRO, 1) == MINIMO_INTEIRO);
     ESCREVAL(RESTO(MINIMO_INTEIRO, 2) == 0);
 

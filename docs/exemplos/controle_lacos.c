@@ -1,6 +1,6 @@
 // controle_lacos.c — laços aninhados, PROSSIGA/PARE, REPITA e termino garantido.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra controle_lacos.c -o controle_lacos -I ../../include
+// Compilar a partir da raiz: make exemplos
 #include <basicgol.h>
 
 INICIO

@@ -88,7 +88,7 @@ A Fase 2a (só macros) termina quando:
 
 | ID | Critério | Verificação |
 |---|---|---|
-| AC-21 | `basicgol.h` é header-only, idempotente, compila sozinho | `echo '#include <basicgol.h>' \| cc -std=c11 -Wall -Wextra -fsyntax-only -x c -` sem avisos |
+| AC-21 | (Fase 2; empacotamento superado na Fase 5) `basicgol.h` era header-only; continua idempotente e compila sozinho, mas os helpers agora exigem `build/libbasicgol.a` | compilação isolada com `-fsyntax-only` e `#include <basicgol.h>`; empacotamento atual: AC-49 |
 | AC-22 | Todas as expansões de §3 de 03 são idênticas às do cabeçalho | `cc -E` comparado à tabela (teste automatizado) |
 | AC-23 | Os 14 exemplos compilam e produzem a saída esperada (`exemplos/README.md`) | suíte de execução com saída gravada |
 | AC-24 | `BG_SEM_APELIDOS` funciona: nenhum nome curto definido | teste de compilação negativa (`#ifdef SE` → erro) |
@@ -147,7 +147,7 @@ corte: *o que não tem os três não é exposto*.
 | AC-40 | Atribuição, comparação, aritmética, precedência, conversão e valor de verdade estão especificados | §4–§7 de 06 + `t05_precedencia`, `t06_conversoes`, `t04_logico` | **atendido** |
 | AC-41 | Nenhuma abstração esconde diferença de comportamento de C | §10 de 06 (UB, wrap, NaN, `INT_MIN/-1`) + `t01`, `t07` demonstram o comportamento real | **atendido** |
 | AC-42 | Biblioteca de texto segura sobre `strlen`/`strcmp`/`memcpy`/`snprintf`, com limite de buffer | §8 de 06 + `t11_texto_seguro` (cabe, não cabe, `NULL`, trecho, formatação) | **atendido** |
-| AC-43 | Divisão por zero, conversão inválida, limite de buffer e entrada numérica inválida são tratados | `t08`/`t09`/`t10` (erro + rc 1), `t06` (conversões), `t11` (buffer), `t12` (entrada por linha), `t15` (formato por tipo), `n16` (`LEIA` de `LOGICO` recusado) | **atendido** |
+| AC-43 | Divisão por zero, conversão inválida, limite de buffer e entrada numérica inválida são tratados | `t08`/`t09`; `t10` verifica erro quando MIN/-1 não é representável e o quociente quando é; `t06`, `t11`, `t12`, `t15`, `n16` | **atendido** |
 | AC-44 | Estouro inteiro e comportamento de ponto flutuante documentados com precisão | §10 de 06; `t01` (wrap sem sinal), `t02` (`0.1+0.2`, NaN, infinito), `t13` (estouro detectável) | **atendido** |
 | AC-45 | Extensões de compilador opcionais e isoladas; desligadas, o cabeçalho é C11 estrito | §2b de `basicgol.h`, D-22, `t13_extensoes` + checagem `01_sanidade` | **atendido** |
 | AC-46 | Existem exemplos executáveis para todos os tipos e para as regras de expressão | `docs/exemplos/tipos.c` e `docs/exemplos/expressoes.c` (M0 e M1, saída dourada) | **atendido** |
@@ -247,3 +247,19 @@ Executado sobre os cinco documentos e os exemplos:
 * Documentação de instalação para Linux, macOS e Windows (MinGW/MSVC).
 * Realce de sintaxe publicado para pelo menos um editor.
 * Nenhuma decisão aberta que afete a API pública (D-02, D-05, D-08, D-11, D-14).
+
+## 9. Portão de saída da Fase 5 — "biblioteca padrão entregue"
+
+A Fase 5 entrega uma biblioteca pequena e compilável, sem introduzir dependências de
+terceiros nem recursos de linguagem que não sejam necessários para os módulos.
+
+| ID | Critério | Verificação | Status |
+|---|---|---|---|
+| AC-49 | API organizada por módulo, com headers públicos e implementação C11 ligada como archive | `include/basicgol/`, `src/biblioteca/`, `make biblioteca` | **atendido** |
+| AC-50 | Documentação descreve parâmetros, retorno, erros, buffers, propriedade de memória e dependências | [`09-biblioteca-padrao.md`](09-biblioteca-padrao.md) | **atendido** |
+| AC-51 | Cada módulo tem exemplo; todos os helpers têm testes de sucesso, falha e fronteira | `docs/exemplos/biblioteca_*.c`, `tests/test_biblioteca.c`, `make test-biblioteca` | **atendido** |
+| — | Compilação sem dependências de terceiros e sem helpers específicos de plataforma no core | inventário em [`09 §5`](09-biblioteca-padrao.md); `make test` | **atendido** |
+
+`make test` passou com **304 verificações de linguagem**, **230 checks unitários** da
+biblioteca e **30 verificações de integração/falha fatal**. `make exemplos` compila os
+24 exemplos do repositório com avisos tratados como erro.

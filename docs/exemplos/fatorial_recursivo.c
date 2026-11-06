@@ -1,6 +1,6 @@
 // fatorial_recursivo.c — recursao, INTEIRO64 e formatacao de inteiros largos.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra fatorial_recursivo.c -o fatorial
+// Compilar a partir da raiz: make exemplos
 #include <basicgol.h>
 
 // Fatorial recursivo com tipo de largura exata (estoura em 21!).

@@ -1,6 +1,6 @@
 // media_notas.c — funcao, condicional encadeado e formatacao de reais.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra media_notas.c -o media_notas
+// Compilar a partir da raiz: make exemplos
 #include <basicgol.h>
 
 // Media aritmetica simples: dois valores.

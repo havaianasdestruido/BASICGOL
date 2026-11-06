@@ -1,6 +1,6 @@
 // adivinha.c — REPITA/ATE_QUE, sorteio, LEIA_OK e ESCOLHA.
 // Perfil: M0 (macros).
-// Compilar: cc -std=c11 -Wall -Wextra adivinha.c -o adivinha
+// Compilar a partir da raiz: make exemplos
 #include <basicgol.h>
 
 CONSTANTE INTEIRO k_limite = 100;

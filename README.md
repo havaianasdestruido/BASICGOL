@@ -2,12 +2,13 @@
 
 > BASICGOL — a legibilidade do BASIC e do Portugol, entregue como uma camada de macros C.
 
-**Status: Fase 1 concluída (especificação) · Fase 2 concluída (implementação + testes) ·
-Fase 3 concluída (controle de fluxo) · Fase 4 concluída (tipos e semântica de expressões).**
-O cabeçalho [`include/basicgol.h`](include/basicgol.h) e o transpilador
-[`tools/basicgolc.c`](tools/basicgolc.c) existem, e a suíte em [`tests/`](tests/) roda
-**294 verificações**, todas aprovadas (cada caso de programa é executado duas vezes: caminho M0 e
-caminho M1). Versão da linguagem: **1.1.0**.
+**Status: Fases 1–5 concluídas (biblioteca padrão modular).**
+O cabeçalho [`include/basicgol.h`](include/basicgol.h), os módulos em
+[`include/basicgol/`](include/basicgol/) e [`src/biblioteca/`](src/biblioteca/) e o
+transpilador [`tools/basicgolc.c`](tools/basicgolc.c) são testados em [`tests/`](tests/):
+**304 verificações da linguagem**, mais **230 verificações unitárias** e **30 verificações
+de integração/falhas fatais** da biblioteca. Versão da linguagem: **1.1.0**; versão da
+biblioteca: **1.0.0**.
 
 ---
 
@@ -74,37 +75,42 @@ Eu tenho planos bem ambiciosos com essa linguagem (_uns até de mais_), os que m
 
 | Caminho | O que exige | Cobre |
 |---|---|---|
-| **M0 — macros** | só um compilador C11 | todo o subconjunto "núcleo" da linguagem |
-| **M1 — transpilador** | um reescritor de tokens (`basicgolc`, Fase 2) | o núcleo + açúcar que exige reordenar tokens (`PARA i DE 1 ATE 10 FACA`) |
+| **M0 — macros** | compilador C11 + `build/libbasicgol.a` | todo o subconjunto "núcleo" da linguagem |
+| **M1 — transpilador** | C11, `basicgolc` e `build/libbasicgol.a` | o núcleo + açúcar que exige reordenar tokens (`PARA i DE 1 ATE 10 FACA`) |
 
 A fonte é a mesma nos dois caminhos; a semântica é a mesma; o resultado do
 pré-processamento (M0) e o C emitido (M1) são equivalentes.
 
-O fonte é um **`.c` comum** — a linguagem é uma camada de macros sobre C, então não há
-extensão própria (D-14). Comando do caminho M0:
+O fonte é um **`.c` comum** — a linguagem é uma camada sobre C, sem extensão própria
+(D-14). Os helpers da biblioteca são módulos compilados. Comando M0:
 
 ```sh
-cc -std=c11 -Wall -Wextra programa.c -o programa -lm -I include
+make biblioteca
+cc -std=c11 -Wall -Wextra -I include programa.c \
+   build/libbasicgol.a -lm -o programa
 ```
 
 Caminho M1 (transpilador):
 
 ```sh
-make                                            # constrói build/basicgolc
+make                                            # transpilador + build/libbasicgol.a
 build/basicgolc programa.c -o programa.gerado.c # traduz para C "puro"
-cc -std=c11 programa.gerado.c -o programa -lm -I include
+cc -std=c11 -I include programa.gerado.c \
+   build/libbasicgol.a -lm -o programa
 ```
 
 ## Repositório
 
 | Caminho | O que é |
 |---|---|
-| [`include/basicgol.h`](include/basicgol.h) | a linguagem inteira: macros, tipos, biblioteca de execução (`bg_*`), header-only |
+| [`include/basicgol.h`](include/basicgol.h) | palavras-chave, tipos, aliases e compatibilidade com a API `BG_*` |
+| [`include/basicgol/`](include/basicgol/) | headers modulares de console, matemática, texto, caractere e utilidades |
+| [`src/biblioteca/`](src/biblioteca/) | implementações C11 que formam `build/libbasicgol.a` |
 | [`tools/basicgolc.c`](tools/basicgolc.c) | transpilador M1: insere chaves, desaçucara `PARA i DE …`, aceita acentos, emite W-01…W-07 |
-| [`tests/`](tests/) | suíte de testes: 125 casos em disco, caminho M0 **e** M1 em cada caso |
-| [`tests/COBERTURA.md`](tests/COBERTURA.md) | matriz de rastreabilidade gerada: cada nome, aviso, critério e restrição → o teste que o fixa |
-| [`docs/`](docs/) | a especificação normativa (o código é a implementação dela) |
-| [`Makefile`](Makefile) | `make`, `make test`, `make test-v`, `make exemplos`, `make cobertura` |
+| [`tests/`](tests/) | suíte M0/M1 com 132 casos em disco e 230 verificações unitárias da biblioteca |
+| [`tests/COBERTURA.md`](tests/COBERTURA.md) | matriz de rastreabilidade gerada: nomes, módulos, avisos, critérios e restrições |
+| [`docs/`](docs/) | especificação, referência e exemplos executáveis |
+| [`Makefile`](Makefile) | `make`, `make biblioteca`, `make test`, `make test-biblioteca`, `make exemplos`, `make cobertura` |
 
 ## Documentos
 
@@ -117,22 +123,23 @@ cc -std=c11 programa.gerado.c -o programa -lm -I include
 | 5 | [`docs/05-criterios-de-aceitacao.md`](docs/05-criterios-de-aceitacao.md) | Critérios de aceitação das fases, com o veredito de cada um |
 | 6 | [`docs/06-tipos-e-expressoes.md`](docs/06-tipos-e-expressoes.md) | **Referência de tipos e expressões**: representação, mapeamento C, conversões, precedência, verdade, estouro, ponto flutuante, extensões opcionais e diferenças em relação a BASIC/Portugol |
 | 7 | [`docs/07-controle-de-fluxo.md`](docs/07-controle-de-fluxo.md) | **Controle de fluxo**: sintaxe exata de `SE`, `ENQUANTO`, `REPITA`, `PARA`, `ESCOLHA`, `PARE`, `PROSSIGA`; expansões; casos de borda; ninhos e `SENAO`; limitações |
-| 8 | [`docs/08-relatorio-controle-de-fluxo.md`](docs/08-relatorio-controle-de-fluxo.md) | Relatório de aprovação e reprovação da Fase 3, com os defeitos encontrados e corrigidos |
-| — | [`docs/exemplos/`](docs/exemplos/) | Programas de exemplo completos, no dialeto canônico |
+| 8 | [`docs/08-relatorio-controle-de-fluxo.md`](docs/08-relatorio-controle-de-fluxo.md) | Relatório de aprovação e reprovação da Fase 3 |
+| 9 | [`docs/09-biblioteca-padrao.md`](docs/09-biblioteca-padrao.md) | API modular da biblioteca padrão, convenções, testes, build e dependências |
+| — | [`docs/exemplos/`](docs/exemplos/) | Programas da linguagem e exemplos por módulo da biblioteca |
 
 ## Fase 2 — o que foi entregue
 
-* **`basicgol.h`**: implementa as 117 formas curtas da especificação, as macros `BG_*`
-  correspondentes (sempre disponíveis) e a biblioteca `bg_*`. Sem dependências além de
-  `libc` e `-lm`. Rejeita C99 com mensagem clara.
+* **`basicgol.h`**: implementa as 117 formas curtas e as macros `BG_*`; reexporta os
+  módulos da biblioteca. Rejeita C99 com mensagem clara. A Fase 5 moveu os helpers para
+  headers e implementações próprias, preservando os aliases didáticos.
 * **`basicgolc`**: transpilador M1 em C11 puro. Faz três coisas que macro não faz
   (`PARA i DE a ATE b [PASSO p] FACA` → `for`, `REPITA … ATE c;` → `do/while`, e chaves
   explícitas no C emitido), aceita palavras-chave acentuadas na entrada e diagnostica
   W-01…W-07 com linha e coluna.
-* **Testes**: os casos em disco (85 na Fase 2, 106 hoje) + checagens de sanidade, CLI e estresse. Cada caso de
-  programa roda no caminho M0 e no M1 e precisa produzir exatamente a mesma saída — é a
-  prova automatizada da equivalência M0 × M1 (AC-32). A cobertura por item está em
-  [`tests/COBERTURA.md`](tests/COBERTURA.md).
+* **Testes**: 132 casos em disco, sanidade, CLI, estresse, 230 verificações unitárias
+  da biblioteca e verificações de integração. Cada caso roda no caminho M0 e no M1 e
+  precisa produzir a mesma saída — prova automatizada da equivalência M0 × M1 (AC-32).
+  A matriz está em [`tests/COBERTURA.md`](tests/COBERTURA.md).
 
 ### Três coisas que a implementação ensinou (e que a especificação corrigiu)
 
@@ -185,8 +192,8 @@ casos de borda e documenta os limites** ([07](docs/07-controle-de-fluxo.md)):
   `LOGICO_DE(x)`. Precedência é a de C, documentada com exemplos; `^` continua sendo XOR
   (potência é `POTENCIA`).
 * **Erro em vez de comportamento indefinido**: `DIVIDE(a,b)` e `RESTO(a,b)` recusam
-  divisor zero e `MIN/-1` com mensagem apontando a linha do aluno. `/` e `MOD` continuam
-  sendo o C cru, e a documentação diz isso com todas as letras.
+  divisor zero e quocientes assinados não representáveis (em geral `MIN/-1`) com mensagem
+  apontando a linha do aluno. `/` e `MOD` continuam sendo o C cru.
 * **Conversões verificadas**: `TEXTO_PARA_INTEIRO`, `TEXTO_PARA_NATURAL`,
   `TEXTO_PARA_REAL` e `REAL_PARA_INTEIRO` agora recusam sobra, estouro de faixa e NaN
   (antes, `"2147483648"` virava `VERDADEIRO` com valor truncado).
@@ -201,49 +208,71 @@ casos de borda e documenta os limites** ([07](docs/07-controle-de-fluxo.md)):
   exemplos executáveis; a matriz item-por-item continua em
   [`tests/COBERTURA.md`](tests/COBERTURA.md).
 
+## Fase 5 — biblioteca padrão
+
+* A API está separada em cinco módulos C11: console, matemática, texto, caractere e
+  utilidades. Os headers ficam em `include/basicgol/`, as implementações em
+  `src/biblioteca/`, e `make biblioteca` constrói `build/libbasicgol.a`.
+* Os headers são individuais ou agregados por `<basicgol/biblioteca.h>`; `<basicgol.h>`
+  reexporta os módulos e conserva os macros BASICGOL existentes. As funções recuperáveis
+  devolvem `bool`; strings usam capacidade explícita, saídas ficam vazias/inalteradas em
+  falha e a memória continua pertencendo ao chamador.
+* Operações matemáticas existentes reutilizam `<math.h>`. `bg_sorteia_ate` requer limite
+  e semente explícitos; a documentação limita as garantias de `rand()` (previsível,
+  global, não criptográfico e distribuição dependente da implementação).
+* O core não adiciona dependências além de C11/libc e libm quando separada; não inclui
+  APIs de plataforma. Helpers específicos de plataforma ficam fora do agregado portátil.
+* `docs/09-biblioteca-padrao.md` documenta parâmetros, retornos, convenções, build e
+  dependências. Cinco programas em `docs/exemplos/biblioteca_*.c` demonstram os módulos;
+  `make test-biblioteca` roda testes de sucesso, erro e fronteira para a API.
+
 ## Escopo
 
-Fora da v1.0, por decisão registrada: `BG_ESTRITO` (D-09), funções de vetor na biblioteca
-(D-12), módulos/pacotes (D-18), C++ (D-15), realce de sintaxe para editores. A Fase 4 não
-muda esse escopo: tipos decimais, texto Unicode de tamanho dinâmico e detecção automática
-de estouro em `+ - *` continuam fora (D-22, C-24, C-25).
+Fora da v1.0 como recursos da linguagem, por decisão registrada: `BG_ESTRITO` (D-09),
+funções de vetor (D-12), módulos/pacotes de linguagem (D-18), C++ (D-15) e realce de
+sintaxe para editores. A Fase 5 organiza a biblioteca em módulos C, mas não introduz
+`IMPORTE` ou pacotes BASICGOL. Tipos decimais, texto Unicode de tamanho dinâmico e
+detecção automática de estouro em `+ - *` continuam fora (D-22, C-24, C-25).
 
 ## Compilando — GCC e Clang
 
-A fonte BASICGOL é um **`.c` comum** que inclui `<basicgol.h>`: sem extensão própria,
-sem `-x c`, sem transpilador obrigatório. O caminho M0 precisa apenas de um compilador C11.
+A fonte BASICGOL é um **`.c` comum** que inclui `<basicgol.h>`; não há extensão própria
+nem `-x c`. Os programas que usam helpers ligam a biblioteca modular compilada.
 
 GCC:
 
 ```sh
-gcc -std=c11 -Wall -Wextra -Wformat=2 -Wvla programa.c -o programa -lm -I include
+make biblioteca
+gcc -std=c11 -Wall -Wextra -Wformat=2 -Wvla -I include programa.c \
+    build/libbasicgol.a -lm -o programa
 ```
 
-Clang (mesmas flags; o cabeçalho usa apenas C11 padrão, sem extensões de compilador):
+Clang (mesmas flags; o core e a biblioteca usam C11 padrão):
 
 ```sh
-clang -std=c11 -Wall -Wextra -Wformat=2 -Wvla programa.c -o programa -lm -I include
+make biblioteca
+clang -std=c11 -Wall -Wextra -Wformat=2 -Wvla -I include programa.c \
+    build/libbasicgol.a -lm -o programa
 ```
 
-`-lm` é necessário em plataformas que separam a libm (Linux) para `POTENCIA`, `RAIZ`,
-`PISO`, `TETO` e `ARREDONDA`; em MinGW/MSVC a matemática já está no tempo de execução
-e a flag pode ser omitida. O CI do repositório (`.github/workflows/testes.yml`) valida
-GCC e Clang em `-std=c11` e `-std=c17`.
+`-lm` é necessário em plataformas que separam a libm (por exemplo, Linux); em
+plataformas que incorporam a biblioteca matemática, omita a flag. O CI
+(`.github/workflows/testes.yml`) valida GCC e Clang em `-std=c11` e `-std=c17` para a
+linguagem; os módulos são compilados como C11.
 
 ### Compatibilidade com MSVC (avaliação)
 
-O cabeçalho é **C11 puro**: sem extensões GNU, sem atributos de compilador, sem recursos
-de C++ (D-15, C-11). Avaliação estática contra `cl.exe` (não executado neste ambiente,
-que não tem MSVC instalado):
+O código usa C11 padrão, sem extensões GNU ou recursos de C++ (D-15, C-11). A
+compatibilidade com `cl.exe` não foi executada neste ambiente; para compilar sem o
+archive Unix, passe os fontes dos módulos ao compilador:
 
 | Item | Avaliação |
 |---|---|
-| Modo C | `/std:c11` ou `/std:c17` exigidos (MSVC ≥ 19.28 / Visual Studio 2019 16.8+ para `_Generic`, `_Static_assert`, `_Noreturn` no modo C). Modos mais antigos fazem o cabeçalho rejeitar a compilação com mensagem clara ("exige C11"). |
-| Comando | `cl /std:c11 /EHsc programa.c /Iinclude` (sem `-lm`; `libm` já está incorporada ao tempo de execução do Windows). |
-| `_Noreturn` | suportado em `/std:c11` (usado por `bg_erro`). |
-| `static inline`, `_Generic`, `<stdint.h>` | suportados desde o modo C11 do MSVC. |
-| `long double` / `%Lg` | no MSVC `long double` ≡ `double`; `%Lg` é aceito pelo CRT. |
-| `llround`, `scanf`, `fgets`, `ungetc` | CRT padrão, sem problemas. |
+| Modo C | `/std:c11` ou `/std:c17` (MSVC ≥ 19.28 / Visual Studio 2019 16.8+ para `_Generic`, `_Static_assert` e `_Noreturn`). |
+| Comando indicativo | `cl /std:c11 /Iinclude programa.c src\biblioteca\consola.c src\biblioteca\matematica.c src\biblioteca\texto.c src\biblioteca\caractere.c src\biblioteca\utilidades.c /Fe:programa.exe` (não verificado aqui). |
+| Build archive | O Makefile usa `ar`; para MSVC, ligue os fontes diretamente ou crie um `.lib` com as ferramentas da plataforma. |
+| Matemática | Windows CRT geralmente não requer `-lm`; verifique a toolchain escolhida. |
+| `long double` / `%Lg` | no MSVC `long double` equivale a `double`; `%Lg` é aceito pelo CRT. |
 
 Se um projeto tratar `.c` como C++, forçar `/TC` no arquivo-fonte (a extensão já é
 `.c`, então não há renomeação — D-14). Para incluir `basicgol.h` em um projeto C
@@ -253,11 +282,11 @@ existente sem riscos de colisão de nomes, use `#define BG_SEM_APELIDOS` antes d
 ## Testes de fumaça (compilar e rodar)
 
 ```sh
-make smoke        # constrói o transpilador e roda as 203 verificações (caminhos M0 e M1)
+make smoke        # linguagem M0/M1 + testes unitários e de integração da biblioteca
 make smoke-v      # idem, mostrando cada caso aprovado
 ```
 
-`make smoke` é sinônimo de `make test`: compila todos os casos de `tests/casos`, os 12
+`make smoke` é sinônimo de `make test`: compila todos os casos de `tests/casos`, os 24
 exemplos de `docs/exemplos` nos dois perfis, casos que **devem** falhar na compilação,
 os avisos W-01…W-07 do transpilador, a tradução M1 e testes de estresse. Um programa
 só passa se os dois caminhos (macros e transpilador) produzirem **exatamente a mesma
@@ -276,14 +305,17 @@ FIM
 ```
 
 ```sh
-gcc -std=c11 -Wall -Wextra docs/exemplos/ola_mundo.c -o ola_mundo -lm -I include
+make biblioteca
+gcc -std=c11 -Wall -Wextra -I include docs/exemplos/ola_mundo.c \
+    build/libbasicgol.a -lm -o ola_mundo
 ./ola_mundo           # imprime: Ola, mundo!
 ```
 
 ## Exemplos entregues
 
-`docs/exemplos/` tem 19 programas, cada um com entrada e saída esperadas gravadas
-(`.entrada.txt` / `.esperado.txt`), consumidos pelos testes:
+`docs/exemplos/` tem 24 programas, cada um com entrada e saída esperadas gravadas
+(`.entrada.txt` / `.esperado.txt`), consumidos pelos testes. Os cinco exemplos
+`biblioteca_*.c` demonstram diretamente os módulos da Fase 5:
 
 | Entrega | Exemplo que a cobre | Construtores principais |
 |---|---|---|
@@ -293,6 +325,7 @@ gcc -std=c11 -Wall -Wextra docs/exemplos/ola_mundo.c -o ola_mundo -lm -I include
 | Saída | `ola_mundo.c` + todos os demais | `ESCREVA`, `ESCREVAL`, `ESCREVA_FMT`, `ESCREVA_ERRO` |
 | Controle de fluxo | `controle_condicoes.c`, `controle_lacos.c`, `controle_acumuladores.c`, `controle_entrada.c` | `SE` aninhado, `SENAO_SE`, `PARA`/`PARA_PASSO`, `ENQUANTO`, `REPITA`, `PARE`, `PROSSIGA`, laços por entrada com sentinela |
 | Açúcar (M1) | `para_contado.c`, `controle_para_acucar.c` | `PARA i DE … ATE … [PASSO …] FACA` / `FIM_PARA`, `ATE cond;` |
+| Biblioteca padrão | `biblioteca_consola.c`, `biblioteca_matematica.c`, `biblioteca_texto.c`, `biblioteca_caractere.c`, `biblioteca_utilidades.c` | I/O limitado, matemática, texto, ASCII e sorteio com semente explícita |
 
 ## Limitações conhecidas (resumo)
 

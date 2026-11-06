@@ -6,8 +6,16 @@ make test-v       # tudo, listando cada verificação aprovada
 ./tests/run.sh 03 # só uma suíte (prefixo do nome)
 ```
 
-O runner não tem dependências além de `bash`, um compilador C11 e o `build/basicgolc`
-(construído por `make`). Ele cria um diretório temporário por execução e o apaga no fim.
+A suíte de linguagem usa `bash`, um compilador C11, `build/basicgolc` e
+`build/libbasicgol.a` (construídos por `make`). Os testes unitários da biblioteca
+são `tests/test_biblioteca.c`, executados por `tests/run_biblioteca.sh`. O conjunto
+completo também precisa de `ar`, `mktemp`, `diff` e Python 3 para a cobertura. Os
+runners criam diretórios temporários e os apagam ao terminar.
+
+```sh
+make test-biblioteca  # somente biblioteca modular
+make test             # linguagem M0/M1 + biblioteca
+```
 
 ## A ideia central: um caso, dois caminhos
 

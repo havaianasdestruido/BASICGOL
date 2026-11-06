@@ -10,7 +10,11 @@ Referência de consulta. Para o *porquê* de cada decisão, ver
 |---|---|
 | **Forma** | como se escreve no programa `.c` |
 | **Perfil** | `N` = funciona no caminho M0 (macros); `X` = só com `basicgolc` (M1); `C` = C nativo |
-| **Tipo** | `objeto` = macro sem argumentos; `função(n)` = macro com argumentos; `typedef`/`inline` = biblioteca |
+| **Tipo** | `objeto` = macro sem argumentos; `função(n)` = macro com argumentos; `função C` = helper compilado da biblioteca padrão |
+
+Desde a Fase 5, funções de biblioteca são implementadas em módulos C e exigem
+`build/libbasicgol.a` (ou os fontes de `src/biblioteca/`) na ligação. Build, dependências,
+contratos de retorno e ownership estão em [09 — Biblioteca padrão](09-biblioteca-padrao.md).
 
 Convenção tipográfica: `MAIÚSCULAS` = palavra-chave; `minusculas` = identificador do
 usuário; `expressao` = qualquer expressão C; `cmd*` = zero ou mais comandos.
@@ -121,7 +125,7 @@ A referência completa de representação, faixa e conversão está em
 | `TEXTOS_DIFERENTES(a, b)` | `strcmp(a,b) != 0` | função(2) | idem |
 | `OU_EXCLUSIVO(a, b)` | `((bool) (((a) != 0) != ((b) != 0)))` | função(2) | XOR **lógico**; normaliza os operandos |
 | `LOGICO_DE(x)` | `((bool) ((x) != 0))` | função(1) | valor de verdade normalizado (0/1); aceita literal real (`LOGICO_DE(0.5)`) |
-| `DIVIDE(a, b)` | `_Generic` → `bg_divide_*` | função(2) | divisão verificada: recusa divisor 0 e `MIN/-1` |
+| `DIVIDE(a, b)` | `_Generic` → `bg_divide_*` | função(2) | divisão verificada: recusa divisor 0 e quociente assinado não representável |
 | `RESTO(a, b)` | `_Generic` → `bg_resto_*` | função(2) | resto verificado, só inteiros |
 
 ### 5.2 Símbolos C (sempre aceitos)
@@ -191,27 +195,27 @@ por chamada; sem detecção de tipo em tempo de execução.
 
 | Forma | Perfil | Tipo | Significado |
 |---|---|---|---|
-| `ABS(x)` | N | inline | valor absoluto (uma avaliação de `x`) |
-| `MINIMO(a, b)` / `MAXIMO(a, b)` | N | inline | mínimo/máximo (uma avaliação cada) |
-| `POTENCIA(base, exp)` | N | inline | potência (`pow`, `-lm`) |
-| `RAIZ(x)` | N | inline | raiz quadrada (`sqrt`, `-lm`) |
-| `ARREDONDA(x)` | N | inline | arredonda para o inteiro mais próximo (`round`) |
-| `PISO(x)` / `TETO(x)` | N | inline | piso/teto (`floor`/`ceil`) |
-| `SORTEIA(n)` | N | inline | inteiro pseudoaleatório em `0 … n-1` |
-| `INICIA_SORTEIO(semente)` | N | inline | reinicia o gerador (`srand`) |
-| `TAMANHO_TEXTO(s)` | N | inline | comprimento em bytes (`strlen`), devolve `NATURAL`; cada acento UTF-8 ocupa 2 bytes (D-20) |
-| `COPIA_TEXTO(destino, tam, origem)` | N | inline → `LOGICO` | copia com verificação de espaço |
-| `JUNTA_TEXTO(destino, tam, a, b)` | N | inline → `LOGICO` | concatena dois textos em `destino` |
-| `TEXTO_PARA_INTEIRO(s, &var)` / `TEXTO_PARA_REAL(s, &var)` | N | inline → `LOGICO` | converte texto em número; **rejeita** texto com sobra (`"4x2"`, `"12abc"`) e estouro de faixa |
-| `TEXTO_PARA_NATURAL(s, &var)` | N | inline → `LOGICO` | idem para `NATURAL`; recusa `-` |
-| `REAL_PARA_INTEIRO(x, &var)` | N | inline → `LOGICO` | converte real em inteiro com checagem de faixa e NaN |
-| `ACRESCENTA_TEXTO(destino, tam, origem)` | N | inline → `LOGICO` | acrescenta ao fim do conteúdo atual |
-| `TRECHO_TEXTO(destino, tam, origem, inicio, n)` | N | inline → `LOGICO` | copia até `n` bytes a partir de `inicio` |
-| `COMPARA_TEXTO(a, b)` | N | inline → `INTEIRO` | −1/0/+1; `NULL` conta como `""` |
-| `TEXTO_VAZIO(s)` | N | inline → `LOGICO` | verdadeiro para `""` e `NULL` |
-| `FORMATA_TEXTO(destino, tam, formato, …)` | N | inline → `LOGICO` | `snprintf` verificável; `false` se truncou |
-| `E_DIGITO(c)` / `E_LETRA(c)` | N | inline → `LOGICO` | classificação ASCII, independente de locale |
-| `CARACTERE_MAIUSCULO(c)` / `CARACTERE_MINUSCULO(c)` | N | inline → `CARACTERE` | conversão ASCII de 1 byte |
+| `ABS(x)` | N | função C selecionada por `_Generic` | valor absoluto; mínimo de inteiro assinado é erro fatal porque o resultado não cabe |
+| `MINIMO(a, b)` / `MAXIMO(a, b)` | N | função C selecionada por `_Generic` | mínimo/máximo; cada argumento é avaliado uma vez |
+| `POTENCIA(base, exp)` | N | macro → libm | potência (`pow`, `-lm`) |
+| `RAIZ(x)` | N | macro → libm | raiz quadrada (`sqrt`, `-lm`) |
+| `ARREDONDA(x)` | N | função C (`llround`) | inteiro mais próximo, empate longe de zero |
+| `PISO(x)` / `TETO(x)` | N | macro → libm | piso/teto (`floor`/`ceil`) |
+| `SORTEIA(n)` | N | função C | inteiro pseudoaleatório em `0 … n-1`; para limites inválidos devolve 0 |
+| `INICIA_SORTEIO(semente)` | N | função C | inicializa explicitamente o gerador (`srand`) |
+| `TAMANHO_TEXTO(s)` | N | função C | comprimento em bytes (`strlen`), devolve `NATURAL`; cada acento UTF-8 ocupa 2 bytes (D-20) |
+| `COPIA_TEXTO(destino, tam, origem)` | N | função C → `LOGICO` | copia com verificação de espaço |
+| `JUNTA_TEXTO(destino, tam, a, b)` | N | função C → `LOGICO` | concatena dois textos em `destino` |
+| `TEXTO_PARA_INTEIRO(s, &var)` / `TEXTO_PARA_REAL(s, &var)` | N | função C → `LOGICO` | converte texto em número; **rejeita** texto com sobra (`"4x2"`, `"12abc"`) e estouro de faixa |
+| `TEXTO_PARA_NATURAL(s, &var)` | N | função C → `LOGICO` | idem para `NATURAL`; recusa `-` |
+| `REAL_PARA_INTEIRO(x, &var)` | N | função C → `LOGICO` | converte real em inteiro com checagem de faixa e NaN |
+| `ACRESCENTA_TEXTO(destino, tam, origem)` | N | função C → `LOGICO` | acrescenta ao fim do conteúdo atual |
+| `TRECHO_TEXTO(destino, tam, origem, inicio, n)` | N | função C → `LOGICO` | copia até `n` bytes a partir de `inicio` |
+| `COMPARA_TEXTO(a, b)` | N | função C → `INTEIRO` | −1/0/+1; `NULL` conta como `""` |
+| `TEXTO_VAZIO(s)` | N | função C → `LOGICO` | verdadeiro para `""` e `NULL` |
+| `FORMATA_TEXTO(destino, tam, formato, …)` | N | função C → `LOGICO` | `vsnprintf` verificável; `false` se truncou |
+| `E_DIGITO(c)` / `E_LETRA(c)` | N | função C → `LOGICO` | classificação ASCII, independente de locale |
+| `CARACTERE_MAIUSCULO(c)` / `CARACTERE_MINUSCULO(c)` | N | função C → `CARACTERE` | conversão ASCII de 1 byte |
 
 **Não existe** concatenação com `+`: `"a" + "b"` é aritmética de ponteiros em C e produz
 lixo. Use `JUNTA_TEXTO` ou `ACRESCENTA_TEXTO`.

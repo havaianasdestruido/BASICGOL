@@ -1,13 +1,14 @@
 # Cobertura de testes — BASICGOL
 
 > Documento **gerado** por `python3 tools/cobertura.py` (ou `make cobertura`).
-> Gerado em 2026-11-05. Não edite à mão: as seções 1–3 saem da árvore de testes.
+> Gerado em 2026-11-06. Não edite à mão: as seções 1–3 saem da árvore de testes.
 
 ## 0. Como rodar
 
 ```sh
-make                 # compila o transpilador em build/basicgolc
-make test            # suíte completa (M0 + M1 em cada caso)
+make                 # compila o transpilador e build/libbasicgol.a
+make test            # suíte completa (M0 + M1 + biblioteca)
+make test-biblioteca # somente os módulos da biblioteca padrão
 make test-v          # idem, listando cada verificação aprovada
 ./tests/run.sh 03    # uma suíte só (prefixo do nome)
 ```
@@ -28,22 +29,22 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 
 | nome | onde é exercitado |
 |---|---|
-| `ABS` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/07_multiarquivo/m01_modulos/matematica.c` (+1) |
+| `ABS` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/07_multiarquivo/m01_modulos/matematica.c` (+3) |
 | `ACRESCENTA_TEXTO` | `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c` |
 | `AFIRME` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/05_entrada_saida/i13_afirme_ok/programa.c`, `tests/casos/05_entrada_saida/i14_afirme_dispara/programa.c` |
-| `ARREDONDA` | `tests/casos/08_aplicacao/app_acervo/acervo.c` |
+| `ARREDONDA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/test_biblioteca.c` |
 | `ATE_QUE` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c09_repita_uma_vez/programa.c`, `tests/casos/03_controle/c10_repita_ate_que/programa.c`, `tests/casos/03_controle/c24_zero_iteracoes/programa.c` (+4) |
 | `BITS_DE` | `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
 | `CARACTERE` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t03_caractere/programa.c` (+8) |
-| `CARACTERE_MAIUSCULO` | `tests/casos/09_tipos_expr/t03_caractere/programa.c` |
-| `CARACTERE_MINUSCULO` | `tests/casos/09_tipos_expr/t03_caractere/programa.c` |
+| `CARACTERE_MAIUSCULO` | `tests/casos/09_tipos_expr/t03_caractere/programa.c`, `tests/test_biblioteca.c` |
+| `CARACTERE_MINUSCULO` | `tests/casos/09_tipos_expr/t03_caractere/programa.c`, `tests/test_biblioteca.c` |
 | `CASO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c`, `tests/casos/04_estruturas/e07_enumeracao/programa.c` (+6) |
 | `COMPARA_TEXTO` | `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c` |
 | `CONSTANTE` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/13_avisos/w07_tamanho_constante/programa.c`, `tests/run.sh` |
 | `CONTRARIO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c`, `tests/casos/04_estruturas/e07_enumeracao/programa.c` (+5) |
 | `COPIA_TEXTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/04_estruturas/e03_texto_buffer/programa.c`, `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c` (+1) |
 | `DIFERENTE` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c` |
-| `DIVIDE` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/09_tipos_expr/t10_estouro_divisao/programa.c`, `tests/casos/09_tipos_expr/t08_divisao_por_zero/programa.c`, `tests/run.sh` |
+| `DIVIDE` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/09_tipos_expr/t10_estouro_divisao/programa.c`, `tests/casos/09_tipos_expr/t08_divisao_por_zero/programa.c`, `tests/run.sh` (+1) |
 | `E` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c` (+7) |
 | `ENQUANTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c06_enquanto_zero/programa.c`, `tests/casos/03_controle/c07_enquanto_pare/programa.c` (+9) |
 | `ENTAO` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c` (+44) |
@@ -51,7 +52,7 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `EPSILON_REAL` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
 | `ERRO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/05_entrada_saida/i12_erro_fatal/programa.c`, `tests/casos/03_controle/c36_laco_entrada_sentinela/programa.c` |
 | `ESCOLHA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c` (+9) |
-| `ESCREVA` | `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c14_para_passo/programa.c`, `tests/casos/04_estruturas/e04_registro/programa.c` (+21) |
+| `ESCREVA` | `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c14_para_passo/programa.c`, `tests/casos/04_estruturas/e04_registro/programa.c` (+22) |
 | `ESCREVAL` | `tests/casos/02_basico/b01_ola/programa.c`, `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/02_basico/b05_caractere/programa.c` (+115) |
 | `ESCREVA_ERRO` | `tests/casos/08_aplicacao/app_acervo/principal.c` |
 | `ESCREVA_FMT` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/05_entrada_saida/i03_fmt/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c` (+15) |
@@ -59,8 +60,8 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `ESCREVA_TEXTO` | `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c`, `tests/casos/04_estruturas/e06_vetor_registros/programa.c`, `tests/casos/04_estruturas/e05_registro_aninhado/programa.c`, `tests/casos/05_entrada_saida/i07_leia_texto_limpo/programa.c` (+3) |
 | `ESTATICO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/07_multiarquivo/m02_estatico_misto/contas.c`, `tests/lib.sh` |
 | `EXTERNO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/07_multiarquivo/m01_modulos/comum.h`, `tests/casos/07_multiarquivo/m02_estatico_misto/contas.h`, `tests/lib.sh` |
-| `E_DIGITO` | `tests/casos/09_tipos_expr/t03_caractere/programa.c` |
-| `E_LETRA` | `tests/casos/09_tipos_expr/t03_caractere/programa.c` |
+| `E_DIGITO` | `tests/casos/09_tipos_expr/t03_caractere/programa.c`, `tests/test_biblioteca.c` |
+| `E_LETRA` | `tests/casos/09_tipos_expr/t03_caractere/programa.c`, `tests/test_biblioteca.c` |
 | `FACA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c15_para_acucar/programa.c`, `tests/casos/03_controle/c06_enquanto_zero/programa.c` (+14) |
 | `FALSO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/casos/09_tipos_expr/t13_extensoes/programa.c` (+5) |
 | `FIM` | `tests/casos/02_basico/b01_ola/programa.c`, `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/02_basico/b05_caractere/programa.c` (+129) |
@@ -86,14 +87,14 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `LEIA_INTEIRO` | `tests/casos/09_tipos_expr/t12_leia_numeros/programa.c`, `tests/casos/03_controle/c36_laco_entrada_sentinela/programa.c`, `tests/run.sh` |
 | `LEIA_OK` | `tests/casos/05_entrada_saida/i04_leia_tipos/programa.c`, `tests/casos/05_entrada_saida/i05_leia_falha/programa.c`, `tests/casos/05_entrada_saida/i06_leia_texto_apos_leia/programa.c`, `tests/casos/05_entrada_saida/i15_leia_caractere_apos_numero/programa.c` |
 | `LEIA_REAL` | `tests/casos/09_tipos_expr/t12_leia_numeros/programa.c` |
-| `LEIA_TEXTO` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/05_entrada_saida/i07_leia_texto_limpo/programa.c`, `tests/casos/05_entrada_saida/i06_leia_texto_apos_leia/programa.c`, `tests/casos/05_entrada_saida/i08_leia_texto_truncamento/programa.c` |
+| `LEIA_TEXTO` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/05_entrada_saida/i07_leia_texto_limpo/programa.c`, `tests/casos/05_entrada_saida/i06_leia_texto_apos_leia/programa.c`, `tests/casos/05_entrada_saida/i08_leia_texto_truncamento/programa.c` (+1) |
 | `LOGICO` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/07_multiarquivo/m01_modulos/comum.h` (+11) |
 | `LOGICO_DE` | `tests/casos/09_tipos_expr/t04_logico/programa.c` |
-| `MAXIMO` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c` |
-| `MAXIMO_INTEIRO` | `tests/casos/09_tipos_expr/t13_extensoes/programa.c`, `tests/casos/09_tipos_expr/t06_conversoes/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
+| `MAXIMO` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/test_biblioteca.c` |
+| `MAXIMO_INTEIRO` | `tests/casos/09_tipos_expr/t13_extensoes/programa.c`, `tests/casos/09_tipos_expr/t06_conversoes/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c`, `tests/casos/09_tipos_expr/t10_estouro_divisao/programa.c` |
 | `MAXIMO_NATURAL` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
 | `MAXIMO_REAL` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
-| `MINIMO` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/run.sh` |
+| `MINIMO` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/run.sh`, `tests/test_biblioteca.c` |
 | `MINIMO_INTEIRO` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/09_tipos_expr/t13_extensoes/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c`, `tests/casos/09_tipos_expr/t10_estouro_divisao/programa.c` |
 | `MOD` | `tests/casos/02_basico/b02_aritmetica/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c`, `tests/casos/06_negativos/n07_mod_igual/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c` (+7) |
 | `MULTIPLICA_SEGURA` | `tests/casos/09_tipos_expr/t13_extensoes/programa.c` |
@@ -108,31 +109,31 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `OU` | `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/casos/07_multiarquivo/m01_modulos/matematica.c`, `tests/casos/09_tipos_expr/t05_precedencia/programa.c`, `tests/casos/03_controle/c34_faixas_senao_se/programa.c` |
 | `OU_EXCLUSIVO` | `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/run.sh` |
 | `PARA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/03_controle/c12_para_vazio/programa.c`, `tests/casos/03_controle/c11_para_basico/programa.c` (+21) |
-| `PARA_PASSO` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c14_para_passo/programa.c`, `tests/casos/03_controle/c24_zero_iteracoes/programa.c`, `tests/casos/03_controle/c26_passo_zero_erro/programa.c` (+6) |
+| `PARA_PASSO` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c14_para_passo/programa.c`, `tests/casos/03_controle/c24_zero_iteracoes/programa.c`, `tests/casos/03_controle/c26_passo_zero_erro/programa.c` (+7) |
 | `PARE` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c`, `tests/casos/03_controle/c07_enquanto_pare/programa.c` (+11) |
-| `PISO` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c` |
-| `POTENCIA` | `tests/casos/08_aplicacao/app_acervo/acervo.c` |
+| `PISO` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c`, `tests/test_biblioteca.c` |
+| `POTENCIA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/test_biblioteca.c` |
 | `PROCEDIMENTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/07_multiarquivo/m01_modulos/comum.h` (+10) |
 | `PROSSIGA` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/03_controle/c30_repita_prossiga/programa.c`, `tests/casos/03_controle/c35_escolha_no_laco/programa.c` (+6) |
-| `RAIZ` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/run.sh` |
+| `RAIZ` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/run.sh`, `tests/test_biblioteca.c` |
 | `REAL` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h` (+12) |
 | `REAL_CURTO` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c`, `tests/casos/05_entrada_saida/i01_formatos/programa.c` (+2) |
 | `REAL_LONGO` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c`, `tests/casos/05_entrada_saida/i01_formatos/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` (+1) |
 | `REAL_PARA_INTEIRO` | `tests/casos/09_tipos_expr/t06_conversoes/programa.c` |
 | `REGISTRO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/04_estruturas/e04_registro/programa.c`, `tests/casos/04_estruturas/e06_vetor_registros/programa.c`, `tests/casos/04_estruturas/e05_registro_aninhado/programa.c` (+3) |
 | `REPITA` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c09_repita_uma_vez/programa.c`, `tests/casos/03_controle/c10_repita_ate_que/programa.c`, `tests/casos/03_controle/c24_zero_iteracoes/programa.c` (+6) |
-| `RESTO` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/06_negativos/n15_resto_com_real/programa.c`, `tests/casos/09_tipos_expr/t09_resto_por_zero/programa.c` |
-| `RETORNE` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/04_estruturas/e08_recursao/programa.c` (+7) |
+| `RESTO` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/06_negativos/n15_resto_com_real/programa.c`, `tests/casos/09_tipos_expr/t09_resto_por_zero/programa.c`, `tests/test_biblioteca.c` |
+| `RETORNE` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/04_estruturas/e08_recursao/programa.c` (+8) |
 | `SE` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c` (+50) |
 | `SENAO` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c`, `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/03_controle/c04_aninhado/programa.c` (+18) |
 | `SENAO_SE` | `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c34_faixas_senao_se/programa.c`, `tests/casos/12_negativos_m1/t02_senao_se/esperado_erro.txt` (+1) |
 | `SOMA_SEGURA` | `tests/casos/09_tipos_expr/t13_extensoes/programa.c`, `tests/run.sh` |
-| `SORTEIA` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c` |
+| `SORTEIA` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c`, `tests/test_biblioteca.c` |
 | `SUBTRAI_SEGURA` | `tests/casos/09_tipos_expr/t13_extensoes/programa.c` |
 | `TAMANHO_DE` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
 | `TAMANHO_TEXTO` | `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/04_estruturas/e03_texto_buffer/programa.c` (+3) |
 | `TAMANHO_VETOR` | `tests/casos/05_entrada_saida/i01_formatos/programa.c`, `tests/casos/04_estruturas/e09_funcao_vetor/programa.c`, `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c`, `tests/casos/04_estruturas/e02_tamanho_vetor/programa.c` (+1) |
-| `TETO` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c` |
+| `TETO` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c`, `tests/test_biblioteca.c` |
 | `TEXTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c` (+9) |
 | `TEXTOS_DIFERENTES` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c` |
 | `TEXTOS_IGUAIS` | `tests/casos/08_aplicacao/app_acervo/relatorio.c` |
@@ -183,13 +184,25 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `12_negativos_m1` | 14 | o transpilador acusa o erro certo, com linha |
 | `13_avisos` | 7 | um caso por aviso W-01…W-07 |
 
-## 4. Critérios de aceitação (Fases 2 e 4)
+## 4. Biblioteca padrão (Fase 5)
+
+| módulo | helpers exercitados | cobertura executável |
+|---|---|---|
+| Console | `bg_erro`, `bg_passo_zero`, `bg_leia_linha`, `bg_leia_texto`, `bg_leia_inteiro[_de]`, `bg_leia_real[_de]`, `bg_escreva_texto`, `bg_escreva_linha` | `tests/test_biblioteca.c` + `tests/run_biblioteca.sh`: EOF, linha vazia/longa, CRLF, NUL, argumentos de fluxo inválidos e casos fatais |
+| Matemática | `bg_divide_*`, `bg_resto_*`, `bg_abs_*`, `bg_min_*`, `bg_max_*`, `bg_round_l` e macros `ABS`/`MINIMO`/`MAXIMO`/`POTENCIA`/`RAIZ`/`ARREDONDA`/`PISO`/`TETO` | teste unitário por tipo, sinais, limites e subprocessos para divisor zero/overflow |
+| Texto | `bg_tamanho_texto`, `bg_copia_texto`, `bg_junta_texto`, `bg_acrescenta_texto`, `bg_trecho_texto`, `bg_compara_texto`, `bg_texto_vazio`, `bg_formata_texto`, conversões texto/número | capacidades, sobreposição, NULL, texto vazio, truncamento, conversões inválidas e overflow |
+| Caractere | `bg_e_digito`, `bg_e_letra`, `bg_caractere_maiusculo`, `bg_caractere_minusculo` | ASCII, pontuação, limites e macros curtas |
+| Utilidades | `bg_inicia_sorteio`, `bg_sorteia_ate`, `bg_sorteia` | semente reproduzível, limites aceitos/rejeitados e intervalo de retorno |
+
+A biblioteca tem **230 verificações unitárias** e 30 verificações de integração/falha fatal; rode `make test-biblioteca`.
+
+## 5. Critérios de aceitação (Fases 2–5)
 
 | AC | critério | verificação automatizada |
 |---|---|---|
-| AC-21 | cabeçalho header-only, idempotente, compila sozinho | 01_sanidade |
+| AC-21 | cabeçalho compila sozinho e é idempotente | 01_sanidade |
 | AC-22 | expansões idênticas às de 03 §3 | 01_sanidade + tests/expansoes.txt |
-| AC-23 | 12 exemplos compilam e produzem a saída esperada | 10_exemplos |
+| AC-23 | todos os exemplos compilam e produzem a saída esperada | 10_exemplos |
 | AC-24 | `BG_SEM_APELIDOS` desliga os nomes curtos | 01_sanidade |
 | AC-25 | nenhuma macro avalia o argumento duas vezes | 01_sanidade |
 | AC-26 | C11, C17 e clang | 01_sanidade |
@@ -209,13 +222,16 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | AC-40 | atribuição, comparação, aritmética, precedência, conversão e verdade | t05_precedencia, t06_conversoes, t04_logico |
 | AC-41 | nenhuma abstração esconde diferença de C | t01_inteiros, t07_divisao (conversões e sinais reais) |
 | AC-42 | texto seguro com limite de buffer | t11_texto_seguro |
-| AC-43 | divisão por zero, conversão inválida, buffer e entrada numérica | t08, t09, t10 (erro + rc), t06, t11, t12 |
+| AC-43 | divisão por zero, conversão inválida, buffer e entrada numérica | t08, t09; t10 testa erro ou resultado conforme a faixa assinada; t06, t11, t12 |
 | AC-44 | estouro inteiro e ponto flutuante documentados com precisão | [06 §10](../docs/06-tipos-e-expressoes.md) + t01, t02, t13 |
 | AC-45 | extensões de compilador opcionais e isoladas | t13_extensoes + 01_sanidade (desligadas por padrão) |
 | AC-46 | exemplos executáveis para todos os tipos e para as expressões | 10_exemplos (tipos.c, expressoes.c) |
 | AC-47 | diferenças semânticas em relação a BASIC e Portugol | [06 §13](../docs/06-tipos-e-expressoes.md) |
+| AC-49 | biblioteca padrão separada em módulos C11 e arquivo estático | include/basicgol/ + src/biblioteca/ + Makefile |
+| AC-50 | API documentada e testes válidos, inválidos e de fronteira | [09](../docs/09-biblioteca-padrao.md) + tests/test_biblioteca.c |
+| AC-51 | um exemplo executável por módulo e dependências inventariadas | 10_exemplos + [09 §5–6](../docs/09-biblioteca-padrao.md) |
 
-## 5. Restrições técnicas e o teste que as fixa
+## 6. Restrições técnicas e o teste que as fixa
 
 | restrição | o que a suíte faz |
 |---|---|
@@ -228,7 +244,7 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | C-07 | tabela de erros + M1 como resposta de qualidade — 06_negativos, 12_negativos_m1 |
 | C-08 | R-1/R-2 (nomes reservados) — 06_avisos/w05 |
 | C-09 | `BG_SEM_APELIDOS` — 01_sanidade |
-| C-10 | `ABS`/`MINIMO`/`MAXIMO` inline — 01_sanidade (avaliação única) + 02_basico |
+| C-10 | `ABS`/`MINIMO`/`MAXIMO` avaliam cada argumento uma vez — 01_sanidade + tests/test_biblioteca.c |
 | C-11 | C11 obrigatório — 01_sanidade (C99 é rejeitado) |
 | C-12 | sem `MOD=` — 06_negativos/n07 |
 | C-13 | documento de compilação — README.md + este arquivo |
@@ -241,7 +257,7 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | C-25 | sem resto real nem potência por símbolo — 06_negativos/n14, n15 |
 | C-26 | formato de `FORMATA_TEXTO` não é conferido pelo compilador — t11 |
 
-## 6. Estresse
+## 7. Estresse
 
 | situação | onde |
 |---|---|
@@ -251,7 +267,7 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | literal de 4000 caracteres | `11_estresse` |
 | caso com 3 módulos e 500 linhas | `08_aplicacao/app_acervo` |
 
-## 7. O que ainda não é automatizado
+## 8. O que ainda não é automatizado
 
 * **AC-17 / AC-18** (leitura por pessoa de fora): não há como um programa julgar
   legibilidade. O que a Fase 2 fez foi a parte verificável — percorrer a tabela de

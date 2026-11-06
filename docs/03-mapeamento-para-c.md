@@ -455,96 +455,90 @@ compilador viu C.**
 
 ## 7. Biblioteca de execução (API especificada)
 
-A Fase 2 deve fornecer estas funções (todas `static inline` em `basicgol.h`, exceto
-`bg_erro`, que precisa de um símbolo por programa — resolvido por `static inline` +
-`_Noreturn`). Assinaturas **normativas**:
+A Fase 5 mantém as expansões de linguagem desta especificação, mas moveu a biblioteca
+para headers por módulo em `include/basicgol/` e implementações em `src/biblioteca/`.
+`<basicgol.h>` reexporta esses headers. Os helpers que forem usados devem ser ligados
+por `build/libbasicgol.a` (ou pelos fontes); build, parâmetros e retornos completos estão
+em [09 — Biblioteca padrão](09-biblioteca-padrao.md).
+
+A API pública C usa `bg_` e inclui:
 
 ```c
-/* erros */
+/* console */
 _Noreturn void bg_erro(const char *arquivo, int linha, const char *mensagem);
-/* imprime "arquivo:linha: erro: mensagem" em stderr e encerra com status 1 */
+int bg_passo_zero(const char *arquivo, int linha); /* fatal; só para PARA_PASSO */
+bool bg_leia_linha(FILE *entrada, char *destino, size_t capacidade);
+bool bg_leia_texto(char *destino, size_t capacidade); /* wrapper stdin de LEIA_TEXTO */
+bool bg_leia_inteiro_de(FILE *entrada, int *saida);
+bool bg_leia_real_de(FILE *entrada, double *saida);
+bool bg_leia_inteiro(int *saida); /* stdin */
+bool bg_leia_real(double *saida); /* stdin */
+bool bg_escreva_texto(FILE *saida, const char *texto);
+bool bg_escreva_linha(FILE *saida, const char *texto);
 
-/* entrada de texto (ver C-20)                                              */
-bool bg_leia_texto(char *buf, size_t tam);
-/* 1. consome UM terminador de linha pendente, se e somente se houver         */
-/*    (\n ou \r\n deixado por um scanf anterior); caso contrario, nada e    */
-/*    descartado — nao engole a primeira linha do programa.                   */
-/* 2. le uma linha inteira com fgets, removendo '\n' e '\r' finais.          */
-/* 3. devolve false em EOF/erro/tam==0; nada de truncamento silencioso:       */
-/*    linha maior que tam e lida parcialmente e o resto fica no buffer,       */
-/*    comportamento documentado e testado (T-13).                             */
-
-/* texto */
-size_t bg_tamanho_texto(const char * s);
-bool   bg_copia_texto(char *dest, size_t tam, const char *origem);
-bool   bg_junta_texto(char *dest, size_t tam, const char *a, const char *b);
-/* false = não coube; nesse caso dest[0] = '\0' (truncamento nunca silencioso) */
-
-bool bg_texto_para_inteiro(const char *s, int *saida);
-bool bg_texto_para_natural(const char *s, unsigned *saida);
-bool bg_texto_para_real(const char *s, double *saida);
-/* true somente se a conversao consumiu o texto INTEIRO (espacos finais
-   tolerados); sobra de caracteres -> false. Sem isso, "4x2" viraria 4.
-   Fase 4: tambem recusam estouro de faixa/ERANGE; "natural" recusa '-'. */
-
-/* Fase 4: texto seguro (mesmo contrato de RB-3, destino limpo na falha,
-   origem e destino podem se sobrepor: implementadas com memmove) */
-bool bg_acrescenta_texto(char *dest, size_t tam, const char *origem);
-bool bg_trecho_texto(char *dest, size_t tam, const char *origem,
+/* texto: bool false indica falha; destino é limpo quando utilizável */
+size_t bg_tamanho_texto(const char *texto);
+bool bg_copia_texto(char *destino, size_t capacidade, const char *origem);
+bool bg_junta_texto(char *destino, size_t capacidade,
+                    const char *primeiro, const char *segundo);
+bool bg_acrescenta_texto(char *destino, size_t capacidade, const char *origem);
+bool bg_trecho_texto(char *destino, size_t capacidade, const char *origem,
                      size_t inicio, size_t quantidade);
-int  bg_compara_texto(const char *a, const char *b);   /* -1/0/+1, NULL = "" */
-bool bg_texto_vazio(const char *s);
-bool bg_formata_texto(char *dest, size_t tam, const char *formato, ...);
+int bg_compara_texto(const char *primeiro, const char *segundo); /* -1/0/+1 */
+bool bg_texto_vazio(const char *texto);
+bool bg_formata_texto(char *destino, size_t capacidade, const char *formato, ...);
+bool bg_texto_para_inteiro(const char *texto, int *saida);
+bool bg_texto_para_natural(const char *texto, unsigned *saida);
+bool bg_texto_para_real(const char *texto, double *saida);
+bool bg_numero_para_inteiro(double valor, int *saida);
 
-/* Fase 4: caractere ASCII (independente de locale) */
-bool bg_e_digito(char c);
-bool bg_e_letra(char c);
-char bg_caractere_maiusculo(char c);
-char bg_caractere_minusculo(char c);
+/* ASCII */
+bool bg_e_digito(char caractere);
+bool bg_e_letra(char caractere);
+char bg_caractere_maiusculo(char caractere);
+char bg_caractere_minusculo(char caractere);
 
-/* Fase 4: conversao verificada REAL -> INTEIRO (cast seria UB fora de faixa) */
-bool bg_numero_para_inteiro(double x, int *saida);
+/* matemática: famílias por tipo */
+int bg_divide_i(int a, int b, const char *arquivo, int linha);
+/* também bg_divide_l/ll/u/ul/ull/f/d/ld com o tipo indicado no sufixo */
+int bg_resto_i(int a, int b, const char *arquivo, int linha);
+/* também bg_resto_l/ll/u/ul/ull */
+int bg_abs_i(int valor); /* bg_abs_l/ll/f/d; mínimo assinado é erro fatal */
+int bg_min_i(int a, int b); /* bg_min_l/d, bg_max_i/l/d */
+long long bg_round_l(double valor);
 
-/* Fase 4: divisor zero e MIN/-1 viram erro, nao UB */
-int  bg_divide_i(int a, int b, const char *arquivo, int linha);
-/* … long, long long, unsigned, unsigned long, unsigned long long,
-      float, double, long double — mesma assinatura por tipo … */
-int  bg_resto_i(int a, int b, const char *arquivo, int linha);
-/* … long, long long, unsigned, unsigned long, unsigned long long … */
-
-/* Fase 4: entrada numerica por linha (buffer interno de 64 bytes) */
-bool bg_leia_inteiro(int *saida);
-bool bg_leia_real(double *saida);
-
-/* matemática com avaliação única */
-int    bg_abs_i(int x);      long   bg_abs_l(long x);
-float  bg_abs_f(float x);    double bg_abs_d(double x);
-int    bg_min_i(int a, int b);      double bg_min_d(double a, double b);
-int    bg_max_i(int a, int b);      double bg_max_d(double a, double b);
-long long bg_round_l(double x);
-
-/* sorteio */
-int  bg_sorteia(int n);              /* 0 .. n-1; n<=0 devolve 0 */
-void bg_inicia_sorteio(unsigned s);
+/* utilidades — rand() global, não criptográfico */
+void bg_inicia_sorteio(unsigned semente);
+bool bg_sorteia_ate(unsigned limite_exclusivo, unsigned *saida);
+int bg_sorteia(int n); /* alias compatível: n inválido devolve 0 */
 ```
 
-Requisitos de qualidade dessa biblioteca (entram nos critérios de aceitação da Fase 2):
+Convenções fundamentais: as funções que escrevem em buffers recebem capacidade
+explícita incluindo NUL; memória e streams pertencem ao chamador; falhas recuperáveis
+retornam `false` sem alterar saídas numéricas; as conversões preservam `errno`. Só
+`bg_erro` e os wrappers de linguagem para entradas impossíveis (divisor zero, quociente
+assinado não representável e magnitude de `ABS` que não cabe) encerram o processo. O sorteio exige
+semente explícita e declara a faixa limitada por `RAND_MAX`; detalhes e limitações estão
+em [09](09-biblioteca-padrao.md).
+
+Requisitos de qualidade da biblioteca:
 
 | ID | Requisito |
 |---|---|
-| RB-1 | Nenhuma função avalia um argumento macro mais de uma vez |
-| RB-2 | Nenhuma função tem efeito colateral escondido (exceto `bg_leia_texto`, documentada) |
-| RB-3 | Truncamento de texto é sempre reportado por valor de retorno |
-| RB-4 | Nenhuma função aborta o programa, exceto `bg_erro` |
-| RB-5 | Todas compilam sem avisos em `-Wall -Wextra -Wformat=2` (GCC e Clang) |
-| RB-6 | Nenhuma depende de extensão de compilador |
-| RB-7 | Conversão texto→número só aceita o texto inteiro (sem sobra) |
-| RB-8 | `bg_leia_texto` só consome um terminador de linha se ele estiver realmente pendente (C-20) |
-| RB-9 | Toda operação de texto com destino limitado reporta truncamento **e** deixa o destino vazio (Fase 4) |
-| RB-10 | Conversão verificada não altera o destino quando falha |
-| RB-11 | `DIVIDE`/`RESTO` recusam divisor zero e `MIN/-1` com erro que aponta o ponto de uso, nunca UB |
-| RB-12 | As únicas funções que tocam `errno` são as de conversão texto→número (efeito de `strtol`/`strtod`), documentado |
-| RB-13 | Origem `NULL` é texto vazio nas funções de texto, e origem/destino podem coincidir (`memmove`) |
+| RB-1 | Nenhum macro avalia um argumento mais de uma vez |
+| RB-2 | Efeitos de I/O, alocação temporária e gerador pseudoaleatório estão documentados |
+| RB-3 | Truncamento de texto é reportado por valor de retorno e não deixa conteúdo parcial |
+| RB-4 | `bg_erro` é o único terminador explícito; wrappers matemáticos só o usam em domínio inválido documentado |
+| RB-5 | Todos os módulos compilam sem avisos com GCC e Clang em C11 |
+| RB-6 | Core portátil sem extensão de compilador nem dependência de plataforma |
+| RB-7 | Conversão texto→número exige o texto inteiro, sem sobra |
+| RB-8 | `bg_leia_texto` descarta apenas terminador pendente; `bg_leia_linha` preserva linha vazia |
+| RB-9 | Toda operação de texto com destino limitado informa falha e limpa o destino quando possível |
+| RB-10 | Conversão verificada não altera saída quando falha |
+| RB-11 | `DIVIDE`/`RESTO` recusam zero e quociente assinado não representável, com diagnóstico na origem da macro |
+| RB-12 | Conversores restauram `errno` após usar `strto*`; `false` é a indicação de falha |
+| RB-13 | `NULL` é texto vazio onde documentado; operações com destino suportam sobreposição |
+| RB-14 | `rand()` tem semente explícita, limite documentado e nenhuma promessa criptográfica |
 
 ---
 
@@ -553,7 +547,7 @@ Requisitos de qualidade dessa biblioteca (entram nos critérios de aceitação d
 | ID | Regra |
 |---|---|
 | RG-1 | Toda macro com argumentos parentiza **cada** uso do argumento. |
-| RG-2 | Nenhum argumento de macro aparece mais de uma vez na expansão (P-11); se precisar de duas avaliações, use função `inline`. |
+| RG-2 | Nenhum argumento de macro aparece mais de uma vez na expansão (P-11); se precisar de estado/uma única avaliação, use uma função C da biblioteca. |
 | RG-3 | Macros de comando não têm valor utilizável (são instruções); não as use em expressão. |
 | RG-4 | Nenhuma macro de bloco usa `do { … } while (0)`: os `FIM_*` já fecham o bloco com `}`, e um invólucro `do/while(0)` impediria `SENAO` de se ligar ao `if` gerado por `SE`. |
 | RG-5 | As expansões devem ser exatamente as da §3; mudanças exigem alteração desta especificação e nova rodada de validação. |
