@@ -318,15 +318,15 @@ static void testa_matematica(void)
     VERIFICA(bg_divide_f(7.0f, 2.0f, arquivo, 1) == 3.5f);
     VERIFICA(bg_divide_d(7.0, 2.0, arquivo, 1) == 3.5);
     VERIFICA(bg_divide_ld(7.0L, 2.0L, arquivo, 1) == 3.5L);
-    if (INT_MIN == -INT_MAX) {
+#if INT_MIN == -INT_MAX
         VERIFICA(bg_divide_i(INT_MIN, -1, arquivo, 1) == INT_MAX);
-    }
-    if (LONG_MIN == -LONG_MAX) {
+#endif /* INT_MIN == -INT_MAX */
+#if LONG_MIN == -LONG_MAX
         VERIFICA(bg_divide_l(LONG_MIN, -1L, arquivo, 1) == LONG_MAX);
-    }
-    if (LLONG_MIN == -LLONG_MAX) {
+#endif /* LONG_MIN == -LONG_MAX */
+#if LLONG_MIN == -LLONG_MAX
         VERIFICA(bg_divide_ll(LLONG_MIN, -1LL, arquivo, 1) == LLONG_MAX);
-    }
+#endif /* LLONG_MIN == -LLONG_MAX */
 
     VERIFICA(bg_resto_i(-7, 3, arquivo, 1) == -1);
     VERIFICA(bg_resto_l(7L, 3L, arquivo, 1) == 1L);
@@ -334,30 +334,30 @@ static void testa_matematica(void)
     VERIFICA(bg_resto_u(7U, 3U, arquivo, 1) == 1U);
     VERIFICA(bg_resto_ul(7UL, 3UL, arquivo, 1) == 1UL);
     VERIFICA(bg_resto_ull(7ULL, 3ULL, arquivo, 1) == 1ULL);
-    if (INT_MIN == -INT_MAX) {
+#if INT_MIN == -INT_MAX
         VERIFICA(bg_resto_i(INT_MIN, -1, arquivo, 1) == 0);
-    }
-    if (LONG_MIN == -LONG_MAX) {
+#endif /* INT_MIN == -INT_MAX */
+#if LONG_MIN == -LONG_MAX
         VERIFICA(bg_resto_l(LONG_MIN, -1L, arquivo, 1) == 0L);
-    }
-    if (LLONG_MIN == -LLONG_MAX) {
+#endif /* LONG_MIN == -LONG_MAX */
+#if LLONG_MIN == -LLONG_MAX
         VERIFICA(bg_resto_ll(LLONG_MIN, -1LL, arquivo, 1) == 0LL);
-    }
+#endif /* LLONG_MIN == -LLONG_MAX */
 
     VERIFICA(bg_abs_i(-7) == 7);
     VERIFICA(bg_abs_l(-7L) == 7L);
     VERIFICA(bg_abs_ll(-7LL) == 7LL);
     VERIFICA(bg_abs_f(-2.5f) == 2.5f);
     VERIFICA(bg_abs_d(-2.5) == 2.5);
-    if (INT_MIN == -INT_MAX) {
+#if INT_MIN == -INT_MAX
         VERIFICA(bg_abs_i(INT_MIN) == INT_MAX);
-    }
-    if (LONG_MIN == -LONG_MAX) {
+#endif /* INT_MIN == -INT_MAX */
+#if LONG_MIN == -LONG_MAX
         VERIFICA(bg_abs_l(LONG_MIN) == LONG_MAX);
-    }
-    if (LLONG_MIN == -LLONG_MAX) {
+#endif /* LONG_MIN == -LONG_MAX */
+#if LLONG_MIN == -LLONG_MAX
         VERIFICA(bg_abs_ll(LLONG_MIN) == LLONG_MAX);
-    }
+#endif /* LLONG_MIN == -LLONG_MAX */
     VERIFICA(signbit(bg_abs_d(-0.0)) == 0);
     VERIFICA(bg_min_i(3, 9) == 3);
     VERIFICA(bg_min_l(3L, 9L) == 3L);
@@ -470,13 +470,19 @@ static int executa_caso_fatal(const char *caso)
     } else if (strcmp(caso, "divide-zero") == 0) {
         (void) bg_divide_i(1, 0, "teste.c", 39);
     } else if (strcmp(caso, "divide-estouro") == 0) {
-        if (INT_MIN == -INT_MAX) return 3;
+        #if INT_MIN == -INT_MAX
+                return 3; /* representacao alternativa de sinal: magnitude cabe */
+        #endif /* INT_MIN == -INT_MAX */
         (void) bg_divide_i(INT_MIN, -1, "teste.c", 40);
     } else if (strcmp(caso, "divide-estouro-l") == 0) {
-        if (LONG_MIN == -LONG_MAX) return 3;
+        #if LONG_MIN == -LONG_MAX
+                return 3; /* representacao alternativa de sinal: magnitude cabe */
+        #endif /* LONG_MIN == -LONG_MAX */
         (void) bg_divide_l(LONG_MIN, -1L, "teste.c", 56);
     } else if (strcmp(caso, "divide-estouro-ll") == 0) {
-        if (LLONG_MIN == -LLONG_MAX) return 3;
+        #if LLONG_MIN == -LLONG_MAX
+                return 3; /* representacao alternativa de sinal: magnitude cabe */
+        #endif /* LLONG_MIN == -LLONG_MAX */
         (void) bg_divide_ll(LLONG_MIN, -1LL, "teste.c", 57);
     } else if (strcmp(caso, "divide-zero-l") == 0) {
         (void) bg_divide_l(1L, 0L, "teste.c", 43);
@@ -497,13 +503,19 @@ static int executa_caso_fatal(const char *caso)
     } else if (strcmp(caso, "resto-zero") == 0) {
         (void) bg_resto_i(1, 0, "teste.c", 41);
     } else if (strcmp(caso, "resto-estouro") == 0) {
-        if (INT_MIN == -INT_MAX) return 3;
+        #if INT_MIN == -INT_MAX
+                return 3; /* representacao alternativa de sinal: magnitude cabe */
+        #endif /* INT_MIN == -INT_MAX */
         (void) bg_resto_i(INT_MIN, -1, "teste.c", 42);
     } else if (strcmp(caso, "resto-estouro-l") == 0) {
-        if (LONG_MIN == -LONG_MAX) return 3;
+        #if LONG_MIN == -LONG_MAX
+                return 3; /* representacao alternativa de sinal: magnitude cabe */
+        #endif /* LONG_MIN == -LONG_MAX */
         (void) bg_resto_l(LONG_MIN, -1L, "teste.c", 58);
     } else if (strcmp(caso, "resto-estouro-ll") == 0) {
-        if (LLONG_MIN == -LLONG_MAX) return 3;
+        #if LLONG_MIN == -LLONG_MAX
+                return 3; /* representacao alternativa de sinal: magnitude cabe */
+        #endif /* LLONG_MIN == -LLONG_MAX */
         (void) bg_resto_ll(LLONG_MIN, -1LL, "teste.c", 59);
     } else if (strcmp(caso, "resto-zero-l") == 0) {
         (void) bg_resto_l(1L, 0L, "teste.c", 51);
@@ -516,19 +528,19 @@ static int executa_caso_fatal(const char *caso)
     } else if (strcmp(caso, "resto-zero-ull") == 0) {
         (void) bg_resto_ull(1ULL, 0ULL, "teste.c", 55);
     } else if (strcmp(caso, "abs-minimo") == 0) {
-        if (INT_MIN == -INT_MAX) {
+#if INT_MIN == -INT_MAX
             return 3; /* nesta representação, a magnitude ainda cabe em int */
-        }
+#endif /* INT_MIN == -INT_MAX */
         (void) bg_abs_i(INT_MIN);
     } else if (strcmp(caso, "abs-minimo-l") == 0) {
-        if (LONG_MIN == -LONG_MAX) {
+#if LONG_MIN == -LONG_MAX
             return 3;
-        }
+#endif /* LONG_MIN == -LONG_MAX */
         (void) bg_abs_l(LONG_MIN);
     } else if (strcmp(caso, "abs-minimo-ll") == 0) {
-        if (LLONG_MIN == -LLONG_MAX) {
+#if LLONG_MIN == -LLONG_MAX
             return 3;
-        }
+#endif /* LLONG_MIN == -LLONG_MAX */
         (void) bg_abs_ll(LLONG_MIN);
     } else {
         return 2;
