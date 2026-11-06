@@ -273,6 +273,40 @@ plataformas que incorporam a biblioteca matemática, omita a flag. O CI
 (`.github/workflows/testes.yml`) valida GCC e Clang em `-std=c11` e `-std=c17` para a
 linguagem; os módulos são compilados como C11.
 
+### MinGW-w64 no Windows
+
+O workflow [`MinGW-w64`](.github/workflows/mingw-w64.yml) compila e testa
+nativamente no Windows em três ambientes MSYS2: UCRT64 e MINGW64 (64 bits) e
+MINGW32 (32 bits). Ele roda em pushes, pull requests e manualmente pela aba
+**Actions**, sem alterar a suíte Linux existente.
+
+Para reproduzir o build de 64 bits, abra o terminal **UCRT64** do MSYS2, instale
+as ferramentas e execute na raiz do projeto:
+
+```sh
+pacman -S --needed make mingw-w64-ucrt-x86_64-gcc
+make all CC=gcc AR=ar
+make test CC=gcc AR=ar
+make exemplos CC=gcc AR=ar
+```
+
+Use o terminal e o pacote correspondentes ao outro ambiente: **MINGW64** com
+`mingw-w64-x86_64-gcc` ou **MINGW32** com `mingw-w64-i686-gcc`. Não use o terminal
+MSYS nem o GCC do Cygwin para esses builds nativos.
+
+Cada execução disponibiliza por 14 dias um artefato `basicgol-windows-...` na
+página do workflow, contendo o transpilador `basicgolc.exe`, a biblioteca
+`libbasicgol.a`, os headers e a licença. São artefatos de CI, não releases
+publicados. Bibliotecas estáticas devem ser usadas com a toolchain que as gerou;
+os exemplos abaixo usam a mesma instalação MSYS2:
+
+```sh
+./build/basicgolc.exe docs/exemplos/ola_mundo.c -o ola_mundo.gerado.c
+gcc -std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror -I include \
+    ola_mundo.gerado.c build/libbasicgol.a -lm -o ola_mundo.exe
+./ola_mundo.exe
+```
+
 ### Compatibilidade com MSVC (avaliação)
 
 O código usa C11 padrão, sem extensões GNU ou recursos de C++ (D-15, C-11). A

@@ -1,0 +1,90 @@
+name: MinGW-w64
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mingw-w64-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: ${{ matrix.msystem }}
+    runs-on: windows-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - msystem: UCRT64
+            package_arch: ucrt-x86_64
+            artifact: windows-x86_64-ucrt
+          - msystem: MINGW64
+            package_arch: x86_64
+            artifact: windows-x86_64-msvcrt
+          - msystem: MINGW32
+            package_arch: i686
+            artifact: windows-i686-msvcrt
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+      # Keep the Bash runners and golden output files LF-only on Windows.
+      - name: Configure Git line endings
+        shell: bash
+        run: git config --global core.autocrlf input
+
+      - uses: actions/checkout@v7
+
+      - name: Set up MinGW-w64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.msystem }}
+          update: true
+          path-type: strict
+          install: >-
+            make
+            mingw-w64-${{ matrix.package_arch }}-gcc
+
+      - name: Show toolchain versions
+        run: |
+          gcc --version
+          ar --version
+          make --version
+
+      - name: Build transpiler and static library
+        run: make all CC=gcc AR=ar
+
+      - name: Run language and library tests
+        run: make test CC=gcc AR=ar
+
+      - name: Build examples
+        run: make exemplos CC=gcc AR=ar
+
+      - name: Package Windows build
+        run: |
+          package="dist/basicgol-${{ matrix.artifact }}"
+          mkdir -p "$package"
+          cp -R include "$package/"
+          cp build/libbasicgol.a LICENSE README.md "$package/"
+          if [ -f build/basicgolc.exe ]; then
+            cp build/basicgolc.exe "$package/"
+          else
+            cp build/basicgolc "$package/basicgolc.exe"
+          fi
+          "$package/basicgolc.exe" --versao
+
+      - name: Upload Windows build
+        uses: actions/upload-artifact@v7
+        with:
+          name: basicgol-${{ matrix.artifact }}
+          path: dist/basicgol-${{ matrix.artifact }}/
+          if-no-files-found: error
+          retention-days: 14
