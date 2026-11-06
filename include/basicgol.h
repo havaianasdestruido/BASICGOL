@@ -49,6 +49,13 @@
 
 /* ------------------------------------------------------------- dependências */
 
+/* MinGW-w64: use its C99/C11 printf/scanf family, including support for
+ * long double and 64-bit integers, on both MSVCRT and UCRT. Keep an explicit
+ * user choice. This must precede the standard headers below. */
+#if defined(__MINGW32__) && !defined(__USE_MINGW_ANSI_STDIO)
+#define __USE_MINGW_ANSI_STDIO 1
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>

@@ -10,7 +10,9 @@ INICIO
     INTEIRO palpite = 0;
     INTEIRO tentativas = 0;
 
-    INICIA_SORTEIO(2026);                 // semente fixa: resultado reproduzivel
+    /* A fixed seed repeats the sequence on the same C runtime, not across
+     * runtimes. The input covers the glibc/UCRT and MSVCRT targets. */
+    INICIA_SORTEIO(2026);
     alvo = SORTEIA(k_limite) + 1;         // 1 .. k_limite
 
     ESCREVA("Adivinhe o numero entre 1 e ");
