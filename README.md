@@ -231,8 +231,9 @@ casos de borda e documenta os limites** ([07](docs/07-controle-de-fluxo.md)):
   devolvem `bool`; strings usam capacidade explícita, saídas ficam vazias/inalteradas em
   falha e a memória continua pertencendo ao chamador.
 * Operações matemáticas existentes reutilizam `<math.h>`. `bg_sorteia_ate` requer limite
-  e semente explícitos; a documentação limita as garantias de `rand()` (previsível,
-  global, não criptográfico e distribuição dependente da implementação).
+  e semente explícitos; o sorteio usa PRNG próprio (xorshift64*): a mesma semente gera a
+  mesma sequência em qualquer plataforma, com universo 2^32 (previsível, global ao
+  processo, não criptográfico).
 * O core não adiciona dependências além de C11/libc e libm quando separada; não inclui
   APIs de plataforma. Helpers específicos de plataforma ficam fora do agregado portátil.
 * `docs/09-biblioteca-padrao.md` documenta parâmetros, retornos, convenções, build e

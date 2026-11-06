@@ -525,7 +525,7 @@ int bg_abs_i(int valor); /* bg_abs_l/ll/f/d; mínimo assinado é erro fatal */
 int bg_min_i(int a, int b); /* bg_min_l/d, bg_max_i/l/d */
 long long bg_round_l(double valor);
 
-/* utilidades — rand() global, não criptográfico */
+/* utilidades — PRNG próprio (xorshift64*), não criptográfico */
 void bg_inicia_sorteio(unsigned semente);
 bool bg_sorteia_ate(unsigned limite_exclusivo, unsigned *saida);
 int bg_sorteia(int n); /* alias compatível: n inválido devolve 0 */
@@ -536,7 +536,8 @@ explícita incluindo NUL; memória e streams pertencem ao chamador; falhas recup
 retornam `false` sem alterar saídas numéricas; as conversões preservam `errno`. Só
 `bg_erro` e os wrappers de linguagem para entradas impossíveis (divisor zero, quociente
 assinado não representável e magnitude de `ABS` que não cabe) encerram o processo. O sorteio exige
-semente explícita e declara a faixa limitada por `RAND_MAX`; detalhes e limitações estão
+semente explícita e universo de sorteio de 2^32 (independente da plataforma); detalhes e
+limitações estão
 em [09](09-biblioteca-padrao.md).
 
 Requisitos de qualidade da biblioteca:
@@ -556,7 +557,7 @@ Requisitos de qualidade da biblioteca:
 | RB-11 | `DIVIDE`/`RESTO` recusam zero e quociente assinado não representável, com diagnóstico na origem da macro |
 | RB-12 | Conversores restauram `errno` após usar `strto*`; `false` é a indicação de falha |
 | RB-13 | `NULL` é texto vazio onde documentado; operações com destino suportam sobreposição |
-| RB-14 | `rand()` tem semente explícita, limite documentado e nenhuma promessa criptográfica |
+| RB-14 | o PRNG tem semente explícita, universo de 2^32 documentado e nenhuma promessa criptográfica |
 
 ---
 

@@ -651,7 +651,9 @@ legados de divisão/resto/absoluto são as exceções fatais documentadas.
 
 A escolha é manter o core em C11 + libc, com libm quando separada, sem dependência de
 terceiros ou helpers de sistema operacional. Não há semeadura implícita; o sorteio usa
-`rand()` e declara seu limite `RAND_MAX + 1`, previsibilidade e qualidade não garantida.
+um PRNG próprio (xorshift64*, semente derivada por splitmix64): a mesma semente gera a
+mesma sequência em qualquer plataforma, com universo de 2^32, previsibilidade inerente a PRNGs
+e nenhuma promessa de qualidade criptográfica.
 Funções específicas de plataforma, se necessárias no futuro, terão header/fonte separados
 e não serão incluídos por `<basicgol/biblioteca.h>`. O contrato completo está em
 [09 — Biblioteca padrão](09-biblioteca-padrao.md); cada função pública é exercitada em

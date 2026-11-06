@@ -386,7 +386,6 @@ static void testa_utilidades(void)
     unsigned primeiro;
     unsigned segundo;
     int aleatorio;
-    unsigned universo = (unsigned) RAND_MAX + 1U;
 
     bg_inicia_sorteio(1234U);
     VERIFICA(bg_sorteia_ate(100U, &sorteado));
@@ -395,16 +394,17 @@ static void testa_utilidades(void)
     bg_inicia_sorteio(1234U);
     VERIFICA(bg_sorteia_ate(100U, &sorteado));
     segundo = sorteado;
-    VERIFICA(primeiro == segundo); /* semente explícita, sequência repetível */
+    VERIFICA(primeiro == segundo); /* mesma semente, mesma sequência, em toda plataforma */
 
     sorteado = 99U;
     VERIFICA(!bg_sorteia_ate(0U, &sorteado));
     VERIFICA(sorteado == 99U);
     VERIFICA(!bg_sorteia_ate(10U, NULL));
-    VERIFICA(bg_sorteia_ate(universo, &sorteado));
-    VERIFICA(sorteado <= (unsigned) RAND_MAX);
-    VERIFICA(!bg_sorteia_ate(universo + 1U, &sorteado));
-    VERIFICA(sorteado <= (unsigned) RAND_MAX);
+    /* universo 2^32: qualquer limite positivo é aceito, até UINT32_MAX */
+    VERIFICA(bg_sorteia_ate(4294967295U, &sorteado));
+    VERIFICA(sorteado < 4294967295U);
+    VERIFICA(bg_sorteia_ate(1U, &sorteado));
+    VERIFICA(sorteado == 0U);
     VERIFICA(bg_sorteia(1) == 0);
     aleatorio = bg_sorteia(100);
     VERIFICA(aleatorio >= 0 && aleatorio < 100);

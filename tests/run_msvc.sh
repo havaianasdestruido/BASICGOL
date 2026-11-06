@@ -94,9 +94,12 @@ confere_saida() {
                      "$TMP/out" > "$TMP/diff" || true
             sed -n '1,10p' "$TMP/diff" | sed 's/^/        /'
             if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
-                sed -n '1,10p' "$TMP/diff" | while IFS= read -r linha; do
-                    printf '::error::%s\n' "$linha"
-                done
+                # so as linhas que mudaram: GitHub exibe ~10 annotations por
+                # passo; um dump inteiro esconde o diff de verdade
+                grep -E '^[+-]' "$TMP/diff" | grep -v -E '^(\+\+\+|---)' \
+                    | while IFS= read -r linha; do
+                        printf '::error::%s\n' "$linha"
+                    done
             fi
             return
         fi

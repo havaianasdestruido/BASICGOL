@@ -14,7 +14,7 @@ os inclui e preserva os nomes de linguagem (`COPIA_TEXTO`, `LEIA_INTEIRO`, `ABS`
 | Matemática | `basicgol/matematica.h` | `src/biblioteca/matematica.c` | divisão/resto verificados e primitivas de `ABS`, `MINIMO`, `MAXIMO` e `ARREDONDA` |
 | Texto | `basicgol/texto.h` | `src/biblioteca/texto.c` | operações limitadas sobre strings C e conversões numéricas |
 | Caractere | `basicgol/caractere.h` | `src/biblioteca/caractere.c` | classificação e mudança de caixa ASCII |
-| Utilidades | `basicgol/utilidades.h` | `src/biblioteca/utilidades.c` | semente e sorteio com `rand()` |
+| Utilidades | `basicgol/utilidades.h` | `src/biblioteca/utilidades.c` | semente e sorteio com PRNG próprio (xorshift64*) portável |
 | Agregado | `basicgol/biblioteca.h` | — | inclui os cinco headers portáteis e informa a versão 1.0.0 |
 
 Inclua somente o módulo necessário ou use o agregado:
@@ -50,7 +50,7 @@ compatibilidade. Ao chamar helpers, ligue a biblioteca compilada; não é header
   usuais, `INT_MIN / -1` e `ABS(INT_MIN)`). Para novas funções, prefira retorno `bool`.
 - **Locale e concorrência:** os helpers de caractere são sempre ASCII. Conversão de
   real acompanha a locale C corrente (`strtod`); BASICGOL não chama `setlocale`.
-  `rand()` é o gerador global do C e não fornece garantia de segurança entre threads.
+  o PRNG próprio (xorshift64*) compartilha estado global do processo e não fornece garantia de segurança entre threads.
 
 ## 3. API por módulo
 
@@ -138,16 +138,15 @@ independente de locale e não sofre as restrições de argumento negativo de `<c
 
 | Função | Parâmetros | Retorno |
 |---|---|---|
-| `bg_inicia_sorteio(semente)` | semente `unsigned` | não devolve valor; chama `srand`. Não há semente automática. |
-| `bg_sorteia_ate(limite_exclusivo, saida)` | limite positivo e ponteiro `unsigned *` | `true` e um valor em `[0, limite)`; `false` para limite zero, ponteiro nulo ou limite maior que `RAND_MAX + 1`. Falha não altera `*saida`. |
-| `bg_sorteia(n)` | limite legado `int` | valor em `[0,n)` para limite suportado; devolve `0` para `n <= 0` ou fora do alcance. Prefira a variante verificável `bg_sorteia_ate`. |
+| `bg_inicia_sorteio(semente)` | semente `unsigned` | não devolve valor; deriva o estado por splitmix64. Não há semente automática. |
+| `bg_sorteia_ate(limite_exclusivo, saida)` | limite positivo (qualquer `unsigned`, até 2^32−1) e ponteiro `unsigned *` | `true` e um valor em `[0, limite)`; `false` para limite zero ou ponteiro nulo. Falha não altera `*saida`. |
+| `bg_sorteia(n)` | limite legado `int` | valor em `[0,n)`; devolve `0` para `n <= 0`. Prefira a variante verificável `bg_sorteia_ate`. |
 
-O gerador de `rand()` é previsível, global ao processo e de qualidade definida pela
-implementação; **não** é criptográfico, não é adequado para tokens/segurança e não
-promete independência entre threads. A rejeição em `bg_sorteia_ate` remove o viés de
-módulo supondo amostras uniformes, mas não pode melhorar a distribuição fornecida pela
-implementação de C. Repetir a mesma semente reproduz a sequência somente na mesma
-implementação C.
+O gerador é próprio (xorshift64*, com semente de 32 bits derivada por splitmix64), o que
+**independe da libc**: repetir a mesma semente reproduz a sequência em qualquer
+plataforma C11. Ele é previsível e global ao processo; **não** é criptográfico, não é
+adequado para tokens/segurança e não promete independência entre threads. A rejeição em
+`bg_sorteia_ate` remove o viés de módulo supondo amostras uniformes dos 32 bits de estado.
 
 ## 4. Nomes da linguagem e compatibilidade
 
