@@ -1,0 +1,73 @@
+---
+title: BASICGOL — documentação viva
+sidebar_label: Início
+sidebar_position: 0
+slug: /
+hide_title: true
+description: Referência gerada do código, testes e decisões do BASICGOL.
+---
+
+<div className="bg-hero">
+  <div className="bg-eyebrow">Linguagem didática · C11 · documentação viva</div>
+
+  # BASICGOL
+
+  <p className="bg-lead">
+    A legibilidade do BASIC e do Portugol, entregue como uma camada de macros C.
+    Cada símbolo desta documentação é rastreado até o fonte, os testes e as condições
+    de compilador que realmente existem no projeto.
+  </p>
+
+  [Começar agora](/guias/comecar) · [Explorar a referência](/referencia/) · [Ver os testes](/testes/)
+</div>
+
+<div className="bg-card-grid">
+  <div className="bg-card">
+    [**Referência viva**](/referencia/)
+
+    Macros, palavras-chave, funções da biblioteca, expansões, contratos, exemplos e usos localizados nos testes.
+  </div>
+
+  <div className="bg-card">
+    [**Testes rastreáveis**](/testes/)
+
+    Casos dourados, entradas, saídas esperadas, negativos, avisos e modos de falha fatal — com links para as linhas.
+  </div>
+
+  <div className="bg-card">
+    [**Portabilidade sem atalhos**](/guias/portabilidade)
+
+    O que é compartilhado, o que depende de GCC/Clang/MSVC/MinGW e o que foi executado, compilado ou apenas avaliado.
+  </div>
+
+  <div className="bg-card">
+    [**Por dentro do projeto**](/internos/)
+
+    Transpilador, harness, runners Bash e scripts Python. O próprio gerador também é inventariado.
+  </div>
+</div>
+
+## O que torna esta documentação diferente
+
+- **Gerada por Python a cada build.** Novos arquivos, funções, macros, casos e modos aparecem sem editar uma lista manual de páginas.
+- **Evidência, não suposição.** Uma referência de teste é distinguída de uma chamada indireta; nenhuma delas é apresentada como cobertura de ramos.
+- **Ramos de compilador preservados.** A análise não pré-processa o C para um único alvo: guards e diretivas continuam visíveis.
+- **Histórico preservado.** A especificação, as decisões, os relatórios e a matriz original continuam disponíveis em [Projeto](/projeto/).
+
+## Dois caminhos, uma linguagem
+
+```mermaid
+flowchart LR
+  BG["Fonte BASICGOL (.c)"] --> M0["M0: macros basicgol.h"]
+  BG --> M1["M1: basicgolc traduz blocos e açúcar"]
+  M1 --> C["C gerado"]
+  M0 --> CC["Compilador C11"]
+  C --> CC
+  LIB["libbasicgol.a / fontes"] --> LINK["Ligação"]
+  CC --> LINK
+  LINK --> EXE["Programa nativo"]
+```
+
+:::note[Estado e versões]
+As versões e os números impressos pelos testes são os do código executado. As páginas geradas mostram contagens estáticas do repositório e não substituem os logs de CI. Consulte a [matriz de compatibilidade](/projeto/11-matriz-compatibilidade) antes de chamar um alvo de “suportado”.
+:::

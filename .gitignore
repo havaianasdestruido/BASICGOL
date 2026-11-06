@@ -9,3 +9,11 @@ build-*/
 *.pdb
 *.ilk
 __pycache__/
+.venv/
+node_modules/
+
+# Documentação: fontes versionadas em website/, saída regenerada pelo Python.
+website/.docusaurus/
+website/build/
+website/docs/
+website/static/api/

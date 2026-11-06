@@ -1,0 +1,113 @@
+name: Documentação
+
+# Gera a referência a partir do código em todos os PRs e publica pushes.
+# O ramo da entrega está incluído para permitir a primeira publicação via Pages;
+# depois do merge, main continua publicando automaticamente.
+on:
+  push:
+    branches: [main, arena/37183924-basicgol]
+    paths:
+      - 'include/**'
+      - 'src/**'
+      - 'tools/**'
+      - 'tests/**'
+      - 'docs/**'
+      - 'website/**'
+      - 'README.md'
+      - 'Makefile'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    paths:
+      - 'include/**'
+      - 'src/**'
+      - 'tools/**'
+      - 'tests/**'
+      - 'docs/**'
+      - 'website/**'
+      - 'README.md'
+      - 'Makefile'
+      - '.github/workflows/docs.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Gerar e validar documentação
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: tools/documentacao/requirements.txt
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Instalar dependências Python
+        run: python -m pip install -r tools/documentacao/requirements.txt
+
+      - name: Instalar dependências Node
+        working-directory: website
+        run: npm ci --no-audit --no-fund
+
+      - name: Gerar inventário e páginas
+        env:
+          DOCS_COMMIT: ${{ github.sha }}
+          DOCS_REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
+        run: python tools/gerar_documentacao.py --strict
+
+      - name: Testar gerador
+        run: python -m unittest discover -s tests/documentacao -v
+
+      - name: Typecheck
+        working-directory: website
+        run: npm run typecheck
+
+      - name: Build Docusaurus
+        working-directory: website
+        env:
+          DOCS_URL: ${{ vars.DOCS_URL || 'https://havaianasdestruido.github.io' }}
+          DOCS_BASE_URL: ${{ vars.DOCS_BASE_URL || format('/{0}/', github.event.repository.name) }}
+        run: npm run build:only
+
+      - name: Configurar Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/configure-pages@v5
+
+      - name: Enviar artifact do Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/build
+
+  deploy:
+    name: Publicar no GitHub Pages
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publicar
+        id: deployment
+        uses: actions/deploy-pages@v4
