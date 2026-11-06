@@ -50,6 +50,7 @@ jobs:
           update: true
           path-type: strict
           install: >-
+            diffutils
             make
             mingw-w64-${{ matrix.package_arch }}-gcc
 
@@ -62,21 +63,12 @@ jobs:
       - name: Build transpiler and static library
         run: make all CC=gcc AR=ar
 
-      - name: Trace first Windows golden comparison
-        run: |
-          T_DEBUG_COMPARISON=1 T_LIBRARY=build/libbasicgol.a bash -x tests/run.sh 02_basico > build/trace.log 2>&1 || true
-          trace=$(sed -n '/+ caso_execucao .*b01_ola/,/+ t_falhou .*b01_ola/p' build/trace.log | base64 -w 0)
-          printf '::error::First comparison trace (base64): %s\n' "$trace"
-          printf '::error::Last comparison bytes (base64): %s\n' "$(cat build/comparison-debug.txt)"
-
       - name: Run language and library tests
         run: |
           if ! make test CC=gcc AR=ar > build/test.log 2>&1; then
             cat build/test.log
+            grep -A1 'FALHA' build/test.log | head -40 | sed 's/^/::error::/'
             tail -8 build/test.log | sed 's/^/::error::/'
-            sed -n '/FALHA 02_basico\/b01_ola (M0)/,+6p' build/test.log | tr '\r' '?' | sed 's/^/::error::/'
-            od -An -tx1 tests/casos/02_basico/b01_ola/esperado.txt | head -2 | sed 's/^/::error::/'
-            grep -A1 'FALHA' build/test.log | head -30 | sed 's/^/::error::/'
             exit 1
           fi
           cat build/test.log

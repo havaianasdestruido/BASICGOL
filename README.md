@@ -284,7 +284,7 @@ Para reproduzir o build de 64 bits, abra o terminal **UCRT64** do MSYS2, instale
 as ferramentas e execute na raiz do projeto:
 
 ```sh
-pacman -S --needed make mingw-w64-ucrt-x86_64-gcc
+pacman -S --needed diffutils make mingw-w64-ucrt-x86_64-gcc
 make all CC=gcc AR=ar
 make test CC=gcc AR=ar
 make exemplos CC=gcc AR=ar
