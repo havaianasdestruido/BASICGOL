@@ -163,7 +163,12 @@ item AC-12).
 valor e decaimento de vetor/função, mas **não** remove qualificadores do tipo apontado —
 por isso `char *` e `const char *` precisam de associações separadas; (b) enumerações
 casam com `int` quando o tipo subjacente é compatível (comportamento observado no GCC);
-(c) tipo não listado cai em `default` (`%p`) **sem aviso**; (d) em C++ não existe.
+(c) tipo não listado cai em `default`, se existir; (d) em C++ não existe.
+Até a Fase 6, `BG_FMT` (saída) **e** `BG_SFMT` (entrada) tinham `default: "%p"`. O de
+saída continua (imprimir ponteiro é útil e não escreve na memória); o de entrada foi
+**removido** — sem `default`, um destino sem formato é violação de restrição do `_Generic`
+(C11 6.5.1.1p3), ou seja **erro de compilação** em vez de `scanf` gravando 8 bytes num
+objeto de 1 byte. Ver DF-01 em [13](13-defeitos-e-correcoes.md).
 
 **Consequência.** C11 é o piso (PT-A); a tabela `BG_FMT` precisa das duas associações de
 texto; ponteiros imprimem como `%p`.
@@ -635,9 +640,14 @@ que dependiam do valor truncado estavam errados. Junto vem a correção de um **
 de `LEIA`: `BG_SFMT` não tinha formato para `unsigned char*`, `unsigned short*` nem
 `long double*`, então `LEIA` de `NATURAL8`, `NATURAL16`, `NATURAL_CURTO` e `REAL_LONGO`
 caía no `default` (`"%p"`) e gravava um ponteiro sobre a variável. Agora cada tipo
-escalar tem o seu formato (`%hhu`, `%hu`, `%hu`, `%Lf`) e `LOGICO` continua recusado pelo
-compilador — ver §9.1 de [06](06-tipos-e-expressoes.md) e o caso
-`06_negativos/n16_leia_logico`. A versão sobe para 1.1.0 (minor), conforme §16.1 de
+escalar tem o seu formato (`%hhu`, `%hu`, `%hu`, `%Lf`).
+
+**Revisto na Fase 6 (DF-01).** `LOGICO` era recusado só pelo `-Wformat`, isto é, por um
+**aviso** — e a linha de compilação publicada no README não usa `-Werror`. O `default`
+de `BG_SFMT` foi removido: hoje `LEIA(LOGICO)`, `LEIA(TEXTO)` e `LEIA(TEXTO_FIXO(...))`
+são erro de compilação por violação de restrição, com ou sem `-Werror`, nos dois
+compiladores testados. Ver §9.1 de [06](06-tipos-e-expressoes.md) e os casos
+`06_negativos/n16_leia_logico`, `n21_leia_texto` e `n22_leia_texto_fixo`. A versão sobe para 1.1.0 (minor), conforme §16.1 de
 [01](01-especificacao.md).
 
 ### D-28 — Contrato e escopo da biblioteca padrão · **decidido na Fase 5**
@@ -651,7 +661,9 @@ legados de divisão/resto/absoluto são as exceções fatais documentadas.
 
 A escolha é manter o core em C11 + libc, com libm quando separada, sem dependência de
 terceiros ou helpers de sistema operacional. Não há semeadura implícita; o sorteio usa
-`rand()` e declara seu limite `RAND_MAX + 1`, previsibilidade e qualidade não garantida.
+um PRNG próprio (xorshift64*, semente derivada por splitmix64): a mesma semente gera a
+mesma sequência em qualquer plataforma, com universo de 2^32, previsibilidade inerente a PRNGs
+e nenhuma promessa de qualidade criptográfica.
 Funções específicas de plataforma, se necessárias no futuro, terão header/fonte separados
 e não serão incluídos por `<basicgol/biblioteca.h>`. O contrato completo está em
 [09 — Biblioteca padrão](09-biblioteca-padrao.md); cada função pública é exercitada em
@@ -717,4 +729,4 @@ Fase 2 pode começar por ele com risco técnico baixo.
 | R-05 | M1 vira um compilador de fato e atrasa a entrega | média | alto | limite de 4 atividades no autômato (§4.2 do 01); C nativo como escape |
 | R-06 | Divergência semântica M0 × M1 | baixa | alto | AC-06 (comparação de saídas) na Fase 2 |
 | R-07 | `_Generic` com tipos inesperados (enum, ponteiro) imprime errado sem aviso | média | médio | `ESCREVA_TEXTO`/`ESCREVA_FMT`, documentação, D-09 |
-| R-08 | Dependência de `-lm` em Windows/MinGW | baixa | baixo | PT-C documentado; exemplos testados em Linux e MinGW |
+| R-08 | Dependência de `-lm` em Windows/MinGW/MSVC | baixa | baixo | PT-C documentado; exemplos testados em Linux, MinGW e MSVC (CI); na UCRT `-lm` nem existe |

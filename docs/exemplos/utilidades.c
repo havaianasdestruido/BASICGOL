@@ -109,8 +109,10 @@ PROCEDIMENTO mostra_enumeracao(void) {
     FIM_ENUMERACAO(Conceito);
 
     Conceito c = CONCEITO_B;
+    // enumeração é um tipo do usuário: o despacho de ESCREVA (_Generic) não
+    // cobre tipos definidos pelo usuário — converta para INTEIRO ao imprimir.
     ESCREVA("CONCEITO_B vale ");
-    ESCREVAL(c);
+    ESCREVAL((INTEIRO) c);
 
     ESCOLHA (c)
         CASO CONCEITO_A:

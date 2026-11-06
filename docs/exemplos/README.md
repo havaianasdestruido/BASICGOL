@@ -81,7 +81,7 @@ Compilados com GCC 12.2, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror`: **ze
 | `biblioteca_matematica.c` | M0 + M1 | `ABS`, `MINIMO`, `MAXIMO`, `POTENCIA`, `RAIZ`, `DIVIDE`, `RESTO`, `PISO`, `TETO`, `ARREDONDA` | ok | ok |
 | `biblioteca_texto.c` | M0 + M1 | cópia, acréscimo, trecho, comprimento e conversão de texto para inteiro | ok | ok |
 | `biblioteca_caractere.c` | M0 + M1 | classificação ASCII e conversão de caixa | ok | ok |
-| `biblioteca_utilidades.c` | M0 + M1 | semente explícita, `bg_sorteia_ate` e intervalo limitado de `rand()` | ok | ok |
+| `biblioteca_utilidades.c` | M0 + M1 | semente explícita e `bg_sorteia_ate` com PRNG próprio (xorshift64*) | ok | ok |
 
 Os 24 exemplos compilam sem avisos com `-std=c11 -Wall -Wextra -Wformat=2 -Wvla
 -Werror` e produzem exatamente a saída registrada — nos dois perfis, exceto
@@ -146,20 +146,18 @@ Buscar matricula (0 encerra): Fim do cadastro.
 ```
 (com `102` como primeira busca: `Encontrado: Bia Souza  nota 6.50`)
 
-### `adivinha.c` — semente fixa, alvo 38 (glibc) ou 55 (MSVCRT/UCRT)
-
-A entrada fixa `50, 25, 38, 44, 52, 54, 55` cobre os dois alvos: `rand()` com a
-mesma semente só reproduz a sequência na mesma implementação da biblioteca C.
-No segundo caso, são sete palpites: `Muito baixo!` seis vezes e `Acertou!`;
-a saída termina com `Tentativas: 7` e `Dentro do esperado.` e está registrada
-em `adivinha.alternativo.txt`. Saída no glibc:
+### `adivinha.c` — semente fixa (2026), alvo 43, entradas `50 25 38 44 41 42 43` (busca binária)
 ```
 Adivinhe o numero entre 1 e 100
 Seu palpite: Muito alto!
 Seu palpite: Muito baixo!
+Seu palpite: Muito baixo!
+Seu palpite: Muito alto!
+Seu palpite: Muito baixo!
+Seu palpite: Muito baixo!
 Seu palpite: Acertou!
-Tentativas: 3
-Muito bom.
+Tentativas: 7
+Dentro do esperado.
 ```
 
 ### `contador_vogais.c` — entrada `Programacao em Portugol`

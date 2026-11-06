@@ -110,7 +110,8 @@ passa nos dois caminhos.
 | Item | Situação |
 |---|---|
 | Clang (CI: `gcc` e `clang` × `c11` e `c17`) | não executado localmente; as variantes de texto dos negativos foram escritas para GCC e Clang, mas só a execução no CI confirma |
-| MSVC / MinGW | não executado |
+| MSVC | núcleo com `/std:c11 /W4 /WX` e exemplos nos caminhos M0/M1 verificados em CI (workflow `msvc.yml`) |
+| MinGW | não executado |
 | Revisão humana (AC-17, AC-18 de [05](05-criterios-de-aceitacao.md)) | não feita nesta fase |
 | Desempenho de laços | não medido; a suíte não tem teste de tempo |
 | Versão da linguagem | mantida em **1.1.0**: a mudança de passo zero é correção de comportamento indefinido, mas subir a versão é decisão de quem publica |

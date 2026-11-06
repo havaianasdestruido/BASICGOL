@@ -99,6 +99,14 @@ static void buf_limpa(Buf *b)
     b->dados[0] = '\0';
 }
 
+static void buf_libera(Buf *b)
+{
+    free(b->dados);
+    b->dados = NULL;
+    b->tam = 0;
+    b->cap = 0;
+}
+
 static void emite_seguro(Buf *b, const char *txt)
 {
     size_t n = strlen(txt);
@@ -161,6 +169,21 @@ static void lista_adiciona(Lista *l, TipoToken tipo, const char *ini, size_t n, 
     memcpy(t->texto, ini, n);
     t->texto[n] = '\0';
     t->linha = linha;
+}
+
+/* Libera os tokens e o vetor. O transpilador é um processo curto, mas sem isto
+ * o LeakSanitizer acusa vazamento em toda execução e deixa de servir como
+ * sinal: a suíte inteira roda limpa em `make test-sanitize`. */
+static void lista_libera(Lista *l)
+{
+    int i;
+    for (i = 0; i < l->qtd; i++) {
+        free(l->itens[i].texto);
+    }
+    free(l->itens);
+    l->itens = NULL;
+    l->qtd = 0;
+    l->cap = 0;
 }
 
 /* =====================================================================
@@ -657,6 +680,36 @@ static bool ja_avisado(Estado *e, const char *nome)
     return false;
 }
 
+/* Libera tudo o que o Estado alocou (nomes já avisados, enumeradores,
+ * parâmetros-ponteiro) e o buffer de saída. */
+static void estado_libera(Estado *e)
+{
+    int i;
+    for (i = 0; i < e->qtd_vistos; i++) {
+        free(e->vistos[i]);
+    }
+    e->qtd_vistos = 0;
+    for (i = 0; i < e->qtd_enumeradores; i++) {
+        free(e->enumeradores[i]);
+    }
+    e->qtd_enumeradores = 0;
+    for (i = 0; i < e->qtd_ponteiros; i++) {
+        free(e->ponteiros[i]);
+    }
+    e->qtd_ponteiros = 0;
+    buf_libera(&e->saida);
+}
+
+/* Caminho único de saída: libera fonte, tokens e o estado, e devolve o código
+ * de saída pedido. */
+static int finaliza(Estado *e, Lista *l, char *src, int rc)
+{
+    lista_libera(l);
+    free(src);
+    estado_libera(e);
+    return rc;
+}
+
 static const char *nome_bloco(int b)
 {
     switch (b) {
@@ -979,6 +1032,7 @@ static void coleta_de_cabecalho(const char *caminho, Estado *e, int prof)
         p = strstr(p + 1, "#include \"");
     }
 
+    lista_libera(&l);
     free(texto);
 }
 
@@ -1802,14 +1856,12 @@ int main(int argc, char **argv)
 
     if (e.erros > 0) {
         fprintf(stderr, "basicgolc: %d erro(s), nenhum arquivo gerado\n", e.erros);
-        free(src);
-        return 1;
+        return finaliza(&e, &l, src, 1);
     }
 
     if (checar) {
         fprintf(stderr, "basicgolc: %s ok (%d aviso(s))\n", entrada, e.avisos);
-        free(src);
-        return 0;
+        return finaliza(&e, &l, src, 0);
     }
 
     f = (saida == NULL) ? stdout : fopen(saida, "wb");
@@ -1817,13 +1869,29 @@ int main(int argc, char **argv)
         bg_morte("nao consegui criar '%s'", saida);
     }
     if (fwrite(e.saida.dados, 1, e.saida.tam, f) != e.saida.tam) {
+        if (saida != NULL) {
+            fclose(f);
+        }
         bg_morte("falha ao escrever '%s'", saida ? saida : "stdout");
     }
-    if (saida != NULL && fclose(f) != 0) {
-        bg_morte("falha ao fechar '%s'", saida);
+    /* Fechar (ou descarregar stdout) e onde o erro de E/S realmente aparece:
+     * o retorno de fwrite nao pega disco cheio em fluxo bufferizado, entao
+     * `basicgolc x.c > /dev/full` saia 0 e o C gerado se perdia em silencio.
+     * O arquivo de saida pode ficar incompleto quando isto falha: o codigo 70
+     * e o sinal; nao removemos o arquivo porque o destino pode ser um
+     * dispositivo (ex.: /dev/null, /dev/full, um pipe nomeado). */
+    rc = 0;
+    if (saida != NULL) {
+        if (fclose(f) != 0) {
+            rc = -1;
+        }
+    } else if (fflush(stdout) != 0 || ferror(stdout)) {
+        rc = -1;
+    }
+    if (rc != 0) {
+        finaliza(&e, &l, src, 0);
+        bg_morte("falha ao gravar a saida (%s)", saida ? saida : "stdout");
     }
 
-    rc = 0;
-    free(src);
-    return rc;
+    return finaliza(&e, &l, src, 0);
 }

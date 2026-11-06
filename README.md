@@ -2,13 +2,23 @@
 
 > BASICGOL — a legibilidade do BASIC e do Portugol, entregue como uma camada de macros C.
 
-**Status: Fases 1–5 concluídas (biblioteca padrão modular).**
+**Status: Fases 1–6 concluídas (portabilidade e endurecimento).**
 O cabeçalho [`include/basicgol.h`](include/basicgol.h), os módulos em
 [`include/basicgol/`](include/basicgol/) e [`src/biblioteca/`](src/biblioteca/) e o
 transpilador [`tools/basicgolc.c`](tools/basicgolc.c) são testados em [`tests/`](tests/):
-**304 verificações da linguagem**, mais **230 verificações unitárias** e **30 verificações
+**307 verificações da linguagem**, mais **230 verificações unitárias** e **30 verificações
 de integração/falhas fatais** da biblioteca. Versão da linguagem: **1.1.0**; versão da
 biblioteca: **1.0.0**.
+
+A suíte roda igual em **dois frontends independentes** (GCC 12.2.0 e Clang 20.1.2), sob
+**ASan + UBSan + LeakSanitizer**, e tem uma matriz de portabilidade com **70 verificações
+aprovadas** — incluindo 32 bits, AArch64 e Windows por compilação cruzada. O que **não**
+foi executado está declarado, item por item, em
+[`docs/11-matriz-compatibilidade.md`](docs/11-matriz-compatibilidade.md) e
+[`docs/12-relatorio-fase-6.md`](docs/12-relatorio-fase-6.md) §8. Estado de cada
+ferramenta: **GCC executado**, **frontend Clang executado (via `zig cc`)**,
+**MinGW-w64 nativo executado em CI (UCRT64/MINGW64/MINGW32)**, **AArch64 compilado**, **MSVC apenas avaliado** — e nada além disso é
+chamado de "suportado" em lugar nenhum.
 
 ---
 
@@ -57,19 +67,29 @@ Na minha escola, por um longo período nós tivemos que estudar essa línguagem,
 
 A grande vantagem de usar o `BASICGOL` ao invés de `Portugol`, é o fato de que o `BASICGOL` é um header C11 simples, basta incluir ele no topo do seu arquivo que ele já está pronto para uso.
 
+Porém, se você já chegou a usar `Portugol`, sabe que ele é BEM similar a C, e pra facilitar a transição de Portugol -> BASICGOL; BASICGOL -> C, etc. eu decidi fazer com que a linguagem tenha dois modos:
+
+- [x] BASIC (padrão, atualmente o único implementado)
+- [ ] C (padrão, porém com sintaxe C, como `{}`, e praticamente tudo o que falta do BASIC comparado com C)
+
+O BASIC, como o prório nome já diz, é inspirado na linguagem `BASIC`, aonde sua sintaxe se diferencia MUITO de outras como `C`, portanto, eu decidi que fazer 2 modos de linguagem seria bem mais prático pra usuário que:
+- Querem experimentar coisas novas
+- Querem avançar um pouco mais na complexidade da sintaxe do `C`, mas aind asim manter a mesma lógica e os mesmos comandos
+- etc.
+
 Meu foco principal é em compatibilidade multi-plataforma e multi-compilador, não quero que `BASICGOL` fique "preso" num estado aonde só compila no MSVC no Windows, quero que também funcione, por exemplo, no GCC sob Linux.
 
-Atualmente, o sistema tem foco principal nos seguintes compiladores:
+Atualmente, o sistema tem foco principal nos seguintes compiladores. A coluna "estado"
+usa o vocabulário de [`docs/11`](docs/11-matriz-compatibilidade.md) §1, e não existe
+"suportado" sem execução registrada:
 
-- [x] GNU Compiler Collection (GCC) – Um dos compiladores livres e de código aberto mais populares e amplamente utilizados para C, suportando diversas arquiteturas e sistemas operacionais (Linux, Windows, macOS).
-- [x] Clang (LLVM) – Compilador de código aberto baseado no projeto LLVM, conhecido por diagnósticos de erro rápidos e detalhados.
-- [x] Microsoft Visual C++ (MSVC) – O compilador C/C++ da Microsoft integrado ao Visual Studio, muito utilizado no ecossistema Windows.
-- [ ] Intel oneAPI DPC++/C++ Compiler (ICX/ICPX) – Compilador de alto desempenho desenvolvido pela Intel voltado para otimização em arquiteturas x86 e HPC (computação de alto desempenho).
-- [x] MinGW-w64 – Uma versão nativa do GCC adaptada para o ambiente Windows (32 e 64 bits).
-- [ ] Tiny C Compiler (TCC) – Um compilador C pequeno, leve e extremamente rápido, ideal para sistemas com poucos recursos ou discos de resgate.
-- [ ] Portable C Compiler (PCC) – Um compilador C leve e portátil baseado no compilador original de Stephen C. Johnson.
-- [ ] Digital Mars C/C++ – Compilador voltado para DOS, Windows e sistemas x86 com foco em velocidade de compilação.
-- [ ] Open64 – Compilador open-source voltado para otimizações agressivas em arquiteturas de 64 bits.
+| Compilador | Estado |
+|---|---|
+| **GCC** (versão livre e de código aberto, Linux/Windows/macOS) | **executado** — GCC 12.2.0, x86-64 Linux, suíte inteira |
+| **Clang (LLVM)** (diagnósticos rápidos e detalhados) | **executado** como *frontend* (Clang 20.1.2 via `zig cc`); o driver `clang` do LLVM não foi testado |
+| **Microsoft Visual C++ (MSVC)** | **avaliado** — nunca executado aqui; job de CI existe, mas não há registro verde |
+| **MinGW-w64** (GCC para Windows, 32/64 bits) | **executado em CI** — [`mingw-w64.yml`](.github/workflows/mingw-w64.yml) compila e roda a suíte nativamente em UCRT64, MINGW64 e MINGW32; o alvo `x86_64-windows-gnu` também é compilado por cross via `zig cc` |
+| **Intel oneAPI (ICX/ICPX)**, **TCC**, **PCC**, **Digital Mars**, **Open64** | **não testados** — indisponíveis neste ambiente |
 
 Eu tenho planos bem ambiciosos com essa linguagem (_uns até de mais_), os que me vem na cabeça nesse momento são:
 
@@ -120,10 +140,14 @@ cc -std=c11 -I include programa.gerado.c \
 | [`include/basicgol/`](include/basicgol/) | headers modulares de console, matemática, texto, caractere e utilidades |
 | [`src/biblioteca/`](src/biblioteca/) | implementações C11 que formam `build/libbasicgol.a` |
 | [`tools/basicgolc.c`](tools/basicgolc.c) | transpilador M1: insere chaves, desaçucara `PARA i DE …`, aceita acentos, emite W-01…W-07 |
-| [`tests/`](tests/) | suíte M0/M1 com 132 casos em disco e 230 verificações unitárias da biblioteca |
+| [`tests/`](tests/) | suíte M0/M1 com 135 casos em disco, 230 verificações unitárias da biblioteca e a matriz de portabilidade (`tests/portabilidade/`) |
+| [`tests/run_portabilidade.sh`](tests/run_portabilidade.sh) | matriz de compiladores, padrões, avisos, multi-UO, C++, sanitizers e alvos cruzados |
+| [`tests/run_matriz.sh`](tests/run_matriz.sh) · [`tests/run_checkout_limpo.sh`](tests/run_checkout_limpo.sh) · [`tests/fuzz_basicgolc.py`](tests/fuzz_basicgolc.py) | suíte por compilador, verificação dos comandos do README, mutação do transpilador |
+| [`.github/workflows/testes.yml`](.github/workflows/testes.yml) | CI: matriz de compiladores × padrões, sanitizers, portabilidade, cobertura e avaliação MSVC |
+| [`.github/workflows/mingw-w64.yml`](.github/workflows/mingw-w64.yml) | CI Windows nativo: build, testes e artefatos em UCRT64, MINGW64 e MINGW32 |
 | [`tests/COBERTURA.md`](tests/COBERTURA.md) | matriz de rastreabilidade gerada: nomes, módulos, avisos, critérios e restrições |
 | [`docs/`](docs/) | especificação, referência e exemplos executáveis |
-| [`Makefile`](Makefile) | `make`, `make biblioteca`, `make test`, `make test-biblioteca`, `make exemplos`, `make cobertura` |
+| [`Makefile`](Makefile) | `make`, `make test`, `make test-portabilidade`, `make test-sanitize`, `make test-matriz`, `make fuzz`, `make test-checkout`, `make exemplos`, `make cobertura` (`make ajuda` lista tudo) |
 
 ## Documentos
 
@@ -138,6 +162,10 @@ cc -std=c11 -I include programa.gerado.c \
 | 7 | [`docs/07-controle-de-fluxo.md`](docs/07-controle-de-fluxo.md) | **Controle de fluxo**: sintaxe exata de `SE`, `ENQUANTO`, `REPITA`, `PARA`, `ESCOLHA`, `PARE`, `PROSSIGA`; expansões; casos de borda; ninhos e `SENAO`; limitações |
 | 8 | [`docs/08-relatorio-controle-de-fluxo.md`](docs/08-relatorio-controle-de-fluxo.md) | Relatório de aprovação e reprovação da Fase 3 |
 | 9 | [`docs/09-biblioteca-padrao.md`](docs/09-biblioteca-padrao.md) | API modular da biblioteca padrão, convenções, testes, build e dependências |
+| 10 | [`docs/10-compiladores.md`](docs/10-compiladores.md) | **Como compilar em cada ferramenta**: GCC, Clang, MSVC, MinGW-w64, `zig cc`, sanitizers, C++ e o conjunto de avisos adotado |
+| 11 | [`docs/11-matriz-compatibilidade.md`](docs/11-matriz-compatibilidade.md) | **Matriz de compatibilidade**: compilador × alvo × padrão × estado, com o vocabulário de 4 estados (executado / compilado / avaliado / não testado) |
+| 12 | [`docs/12-relatorio-fase-6.md`](docs/12-relatorio-fase-6.md) | Relatório da Fase 6: o que foi executado, números, defeitos e lacunas declaradas |
+| 13 | [`docs/13-defeitos-e-correcoes.md`](docs/13-defeitos-e-correcoes.md) | Os 8 defeitos encontrados (DF-01…DF-08), com reprodução, causa e correção; e o que **não** é defeito |
 | — | [`docs/exemplos/`](docs/exemplos/) | Programas da linguagem e exemplos por módulo da biblioteca |
 
 ## Fase 2 — o que foi entregue
@@ -231,13 +259,41 @@ casos de borda e documenta os limites** ([07](docs/07-controle-de-fluxo.md)):
   devolvem `bool`; strings usam capacidade explícita, saídas ficam vazias/inalteradas em
   falha e a memória continua pertencendo ao chamador.
 * Operações matemáticas existentes reutilizam `<math.h>`. `bg_sorteia_ate` requer limite
-  e semente explícitos; a documentação limita as garantias de `rand()` (previsível,
-  global, não criptográfico e distribuição dependente da implementação).
+  e semente explícitos; o sorteio usa PRNG próprio (xorshift64*): a mesma semente gera a
+  mesma sequência em qualquer plataforma, com universo 2^32 (previsível, global ao
+  processo, não criptográfico).
 * O core não adiciona dependências além de C11/libc e libm quando separada; não inclui
   APIs de plataforma. Helpers específicos de plataforma ficam fora do agregado portátil.
 * `docs/09-biblioteca-padrao.md` documenta parâmetros, retornos, convenções, build e
   dependências. Cinco programas em `docs/exemplos/biblioteca_*.c` demonstram os módulos;
   `make test-biblioteca` roda testes de sucesso, erro e fronteira para a API.
+
+## Fase 6 — portabilidade e endurecimento
+
+A Fase 6 não acrescenta construtor nenhum: ela verifica se o que está escrito continua
+verdadeiro **fora** do compilador em que foi escrito. Relatório completo em
+[`docs/12`](docs/12-relatorio-fase-6.md); matriz em [`docs/11`](docs/11-matriz-compatibilidade.md).
+
+* **Dois frontends, o mesmo número**: GCC 12.2.0 e Clang 20.1.2 rodam a suíte inteira
+  (307 + 230 + 30) e nenhum dos dois emite aviso no conjunto adotado (`-Werror`).
+* **Sanitizers**: `make test-sanitize` fecha limpo com ASan + UBSan +
+  `-fno-sanitize-recover=all` e LeakSanitizer. Foi o que encontrou dois dos defeitos da
+  fase.
+* **Programas de portabilidade** (`tests/portabilidade/`): precedência, controle de fluxo,
+  entrada/saída com saída dourada, fronteira de tipos (176 verificações), link de 4
+  unidades de tradução, C++ e alvos cruzados — 70 verificações aprovadas, 2 ignoradas
+  (padrão `c23` no driver do zig; execução de binários Windows sem `wine`).
+* **Auditoria de símbolos**: `nm` prova que incluir `basicgol.h` em vários `.c` não
+  exporta nenhum global extra, então não há colisão no linker.
+* **C++**: os headers de módulo em `include/basicgol/` compilam, ligam e rodam em C++17
+  (`extern "C"` + `BG_NORETURN`); `<basicgol.h>` continua **só C**, de propósito (D-15).
+* **Oito defeitos encontrados e corrigidos** em [`docs/13`](docs/13-defeitos-e-correcoes.md),
+  incluindo um de gravidade alta: `LEIA(LOGICO)` gravava um ponteiro de 8 bytes num
+  objeto de 1 byte (stack-buffer-overflow), porque o `_Generic` do `LEIA` tinha
+  `default: "%p"`. Hoje é **erro de compilação**, com ou sem `-Werror`.
+* **Nada de "suportado" sem execução**: o job `msvc` executa build + testes com `cl.exe`
+  no Windows a cada push/PR; AArch64 está **compilado, não executado**. A tabela de
+  estados é a fonte da verdade.
 
 ## Escopo
 
@@ -269,9 +325,17 @@ clang -std=c11 -Wall -Wextra -Wformat=2 -Wvla -I include programa.c \
 ```
 
 `-lm` é necessário em plataformas que separam a libm (por exemplo, Linux); em
-plataformas que incorporam a biblioteca matemática, omita a flag. O CI
-(`.github/workflows/testes.yml`) valida GCC e Clang em `-std=c11` e `-std=c17` para a
-linguagem; os módulos são compilados como C11.
+plataformas que incorporam a biblioteca matemática, omita a flag. O CI valida GCC e
+Clang em `-std=c11` e `-std=c17` (`.github/workflows/testes.yml`) e MSVC com `cl.exe` em
+`-std=c11` (`.github/workflows/msvc.yml`); os módulos são compilados como C11.
+
+> **Sobre o Clang neste projeto.** O que foi executado foi o *frontend* Clang (20.1.2),
+> através do `zig cc` 0.15.1, porque não havia binário do LLVM disponível. Os comandos
+> acima com `clang` são os mesmos e a expectativa é idêntica, mas **não há registro de
+> execução com o driver `clang`** — está declarado assim em
+> [`docs/11 §1`](docs/11-matriz-compatibilidade.md). Instruções por ferramenta (MSVC,
+> MinGW-w64, `zig cc`, alvos cruzados, sanitizers e o conjunto de avisos) estão em
+> [`docs/10-compiladores.md`](docs/10-compiladores.md).
 
 ### MinGW-w64 no Windows
 
@@ -307,19 +371,34 @@ gcc -std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror -I include \
 ./ola_mundo.exe
 ```
 
-### Compatibilidade com MSVC (avaliação)
+### Compatibilidade com MSVC (verificada em CI)
 
-O código usa C11 padrão, sem extensões GNU ou recursos de C++ (D-15, C-11). A
-compatibilidade com `cl.exe` não foi executada neste ambiente; para compilar sem o
-archive Unix, passe os fontes dos módulos ao compilador:
+O código usa C11 padrão, sem extensões GNU ou recursos de C++ (D-15, C-11). O workflow
+[`msvc.yml`](.github/workflows/msvc.yml) compila e testa o projeto com `cl.exe`
+(Windows `windows-latest`, Visual Studio 2022, x64) a cada push e pull request:
+
+- `tools/basicgolc.c`, `src/biblioteca/*.c` e `tests/test_biblioteca.c` com
+  `/std:c11 /W4 /WX` (equivalente aproximado de `-Wall -Wextra -Wformat=2 -Wvla -Werror`;
+  `/W4` é onde o MSVC enxerga o que `-Wall -Wextra` enxerga);
+- a biblioteca empacotada como `.lib` por `lib.exe` (`build/libbasicgol.lib`),
+  substituindo o `ar` do Makefile;
+- os testes unitários da biblioteca, rodados pelo mesmo script usado em Linux
+  (as comparações normalizam `\r`, já que o CRT escreve `\n` como `\r\n` no modo texto);
+- os exemplos de `docs/exemplos` compilados nos caminhos M0 e M1 e comparados com a
+  saída dourada (`tests/run_msvc.sh`).
 
 | Item | Avaliação |
 |---|---|
-| Modo C | `/std:c11` ou `/std:c17` (MSVC ≥ 19.28 / Visual Studio 2019 16.8+ para `_Generic`, `_Static_assert` e `_Noreturn`). |
-| Comando indicativo | `cl /std:c11 /Iinclude programa.c src\biblioteca\consola.c src\biblioteca\matematica.c src\biblioteca\texto.c src\biblioteca\caractere.c src\biblioteca\utilidades.c /Fe:programa.exe` (não verificado aqui). |
-| Build archive | O Makefile usa `ar`; para MSVC, ligue os fontes diretamente ou crie um `.lib` com as ferramentas da plataforma. |
-| Matemática | Windows CRT geralmente não requer `-lm`; verifique a toolchain escolhida. |
+| Modo C | `/std:c11` ou `/std:c17` (MSVC ≥ 19.28 / Visual Studio 2019 16.8+ para `_Generic`, `_Static_assert` e `_Noreturn`); o CI verifica `/std:c11`. |
+| Comando | `cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include programa.c /Fe:programa.exe /link build\libbasicgol.lib` |
+| Build archive | O Makefile usa `ar`; o workflow `msvc.yml` usa `lib.exe` (`build/libbasicgol.lib`). Para compilar sem o archive, passe os fontes dos módulos ao compilador (como no comando acima). |
+| Matemática | A UCRT incorpora a matemática; `-lm` não existe (e não é necessário). |
 | `long double` / `%Lg` | no MSVC `long double` equivale a `double`; `%Lg` é aceito pelo CRT. |
+| `_CRT_*` | os `/D_CRT_SECURE_NO_WARNINGS` e `/D_CRT_NONSTDC_NO_WARNINGS` silenciam o C4996 (o CRT "sugere" `scanf_s`/`strncpy_s`); o projeto usa deliberadamente as funções do C11 padrão. |
+
+Localmente, o mesmo fluxo funciona num Developer Command Prompt (ou Git Bash com
+`cl.exe` no `PATH`): o `msvc.yml` mostra as linhas exatas de `cl`/`lib`, e
+`tests/run_msvc.sh` reconstrói os exemplos e confere a saída dourada.
 
 Se um projeto tratar `.c` como C++, forçar `/TC` no arquivo-fonte (a extensão já é
 `.c`, então não há renomeação — D-14). Para incluir `basicgol.h` em um projeto C
@@ -329,8 +408,14 @@ existente sem riscos de colisão de nomes, use `#define BG_SEM_APELIDOS` antes d
 ## Testes de fumaça (compilar e rodar)
 
 ```sh
-make smoke        # linguagem M0/M1 + testes unitários e de integração da biblioteca
-make smoke-v      # idem, mostrando cada caso aprovado
+make test               # 307 da linguagem + 230 unitárias + 30 de integração
+make test-v             # idem, mostrando cada verificação aprovada
+make test-sanitize      # a suíte inteira sob ASan + UBSan + LeakSanitizer
+make test-portabilidade # matriz de compiladores, avisos, multi-UO, C++, alvos cruzados
+make test-matriz        # a suíte inteira com cada compilador encontrado
+make fuzz               # mutação determinística do transpilador
+make test-checkout      # os comandos deste README, a partir de um checkout limpo
+make smoke              # sinônimo de make test (nome antigo, mantido)
 ```
 
 `make smoke` é sinônimo de `make test`: compila todos os casos de `tests/casos`, os 24
@@ -376,21 +461,22 @@ gcc -std=c11 -Wall -Wextra -I include docs/exemplos/ola_mundo.c \
 
 ## Limitações conhecidas (resumo)
 
-A lista completa e sua justificativa está em [`docs/04-restricoes-e-decisoes.md`](docs/04-restricoes-e-decisoes.md) (restrições C-01…C-23 e decisões D-01…D-18); o sumário executivo está em [`docs/01-especificacao.md` §19](docs/01-especificacao.md). Os principais itens que afetam o uso diário:
+A lista completa e sua justificativa está em [`docs/04-restricoes-e-decisoes.md`](docs/04-restricoes-e-decisoes.md) (restrições C-01…C-23 e decisões D-01…D-28); o sumário executivo está em [`docs/01-especificacao.md` §19](docs/01-especificacao.md). Os principais itens que afetam o uso diário:
 
 1. **Sintaxe que reordena tokens só em M1**: `PARA i DE 1 ATE 10 FACA` exige `basicgolc`; no caminho M0 use `PARA (i, 1, 10) { }` (C-01).
 2. **Um valor por chamada de saída**: `ESCREVAL(a, b)` não existe — use `ESCREVA_FMT` ou chamadas separadas (C-03, D-07).
 3. **`MOD=` não existe**: `x MOD= 2` vira `x % = 2` e não compila; escreva `x = x MOD 2` ou `x %= 2` (C-01).
 4. **`SE` exige `ENTAO`**: `SE x { }` e `SENAO SE` são proibidos; use `SENAO_SE` (C-05, C-06).
 5. **Fechamento explícito**: `FIM_SE`, `FIM_ENQUANTO`, `FIM_ESCOLHA`, `FIM_PARA`, `FIM` são obrigatórios; a indentação não fecha blocos (C-14).
-6. **Texto imutável**: `TEXTO` é `const char *` — não modifique caracteres; use `TEXTO_FIXO` para buffers. `TAMANHO_VETOR` não confere em ponteiros (C-17, C-18).
+6. **Texto imutável**: `TEXTO` é `const char *` — não modifique caracteres; use `TEXTO_FIXO` para buffers. `TAMANHO_VETOR` não confere em ponteiros (C-17, C-18): nos dois compiladores, `-Wsizeof-pointer-div` avisa, e o caso `n23` fixa isso.
 7. **Tamanho de vetor**: literal inteiro ou `#define`; `CONSTANTE` (`static const`) **não** é expressão constante em C e faria VLA (C-23).
 8. **`LEIA_TEXTO` consome um `\n` pendente, se houver, e lê a linha seguinte** — nunca descarta conteúdo quando nada está pendente (contrato C-20).
 9. **Avaliação de argumentos**: `ABS`, `MINIMO`, `MAXIMO`, `ESCREVA`, `ESCREVAL` e `LEIA` avaliam cada argumento exatamente uma vez (P-11, verificado com `ABS(++i)`). A exceção é o **passo de `PARA_PASSO`**, reavaliado a cada iteração — não use expressão com efeito colateral como passo.
 10. **Sem rede de segurança em tempo de execução**: sem verificação de limites de vetor, sem detecção de tipo em tempo de execução, sem exceções; estouro de inteiro com sinal é comportamento indefinido de C (PT-E).
-11. **C11 obrigatório**: C99 é rejeitado com mensagem clara (falta `_Generic`); C++ não é suportado (D-15).
+11. **C11 obrigatório**: C99 é rejeitado com mensagem clara (falta `_Generic`); C++ não é suportado (D-15). Os *headers de módulo* (`include/basicgol/*.h`) podem ser usados de C++17.
 12. **Controle de fluxo** (detalhes em [`docs/07-controle-de-fluxo.md`](docs/07-controle-de-fluxo.md) §8): não há `PARE` rotulado nem `goto` (use uma bandeira); `PARE` dentro de `ESCOLHA` sai só do `ESCOLHA`; `SENAO SE` é recusado pelo M1 mas o M0 o aceita como bloco aninhado; a forma `PARA (i, a, b) { }` usa chaves de C; limites como `INT_MAX` nunca são alcançados e laços sobre `NATURAL` com limite `n - 1` podem não terminar.
-13. **Diagnóstico no M0 aponta para o cabeçalho**: mensagens de macro citam `BG_*`; para diagnósticos que apontam para a linha do fonte do aluno, use o caminho M1 (`basicgolc`, erros com linha e coluna, §12.5 de `docs/01-especificacao.md`).
+13. **`LEIA` só lê escalares numéricos e `CARACTERE`**: `LEIA(LOGICO)`, `LEIA(TEXTO)` e `LEIA(TEXTO_FIXO(...))` são **erro de compilação** (o `_Generic` do formato não tem `default`); para texto use `LEIA_TEXTO`/`LEIA_TEXTO_FIXO`. Antes da Fase 6 isso era apenas aviso — e corrompia a pilha (DF-01 em [`docs/13`](docs/13-defeitos-e-correcoes.md)).
+14. **Diagnóstico no M0 aponta para o cabeçalho**: mensagens de macro citam `BG_*`; para diagnósticos que apontam para a linha do fonte do aluno, use o caminho M1 (`basicgolc`, erros com linha e coluna, §12.5 de `docs/01-especificacao.md`).
 
 ## Licença
 

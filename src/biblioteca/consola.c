@@ -18,8 +18,7 @@ _Noreturn void bg_erro(const char *arquivo, int linha, const char *mensagem)
 int bg_passo_zero(const char *arquivo, int linha)
 {
     bg_erro(arquivo, linha, "PARA_PASSO: passo zero (o laco nunca avancaria)");
-    return 0; /* inalcançável; mantém compatibilidade com compiladores C11 */
-}
+} /* chamada _Noreturn: fim inalcançável (MSVC C4702) */
 
 bool bg_leia_linha(FILE *entrada, char *destino, size_t capacidade)
 {

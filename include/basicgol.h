@@ -253,12 +253,30 @@
     unsigned long long: "%llu", float: "%g", double: "%g",              \
     long double: "%Lg", char *: "%s", const char *: "%s", default: "%p")
 
+/* Sem `default:` de propósito (falha de tipo → erro de compilação).
+ *
+ * A versão anterior terminava em `default: "%p"`, e `%p` faz o scanf ESCREVER
+ * um ponteiro no destino: em `LEIA(LOGICO)` isso gravava 8 bytes num objeto de
+ * 1 byte (stack-buffer-overflow, visto no ASan) e em `LEIA(TEXTO_FIXO(...))`
+ * gravava um endereço dentro do buffer. Quem pegava o problema era só o
+ * `-Wformat` — um aviso, que a linha de compilação documentada no README não
+ * transforma em erro.
+ *
+ * C11 6.5.1.1p3: sem `default`, um tipo de controle que não casa com nenhuma
+ * associação é violação de restrição. Ou seja, o erro passa a ser de
+ * compilação por padrão, com ou sem -Werror, nos dois compiladores testados:
+ *   GCC:   '_Generic' selector of type '_Bool *' is not compatible with any association
+ *   Clang: controlling expression type 'bool *' not compatible with any generic
+ *          association type
+ * Para ler texto use LEIA_TEXTO(buf, tam); para ler números/char, LEIA.
+ * (BG_FMT, de saída, mantém `default: "%p"`: imprimir ponteiro é útil e não
+ * escreve na memória do programa.) */
 #define BG_SFMT(x) _Generic(&(x),                                      \
     int *: "%d", unsigned *: "%u", long *: "%ld", unsigned long *: "%lu", \
     long long *: "%lld", unsigned long long *: "%llu",                    \
     float *: "%f", double *: "%lf", long double *: "%Lf",                 \
     char *: " %c", signed char *: " %hhd", unsigned char *: "%hhu",       \
-    short *: "%hd", unsigned short *: "%hu", default: "%p")
+    short *: "%hd", unsigned short *: "%hu")
 
 #define BG_ESCREVA(x)           printf(BG_FMT(x), (x))
 #define BG_ESCREVAL(x)          (printf(BG_FMT(x), (x)), fputc('\n', stdout))
