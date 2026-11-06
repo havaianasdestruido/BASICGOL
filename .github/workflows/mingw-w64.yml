@@ -62,8 +62,22 @@ jobs:
       - name: Build transpiler and static library
         run: make all CC=gcc AR=ar
 
+      - name: Inspect Windows executables
+        run: |
+          printf '::notice::build files: %s\n' "$(ls build)"
+          for tool in build/basicgolc build/basicgolc.exe; do
+            if [ -x "$tool" ]; then status=executable; else status=missing; fi
+            printf '::notice::%s: %s\n' "$tool" "$status"
+          done
+
       - name: Run language and library tests
-        run: make test CC=gcc AR=ar
+        run: |
+          if ! make test CC=gcc AR=ar > build/test.log 2>&1; then
+            cat build/test.log
+            head -12 build/test.log | sed 's/^/::error::/'
+            exit 1
+          fi
+          cat build/test.log
 
       - name: Build examples
         run: make exemplos CC=gcc AR=ar
