@@ -1099,7 +1099,7 @@ Compilação: `cc -std=c11 -Iinclude principal.c biblioteca.c build/libbasicgol.
 | PT-F | Nenhuma dependência de sistema operacional nas construções da linguagem. Console é `stdio`; `LIMPA_TELA` e cores **não** existem em v1.0. |
 | PT-G | Sem `#pragma` obrigatório, sem atributos de compilador, sem `__attribute__`. |
 | PT-H | Avisos recomendados: `-Wall -Wextra -Wformat=2`. Recomenda-se **não** usar `-Wpedantic` no caminho M0 em código que usa `INICIO` (o `main` gerado por macro pode gerar ruído em algumas combinações). |
-| PT-I | Windows/MSVC: fontes continuam `.c`; compile também os módulos de `src/biblioteca/` ou empacote-os em `.lib`. A avaliação de MSVC não foi executada neste repositório. |
+| PT-I | Windows/MSVC: fontes continuam `.c`; compile também os módulos de `src/biblioteca/` ou empacote-os em `.lib`. A compatibilidade com MSVC é verificada em CI (workflow `msvc.yml`): `/std:c11`, `/W4 /WX` no núcleo, archive por `lib.exe` e exemplos conferidos contra a saída dourada (M0 e M1). |
 
 ---
 

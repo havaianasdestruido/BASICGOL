@@ -717,4 +717,4 @@ Fase 2 pode começar por ele com risco técnico baixo.
 | R-05 | M1 vira um compilador de fato e atrasa a entrega | média | alto | limite de 4 atividades no autômato (§4.2 do 01); C nativo como escape |
 | R-06 | Divergência semântica M0 × M1 | baixa | alto | AC-06 (comparação de saídas) na Fase 2 |
 | R-07 | `_Generic` com tipos inesperados (enum, ponteiro) imprime errado sem aviso | média | médio | `ESCREVA_TEXTO`/`ESCREVA_FMT`, documentação, D-09 |
-| R-08 | Dependência de `-lm` em Windows/MinGW | baixa | baixo | PT-C documentado; exemplos testados em Linux e MinGW |
+| R-08 | Dependência de `-lm` em Windows/MinGW/MSVC | baixa | baixo | PT-C documentado; exemplos testados em Linux, MinGW e MSVC (CI); na UCRT `-lm` nem existe |

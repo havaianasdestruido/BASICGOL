@@ -1,0 +1,74 @@
+name: msvc
+
+# Compila e testa o BASICGOL com o Microsoft Visual C++ (cl.exe), na raiz
+# Windows deste projeto. Complementa o testes.yml (GCC/Clang em Linux):
+# nenhuma fonte depende de extensão de GNU (D-15), e esta suíte prova isso.
+#
+# Particularidades do MSVC usadas aqui:
+#   /TC        fontes sempre C, mesmo num projeto configurado como C++ (D-14)
+#   /std:c11   cl.exe moderno (VS 2019 16.8+ / VS 2022) tem _Generic e
+#              _Static_assert; sem ele o cabeçalho recusa compilar
+#   /W4 /WX    equivalente aproximado de -Wall -Wextra -Werror do testes.yml
+#   lib.exe    no lugar do `ar rcs` do Makefile; empacota build/libbasicgol.lib
+#   -lm        desnecessário na UCRT (o math entra na biblioteca padrão)
+#   _CRT_*     silenciam C4996 (o CRT pede scanf_s/strncpy_s; o projeto usa
+#              as funções C11 padrão deliberadamente)
+#
+# Os exemplos e os testes dourados rodam sob Git Bash (shell: bash), com as
+# comparações de bytes normalizando \r — o CRT escreve \n como \r\n no modo
+# texto. O runner dos exemplos é tests/run_msvc.sh; nele os exemplos são
+# compilados com /W3 /WX (código didático), enquanto o núcleo produto
+# (ferramenta, biblioteca, testes) usa /W4 /WX.
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  construir:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Coloca cl.exe/lib.exe no PATH com ambiente x64. É a forma padrão de
+      # ativar a toolchain em runners Windows; o Visual Studio já vem na
+      # imagem. Se preferir não usar a action, chame VsDevCmd.bat do VS mais
+      # recente dentro de um único passo cmd — o resultado é o mesmo.
+      - name: ativar toolchain MSVC (x64)
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: basicgolc (transpilador M1)
+        shell: cmd
+        run: |
+          if not exist build mkdir build
+          cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS tools\basicgolc.c /Fo:build\basicgolc.obj /Fe:build\basicgolc.exe
+
+      - name: biblioteca estatica (libbasicgol.lib)
+        shell: cmd
+        run: |
+          if not exist build\biblioteca mkdir build\biblioteca
+          for %%f in (src\biblioteca\*.c) do cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include /c %%f /Fo:build\biblioteca\
+          lib /nologo /OUT:build\libbasicgol.lib build\biblioteca\*.obj
+
+      - name: testes unitarios da biblioteca (test_biblioteca)
+        shell: cmd
+        run: cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include tests\test_biblioteca.c build\libbasicgol.lib /Fo:build\test-biblioteca.obj /Fe:build\test-biblioteca.exe
+
+      - name: rodar testes unitarios (wrappers, fatal, limites)
+        shell: bash
+        run: ./tests/run_biblioteca.sh build/test-biblioteca.exe
+
+      - name: exemplos com saida dourada (M0 e M1)
+        shell: bash
+        run: ./tests/run_msvc.sh
+
+      - name: diagnostico (apenas em falha)
+        if: failure()
+        continue-on-error: true
+        shell: bash
+        run: |
+          where cl || true
+          cl 2>&1 | head -2 || true
+          git log --oneline -1

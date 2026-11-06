@@ -1,0 +1,12 @@
+# BASICGOL — atributos de quebra de linha
+# Scripts de shell precisam de LF mesmo num checkout Windows (o shebang
+# não sobrevive ao CRLF em alguns shells). O restante é texto do projeto.
+* text=auto
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.obj binary
+*.lib binary
+*.exe binary
+*.pdb binary
+*.ilk binary

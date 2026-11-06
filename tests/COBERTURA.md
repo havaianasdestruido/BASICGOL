@@ -115,7 +115,7 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `POTENCIA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/test_biblioteca.c` |
 | `PROCEDIMENTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/07_multiarquivo/m01_modulos/comum.h` (+10) |
 | `PROSSIGA` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/03_controle/c30_repita_prossiga/programa.c`, `tests/casos/03_controle/c35_escolha_no_laco/programa.c` (+6) |
-| `RAIZ` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/run.sh`, `tests/test_biblioteca.c` |
+| `RAIZ` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/run.sh`, `tests/run_msvc.sh`, `tests/test_biblioteca.c` |
 | `REAL` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h` (+12) |
 | `REAL_CURTO` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c`, `tests/casos/05_entrada_saida/i01_formatos/programa.c` (+2) |
 | `REAL_LONGO` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c`, `tests/casos/05_entrada_saida/i01_formatos/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` (+1) |
