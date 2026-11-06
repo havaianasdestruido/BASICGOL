@@ -66,8 +66,10 @@ jobs:
         run: |
           if ! make test CC=gcc AR=ar > build/test.log 2>&1; then
             cat build/test.log
-            grep -A1 'FALHA' build/test.log | head -40 | sed 's/^/::error::/'
             tail -8 build/test.log | sed 's/^/::error::/'
+            sed -n '/FALHA 02_basico\/b01_ola (M0)/,+6p' build/test.log | tr '\r' '?' | sed 's/^/::error::/'
+            od -An -tx1 tests/casos/02_basico/b01_ola/esperado.txt | head -2 | sed 's/^/::error::/'
+            grep -A1 'FALHA' build/test.log | head -30 | sed 's/^/::error::/'
             exit 1
           fi
           cat build/test.log
