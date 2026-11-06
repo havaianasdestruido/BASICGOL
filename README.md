@@ -59,6 +59,18 @@ A grande vantagem de usar o `BASICGOL` ao invés de `Portugol`, é o fato de que
 
 Meu foco principal é em compatibilidade multi-plataforma e multi-compilador, não quero que `BASICGOL` fique "preso" num estado aonde só compila no MSVC no Windows, quero que também funcione, por exemplo, no GCC sob Linux.
 
+Atualmente, o sistema tem foco principal nos seguintes compiladores:
+
+- [x] GNU Compiler Collection (GCC) – Um dos compiladores livres e de código aberto mais populares e amplamente utilizados para C, suportando diversas arquiteturas e sistemas operacionais (Linux, Windows, macOS).
+- [x] Clang (LLVM) – Compilador de código aberto baseado no projeto LLVM, conhecido por diagnósticos de erro rápidos e detalhados.
+- [x] Microsoft Visual C++ (MSVC) – O compilador C/C++ da Microsoft integrado ao Visual Studio, muito utilizado no ecossistema Windows.
+- [ ] Intel oneAPI DPC++/C++ Compiler (ICX/ICPX) – Compilador de alto desempenho desenvolvido pela Intel voltado para otimização em arquiteturas x86 e HPC (computação de alto desempenho).
+- [x] MinGW-w64 – Uma versão nativa do GCC adaptada para o ambiente Windows (32 e 64 bits).
+- [ ] Tiny C Compiler (TCC) – Um compilador C pequeno, leve e extremamente rápido, ideal para sistemas com poucos recursos ou discos de resgate.
+- [ ] Portable C Compiler (PCC) – Um compilador C leve e portátil baseado no compilador original de Stephen C. Johnson.
+- [ ] Digital Mars C/C++ – Compilador voltado para DOS, Windows e sistemas x86 com foco em velocidade de compilação.
+- [ ] Open64 – Compilador open-source voltado para otimizações agressivas em arquiteturas de 64 bits.
+
 Eu tenho planos bem ambiciosos com essa linguagem (_uns até de mais_), os que me vem na cabeça nesse momento são:
 
 - [ ] Fazer um bootloader exibindo "Olá Mundo!" em `BASICGOL` **puro**
