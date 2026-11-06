@@ -29,7 +29,7 @@
 | 7 | MSVC `cl.exe` | — | Windows | — | **avaliado** (§4) |
 | 8 | MinGW-w64 GCC nativo | — | Windows | — | **não testado** (só o alvo 5, via cross) |
 | 9 | Clang do LLVM (driver `clang`/`clang-cl`) | — | — | indisponível na máquina | **não testado** (o frontend é o do item 2) |
-| 10 | TCC, Intel oneAPI (`icx`), PCC, Digital Mars, Open64 | — | — | indisponíveis | **não testado** |
+| 10 | TCC, Intel oneAPI (`icx`), PCC, Digital Mars, Open64 | — | — | indisponíveis | **não testado** (ver também a §8, que amplia esta lista com os candidatos coletados) |
 | 11 | `wine` (execução de binários Windows) | — | — | ausente | **não testado** |
 
 Observação sobre o item 2: o `zig cc` **é** o frontend Clang, mas o driver, o
@@ -135,7 +135,105 @@ execução. Isso é uma lacuna declarada, não uma aprovação.
 * **Avaliado, não executado:** MSVC (VS 2019 16.8+), com os riscos listados na
   §4.
 * **Não testado:** clang/clang-cl do LLVM como driver, MinGW nativo, TCC, icx,
-  PCC, execution em AArch64 e em Windows, `wine`, sanitizers no MSVC.
+  PCC, execução em AArch64 e em Windows, `wine`, sanitizers no MSVC — e toda a
+  §8 (outros ~45 compiladores C conhecidos, do mais ao menos conhecido; nada
+  foi executado).
 
 Nenhum item de "avaliado" ou "não testado" autoriza escrever "suportado" em
 lugar nenhum do projeto.
+
+---
+
+## 8. Candidatos conhecidos, não obtidos (lista coletada; nada executado)
+
+> **Nada nesta seção foi executado, compilado ou avaliado.** Nenhum destes
+> compiladores existe na máquina onde esta matriz foi produzida; pelo
+> vocabulário do cabeçalho da página, todos são **não testado**. As colunas de
+> licença e de conformidade foram copiadas da [lista de compiladores da
+> Wikipédia](https://en.wikipedia.org/wiki/List_of_compilers) (seção C; a
+> própria página se declara "incomplete list" desde março de 2009) e de
+> comentários do Reddit, e servem apenas como **triagem** — não como promessa
+> de conformidade e não como leitura de documentação de fornecedor. Onde a
+> fonte traz `?`, a célula traz `?`. A Wikipédia e o Reddit não são fontes do
+> fornecedor: nenhum item aqui gradua para "avaliado" sem trabalho de verdade
+> (ler a doc do fornecedor e o código), e para "executado"/"compilado" só com
+> comando rodado e saída conferida — nesse caso a linha migra para a §1.
+>
+> **Ordem:** do mais conhecido para o menos conhecido. O critério é subjetivo
+> (visibilidade pública, histórico, presença em discussões); não é prioridade
+> de teste, não é ranking de qualidade e não altera o estado de nenhum item.
+>
+> GCC, Clang, MSVC, MinGW-w64 e G++ já estão nas §1 e §4 e **não** são
+> repetidos aqui. TCC, `icx`, PCC, Digital Mars e Open64 já constam em §1,
+> item 10, e aparecem também abaixo para manter a ordenação completa.
+> `tests/run_matriz.sh` só descobre `cc`, `gcc`, `clang*`, `tcc` e o que
+> `$T_CC_ALT` indicar no `PATH`: nenhum item desta tabela entra na suíte
+> enquanto não for instalado.
+
+| # | Compilador (autor / organização) | SO (segundo a fonte) | Licença (segundo a fonte) | C89 | C99 | C11 | C17 | Notas e links |
+|---|---|---|---|---|---|---|---|---|
+| 1 | [Tiny C Compiler (TCC)](http://bellard.org/tcc/) — Fabrice Bellard | Win ✓, Unix ✓ (bare-metal: não) | LGPL | sim | parcial | parcial | ? | Reddit: "o compilador C99 mais rápido conhecido" (Bellard). Já em §1, item 10. |
+| 2 | [Intel oneAPI icx](https://www.intel.com/) — Intel | Win ✓, Unix: Linux (outros: não) | Freeware (suporte prioritário opcional) | sim | sim | sim | sim | Conformidade sim×4 segundo a Wikipédia (nota 13 da lista). Já em §1, item 10. |
+| 3 | Intel C++ Compiler Classic (icc) — Intel | Win ✓, Unix: Linux, macOS | Freeware (suporte prioritário opcional) | sim | parcial | parcial | ? | Mesma família do item 2; a Wikipédia o lista separadamente. |
+| 4 | [Oracle C compiler](http://www.oracle.com/technetwork/server-storage/solarisstudio/downloads/index-jsp-141149.html) (Oracle Solaris Studio) — Oracle | Unix: Solaris, Linux (Win: não) | Proprietário (Freeware) | sim | sim | sim | não | Sugerido por [u/wang_li](https://www.reddit.com/user/wang_li/). O link do Reddit é o do antigo Solaris Studio (provavelmente datado). O comentário u/FUZxxl observa que não há link oficial para o compilador C da Sun — que virou este. |
+| 5 | [IBM XL C/C++](https://en.wikipedia.org/wiki/List_of_compilers) — IBM | Unix: AIX, Linux, z/OS, z/VM (Win: não) | Proprietário | sim | sim | sim | sim | Conformidade sim×4 segundo a Wikipédia. |
+| 6 | [pcc (Portable C Compiler)](http://pcc.ludd.ltu.se/) — Stephen C. Johnson, Anders Magnusson e outros | Win ✓, Unix ✓, outros ✓ | BSD | sim | parcial | não | ? | Reddit: "pcc, o compilador C99 portátil". O ramo moderno é mantido por Magnusson (Wikipédia). Já em §1, item 10. |
+| 7 | [lcc](https://sites.google.com/site/lccretargetablecompiler/) — Chris Fraser, David Hanson | Win ✓, Unix ✓, outros ✓ | Freeware (fonte para uso não comercial) | sim | não | não | ? | Reddit: "lcc, um compilador C99 reorientável". A Wikipédia o lista como reorientável. |
+| 8 | [Open Watcom / Watcom C/C++](https://github.com/open-watcom/open-watcom-v2) — Watcom (hoje o projeto open-watcom) | Win (experimental, segundo a Wikipédia), DOS, OS/2 | Sybase Open Watcom Public License | sim | parcial | não | ? | Sugerido por [u/staalmannen](https://www.reddit.com/user/staalmannen/): "os únicos compiladores 16-bit decentes ainda vivos". |
+| 9 | [SDCC (Small Device C Compiler)](http://sdcc.sourceforge.net/) — Sandeep Dutta e outros | Win ✓, Unix ✓, bare-metal ✓ | GPL | ? | ? | ? | ? | Sugerido por [u/skeeto](https://www.reddit.com/user/skeeto/): "um compilador ANSI C reorientável". Voltado a embebidos/microcontroladores. |
+| 10 | [VBCC](http://sun.hasenbraten.de/vbcc) — Volker Barthelmann | Win ✓, Unix ✓, outros ✓ | Freeware (fonte disponível; modificação não permitida) | sim | parcial | não | ? | Sugerido por [u/dmitrinove](https://www.reddit.com/user/dmitrinove/): "um compilador ISO C portátil e reorientável altamente otimizado". |
+| 11 | [AOCC (AMD Optimizing C/C++ Compiler)](https://en.wikipedia.org/wiki/List_of_compilers) — AMD | Unix ✓ (Win: não) | Proprietário | sim | sim | sim | sim | Fork da AMD sobre LLVM/Clang (conhecimento geral; não verificado). |
+| 12 | [Digital Mars](https://en.wikipedia.org/wiki/List_of_compilers) — Digital Mars | Win ✓ (Unix: não) | Proprietário | ? | ? | ? | ? | Já em §1, item 10. |
+| 13 | [Open64](https://en.wikipedia.org/wiki/List_of_compilers) — AMD, SGI, Google, HP, Intel, Nvidia, PathScale, Tsinghua e outros | Unix ✓, outros ✓ (Win: não) | GPL | ? | ? | ? | ? | Já em §1, item 10. |
+| 14 | [PGCC](https://en.wikipedia.org/wiki/List_of_compilers) — The Portland Group | Win ✓, Unix ✓, outros: desconhecido | Proprietário | ? | ? | ? | ? | Linha de otimização para HPC da Portland Group (conhecimento geral; não verificado). |
+| 15 | [Pelles C](http://www.smorgasbordet.com/pellesc/) — Pelles Software (a fonte não informa) | Win ✓ — IDE completa: compilador, assembler, macro assembler e mais | não informada na fonte colada; freeware (conhecimento geral, não verificado) | ? | ? | ? | ? | Sugerido por [u/systemsock](https://www.reddit.com/user/systemsock/): "uma pequena IDE para Windows". |
+| 16 | [CompCert](https://en.wikipedia.org/wiki/List_of_compilers) — INRIA | Win ✓, Unix ✓ | Freeware (uso não comercial) ou GPL | sim | parcial | não | ? | Compilador C formalmente verificado (conhecimento geral; não verificado). |
+| 17 | [Turbo C](https://en.wikipedia.org/wiki/List_of_compilers) — Borland; hoje Embarcadero | Win ✓, outros ✓ (Unix: não) | Proprietário; a v2.01 é livremente disponível segundo a Wikipédia | ? | ? | ? | ? | Histórico; marco da era DOS. |
+| 18 | [C++Builder](https://en.wikipedia.org/wiki/List_of_compilers) — Embarcadero | Win ✓, Unix: iOS e Android (segundo a Wikipédia) | Proprietário | sim | sim | parcial | ? | IDE C++ que também aceita C; não é um compilador C puro. |
+| 19 | [cc65](https://en.wikipedia.org/wiki/List_of_compilers) — não consta na fonte | Unix ✓, bare-metal ✓ (Win: não) | Zlib License | não | não | não | não | Alvo 6502 (nome do projeto); popular na retrocomputação. |
+| 20 | [Edison Design Group (EDG)](https://en.wikipedia.org/wiki/List_of_compilers) — Edison Design Group | Win ✓, Unix ✓, outros ✓ | Proprietário | sim | sim | sim | sim | Front-end C/C++ licenciado a terceiros e usado como base de outros produtos (conhecimento geral; não verificado). |
+| 21 | [bcc (Bruce's C Compiler)](http://linux.die.net/man/1/bcc) — Bruce Evans | Unix ✓ (Win: não) | "GNU License" (como consta na Wikipédia) | ? | ? | ? | ? | Sugerido por [u/skeeto](https://www.reddit.com/user/skeeto/): "Compilador ANSI C do Bruce". Não confundir com o `bcc` de BPF/clang-tools (precisão minha, não da fonte). |
+| 22 | [Ch](https://en.wikipedia.org/wiki/List_of_compilers) — SoftIntegration, Inc | Win ✓, Unix: macOS, FreeBSD, Linux, Solaris, HP-UX, AIX, QNX; bare-metal ✓ | Freeware | sim | sim | não | ? | Interpretador C/C++ embutível (conhecimento geral; não verificado). |
+| 23 | [SEGGER Compiler](https://en.wikipedia.org/wiki/List_of_compilers) — Segger Microcontroller | Win ✓, Unix ✓, outros ✓ | Proprietário | sim | sim | parcial | parcial | Compilador para mercado embutido. |
+| 24 | [cproc](https://en.wikipedia.org/wiki/List_of_compilers) — Michael Forney | Win ✓, Unix ✓ (outros: não) | ISC | sim | sim | sim | sim | Rende com o backend QBE (conhecimento geral; não verificado); espírito minimalista. |
+| 25 | [scc](http://git.suckless.org/scc/) — projeto suckless | não consta na fonte | não informada na fonte (projetos suckless costumam usar MIT; não verificado) | ? | ? | ? | ? | Reddit: compilador C99 do projeto suckless. |
+| 26 | [8cc](https://github.com/rui314/8cc) — Rui Ueyama | Win ✓, Unix ✓ | MIT | sim | sim | sim | não | Reddit: "um compilador C11 pequeno e auto-compilável". Mesmo autor do `chibicc` (conhecimento geral; não verificado). |
+| 27 | [Amsterdam Compiler Kit (ack)](https://github.com/davidgiven/ack) — Andrew Tanenbaum, Ceriel Jacobs | Unix ✓, outros ✓ (Win: não) | BSD | ? | ? | ? | ? | Reddit: "o Amsterdam Compiler Kit, originalmente escrito para Minix. C89". |
+| 28 | [Small-C](https://en.wikipedia.org/wiki/List_of_compilers) — Ron Caine, James E. Hendrix (*Byte* magazine) | Win ✓, Unix ✓, outros: CP/M, DOS | Domínio público | parcial | não | não | ? | Histórico; marcou a era CP/M. |
+| 29 | [Interactive C](https://en.wikipedia.org/wiki/List_of_compilers) — KISS Institute for Practical Robotics | Win ✓, Unix: "Unix", macOS, Linux, IRIX, Solaris, SunOS | Freeware | parcial | não | não | ? | Voltado a robótica educacional. |
+| 30 | [Wind River (Diab) Compiler](https://en.wikipedia.org/wiki/List_of_compilers) — Wind River Systems | Win ✓, Unix ✓, outros ✓ | Proprietário | ? | ? | ? | ? | Mercado embutido (conhecimento geral; não verificado). |
+| 31 | [Aztec C](https://en.wikipedia.org/wiki/List_of_compilers) — Manx Software Systems | outros: CP/M, CP/M-86, DOS, Classic Mac OS | Proprietário | ? | ? | ? | ? | Clássico da era 8/16 bits e do Classic Mac OS. |
+| 32 | [THINK C / Lightspeed C](https://en.wikipedia.org/wiki/List_of_compilers) — THINK Technologies | outros: Classic Mac OS | Proprietário | ? | ? | ? | ? | Clássico do Classic Mac OS. |
+| 33 | [Lattice C](https://en.wikipedia.org/wiki/List_of_compilers) — Lifeboat Associates | Unix ✓, outros: DOS, OS/2, Commodore, Amiga, Atari ST, Sinclair QL | Proprietário | ? | ? | ? | ? | Popular em DOS/Amiga/Atari ST. |
+| 34 | [MPW C](https://en.wikipedia.org/wiki/List_of_compilers) — Apple | outros: Classic Mac OS | Proprietário | ? | ? | ? | ? | Macintosh Programmer's Workshop (nome por extenso na Wikipédia). |
+| 35 | [QuickC](https://en.wikipedia.org/wiki/List_of_compilers) — Microsoft | Win ✓ (Unix: não) | Proprietário | ? | ? | ? | ? | Ancestral leve do Visual C++ para DOS/Windows. |
+| 36 | [Acorn C/C++](https://en.wikipedia.org/wiki/List_of_compilers) — Acorn, Codemist | outros: RISC OS | Proprietário | sim | sim | não | sim | Linha copiada como consta na Wikipédia (desfecho incomum: C17 "sim" com C11 "não"; não auditada). |
+| 37 | [BDS C](https://en.wikipedia.org/wiki/List_of_compilers) — BD Software | outros: CP/M | Domínio público | ? | ? | ? | ? | Histórico; CP/M. |
+| 38 | [Digital Research C](https://en.wikipedia.org/wiki/List_of_compilers) — Digital Research | outros: CP/M, DOS | Proprietário | ? | ? | ? | ? | A própria Wikipédia marca "better source needed" no link da lista. |
+| 39 | [Whitesmiths C](https://en.wikipedia.org/wiki/List_of_compilers) — Whitesmiths Ltd | Unix ✓ (Win: não) | Proprietário (fonte disponível para uso não comercial) | não | ? | não | ? | Um dos primeiros compiladores C comerciais (conhecimento geral; não verificado). |
+| 40 | [Tandem C](https://en.wikipedia.org/wiki/List_of_compilers) — Tandem Computers | Unix ✓, outros: Guardian, NonStop Kernel, NonStop OS | Proprietário | sim | ? | ? | parcial | Mainframe tolerante a falhas. |
+| 41 | [MCP (Unisys)](https://en.wikipedia.org/wiki/List_of_compilers) — Unisys | outros: MCP (Burroughs) | Proprietário | ? | ? | ? | ? | Linha Burroughs/Unisys. |
+| 42 | [kencc](http://gsoc.cat-v.org/projects/kencc/) e os [compiladores Plan 9](http://plan9.bell-labs.com/sys/doc/compiler.html) — Bell Labs (Plan 9) | **não roda em Linux, macOS ou Windows** (segundo a fonte) | não informada na fonte colada | ? | ? | ? | ? | Sugerido por [u/FUZxxl](https://www.reddit.com/user/FUZxxl/). A fonte não achou link oficial para o compilador C da Sun (item 4). |
+| 43 | [Snyder-C-compiler (Alan Snyder's Portable C Compiler)](https://github.com/PDP-10/Snyder-C-compiler) — Alan Snyder; manutenção atual larsbrinkhoff | Unix ✓ (Win: não) | MIT | ? | ? | ? | ? | Alvo PDP-10; preservação histórica. |
+| 44 | [c](https://github.com/andrewchambers/c) — Andrew Chambers | não consta na fonte | não informada na fonte colada | ? | ? | sim (Reddit) | ? | Reddit: "tentativa de um compilador C11 muito elegante e pequeno por Andrew Chambers". |
+| 45 | [fcc](https://github.com/Fedjmike/fcc) — Fedjmike | não consta na fonte | não informada na fonte colada | ? | ? | sim (Reddit) | ? | Reddit: "Compilador C11 do Fedjmike". |
+| 46 | [nwcc](http://nwcc.sourceforge.net/) — Nils Weller | não consta na fonte | não informada na fonte colada | sim (Reddit) | ? | ? | ? | Reddit: "compilador C89 escrito por Nils Weller. Já capaz de compilar aplicações como, por exemplo, bash e lynx". |
+| 47 | [neatcc](http://repo.or.cz/w/neatcc.git) — não consta na fonte | não consta na fonte | não informada na fonte colada | sim, parcial/subconjunto ("sub-C89", Reddit) | não | não | não | Reddit: "compilador sub-C89 com os objetivos simplicidade, usabilidade e confiabilidade". Manual: [neatcc.pdf](http://litcave.rudi.ir/neatcc.pdf). |
+
+**Fontes.** Wikipédia, *List of compilers* — seção C
+(<https://en.wikipedia.org/wiki/List_of_compilers>), conforme colada nesta
+sessão em 2026-11-06 (a página se declara incompleta desde março de 2009);
+comentários do Reddit coletados pelo usuário (u/FUZxxl, u/systemsock,
+u/wang_li, u/staalmannen, u/skeeto, u/dmitrinove); páginas oficiais
+linkadas nas linhas; notas marcadas "conhecimento geral, não verificado" são
+indicações de contexto, não resultados de teste. Onde havia conflito ou
+ausência de dado, a célula registra `?` em vez de escolher. Anomalias copiadas
+da Wikipédia (p. ex. Acorn C/C++: C11 "não" com C17 "sim") foram mantidas como
+constam na fonte, sem auditoria.
+
+**Para promover um item desta tabela:** instalar/obter o compilador, rodar a
+suíte (`make test-matriz` serve de referência, embora hoje só descubra
+`cc`/`gcc`/`clang*`/`tcc`/`$T_CC_ALT`), registrar o resultado na §1 com
+versão, alvo, como foi obtido e estado honesto ("executado"/"compilado"/
+"avaliado"), e atualizar a §7. A mera presença nesta tabela não autoriza a
+palavra "suportado" em lugar nenhum do projeto.
