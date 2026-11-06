@@ -41,6 +41,17 @@ ok() {
     printf '  ok   %s\n' "$1"
 }
 
+# Em GitHub Actions, despeja o log de falha como annotations (::error::),
+# para que o motivo apareça no resumo do run e via API. Fora do Actions,
+# é silencioso.
+anota() {
+    [ "${GITHUB_ACTIONS:-}" = "true" ] || return 0
+    [ -n "${1:-}" ] || return 0
+    head -12 "$1" | while IFS= read -r linha; do
+        printf '::error::%s\n' "$linha"
+    done
+}
+
 falha() {
     FALHAS=$((FALHAS + 1))
     printf '  FALHA %s\n' "$1"
@@ -122,6 +133,7 @@ for fonte in docs/exemplos/*.c; do
                 /Fo:"$BUILD/$nome.obj" /Fe:"$exe" > "$TMP/log" 2>&1; then
             confere_saida "$nome" M0 "./$exe" "$entrada"
         else
+            anota "$TMP/log"
             falha "$nome (M0)" "compilacao falhou: $(head -3 "$TMP/log" | tr '\n' ' ')"
         fi
     fi
@@ -129,6 +141,7 @@ for fonte in docs/exemplos/*.c; do
     # ---- caminho M1 (transpilador)
     gerado="$BUILD/$nome.gerado.c"
     if ! "$T_BASICGOLC" "$fonte" -o "$gerado" > "$TMP/log" 2>&1; then
+        anota "$TMP/log"
         falha "$nome (M1)" "basicgolc falhou: $(head -3 "$TMP/log" | tr '\n' ' ')"
         continue
     fi
@@ -136,6 +149,7 @@ for fonte in docs/exemplos/*.c; do
             /Fo:"$BUILD/$nome-m1.obj" /Fe:"$exe" > "$TMP/log" 2>&1; then
         confere_saida "$nome" M1 "./$exe" "$entrada"
     else
+        anota "$TMP/log"
         falha "$nome (M1)" "compilacao falhou: $(head -3 "$TMP/log" | tr '\n' ' ')"
     fi
 done

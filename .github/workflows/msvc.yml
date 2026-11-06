@@ -43,18 +43,33 @@ jobs:
         shell: cmd
         run: |
           if not exist build mkdir build
-          cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS tools\basicgolc.c /Fo:build\basicgolc.obj /Fe:build\basicgolc.exe
+          cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS tools\basicgolc.c /Fo:build\basicgolc.obj /Fe:build\basicgolc.exe > build\basicgolc.log 2>&1
+          if errorlevel 1 (
+            for /f "usebackq delims=" %%i in ("build\basicgolc.log") do echo ::error::%%i
+            exit /b 2
+          )
 
       - name: biblioteca estatica (libbasicgol.lib)
         shell: cmd
         run: |
           if not exist build\biblioteca mkdir build\biblioteca
-          for %%f in (src\biblioteca\*.c) do cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include /c %%f /Fo:build\biblioteca\
+          for %%f in (src\biblioteca\*.c) do (
+            cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include /c %%f /Fo:build\biblioteca\ > build\biblioteca\cl.log 2>&1
+            if errorlevel 1 (
+              for /f "usebackq delims=" %%i in ("build\biblioteca\cl.log") do echo ::error::%%i
+              exit /b 2
+            )
+          )
           lib /nologo /OUT:build\libbasicgol.lib build\biblioteca\*.obj
 
       - name: testes unitarios da biblioteca (test_biblioteca)
         shell: cmd
-        run: cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include tests\test_biblioteca.c build\libbasicgol.lib /Fo:build\test-biblioteca.obj /Fe:build\test-biblioteca.exe
+        run: |
+          cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include tests\test_biblioteca.c build\libbasicgol.lib /Fo:build\test-biblioteca.obj /Fe:build\test-biblioteca.exe > build\test_biblioteca.log 2>&1
+          if errorlevel 1 (
+            for /f "usebackq delims=" %%i in ("build\test_biblioteca.log") do echo ::error::%%i
+            exit /b 2
+          )
 
       - name: rodar testes unitarios (wrappers, fatal, limites)
         shell: bash
