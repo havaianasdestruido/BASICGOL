@@ -16,9 +16,9 @@ name: msvc
 #
 # Os exemplos e os testes dourados rodam sob Git Bash (shell: bash), com as
 # comparações de bytes normalizando \r — o CRT escreve \n como \r\n no modo
-# texto. O runner dos exemplos é tests/run_msvc.sh; nele os exemplos são
-# compilados com /W3 /WX (código didático), enquanto o núcleo produto
-# (ferramenta, biblioteca, testes) usa /W4 /WX.
+# texto. O runner dos exemplos é tests/run_msvc.sh; lá os exemplos compilam com
+# /W3 (código didático; a saída dourada é o que importa), enquanto o núcleo
+# produto (ferramenta, biblioteca, testes) usa /W4 /WX.
 
 on:
   push:

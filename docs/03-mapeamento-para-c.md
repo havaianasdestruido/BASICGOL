@@ -163,7 +163,16 @@ Os trechos de saída de pré-processador mostrados na §4 são reais (com a tabe
 
 Trecho normativo do cabeçalho (a implementação completa, com nomes prefixados,
 detecção de compilador e documentação embutida, é entrega da Fase 2). Esta é a forma
-**verificada**:
+**verificada**. Dois detalhes de portabilidade valem registro:
+
+* o despacho para `long double` fica atrás de `BG_LD_ASSOC`, que evapora quando
+  `LDBL_MANT_DIG == DBL_MANT_DIG && LDBL_MAX_EXP == DBL_MAX_EXP` (MSVC e Apple
+  aarch64, onde `long double` é `double`) — do contrário, duas associações do mesmo
+  `_Generic` nomeariam o mesmo tipo e o programa seria malformado (C11 6.5.1.1).
+  Onde `long double` é mais largo (x87, quad do glibc), a associação permanece;
+* `BG_LD_ASSOC(assoc)` expande para `assoc,` quando os tipos diferem, e para nada
+  caso contrário — nesses builds, valores `long double` casam com a associação
+  `double:`, o que é exatamente a semântica do CRT/ABI em questão.
 
 ```c
 /* ---- programa ---- */
@@ -240,13 +249,21 @@ detecção de compilador e documentação embutida, é entrega da Fase 2). Esta 
 #define TEXTOS_IGUAIS(a, b)     (strcmp((a), (b)) == 0)
 #define TEXTOS_DIFERENTES(a, b) (strcmp((a), (b)) != 0)
 
+/* ---- long double (ver nota de portabilidade acima) ---- */
+#if LDBL_MANT_DIG == DBL_MANT_DIG && LDBL_MAX_EXP == DBL_MAX_EXP
+#  define BG_LD_ASSOC(assoc)     /* some */
+#else
+#  define BG_LD_ASSOC(assoc)     assoc,
+#endif
+
 /* ---- E/S ---- */
 #define BG_FMT(x) _Generic((x), \
     _Bool: "%d", char: "%c", signed char: "%hhd", unsigned char: "%hhu", \
     short: "%hd", unsigned short: "%hu", int: "%d", unsigned int: "%u", \
     long: "%ld", unsigned long: "%lu", long long: "%lld", \
     unsigned long long: "%llu", float: "%g", double: "%g", \
-    long double: "%Lg", char *: "%s", const char *: "%s", default: "%p")
+    BG_LD_ASSOC(long double: "%Lg") \
+    char *: "%s", const char *: "%s", default: "%p")
 #define ESCREVA(x)          printf(BG_FMT(x), (x))
 #define ESCREVAL(x)         (printf(BG_FMT(x), (x)), fputc('\n', stdout))
 #define ESCREVA_LINHA()     fputc('\n', stdout)
@@ -257,7 +274,8 @@ detecção de compilador e documentação embutida, é entrega da Fase 2). Esta 
 #define BG_SFMT(x) _Generic(&(x), \
     int *: "%d", unsigned *: "%u", long *: "%ld", unsigned long *: "%lu", \
     long long *: "%lld", unsigned long long *: "%llu", \
-    float *: "%f", double *: "%lf", long double *: "%Lf", \
+    float *: "%f", double *: "%lf", \
+    BG_LD_ASSOC(long double *: "%Lf") \
     char *: " %c", signed char *: " %hhd", unsigned char *: "%hhu", \
     short *: "%hd", unsigned short *: "%hu", \
     default: "%p")   /* default atinge LOGICO: -Wformat recusa */

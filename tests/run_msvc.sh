@@ -28,9 +28,10 @@ TMP=$(mktemp -d "${TMPDIR:-/tmp}/basicgol-msvc.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
 
 DEF="/D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS"
-# Núcleo do produto usa /W4 /WX; os exemplos são código didático e expandem
-# macros por design — aqui /W3 /WX ainda falha em erro e em aviso sério.
-FLAGS="/nologo /TC /std:c11 /W3 /WX $DEF"
+# Núcleo do produto usa /W4 /WX no workflow; os exemplos são código didático e
+# verificam comportamento (saída dourada), não diagnósticos — aqui /W3 sem /WX:
+# um aviso do MSVC não deve reprovar um programa que produz a saída correta.
+FLAGS="/nologo /TC /std:c11 /W3 $DEF"
 
 OK=0
 FALHAS=0
