@@ -27,7 +27,7 @@
 | 5 | Clang/MinGW-w64 | 20.1.2 / lld | `x86_64-windows-gnu` | `zig cc -target x86_64-windows-gnu` | **compilado** (sem `wine`) |
 | 6 | G++ | 12.2.0 | `x86_64-linux-gnu`, `-std=c++17` | nativo | **executado** (só os cabeçalhos de módulo) |
 | 7 | MSVC `cl.exe` | — | Windows | — | **avaliado** (§4) |
-| 8 | MinGW-w64 GCC nativo | — | Windows | — | **não testado** (só o alvo 5, via cross) |
+| 8 | MinGW-w64 GCC nativo | MSYS2 (GitHub Actions) | Windows x86_64 (UCRT/MSVCRT) e i686 (MSVCRT) | `windows-latest`, workflow [`mingw-w64.yml`](../.github/workflows/mingw-w64.yml) | **executado** (build + `make test` + `make exemplos`; ver nota abaixo) |
 | 9 | Clang do LLVM (driver `clang`/`clang-cl`) | — | — | indisponível na máquina | **não testado** (o frontend é o do item 2) |
 | 10 | TCC, Intel oneAPI (`icx`), PCC, Digital Mars, Open64 | — | — | indisponíveis | **não testado** (ver também a §8, que amplia esta lista com os candidatos coletados) |
 | 11 | `wine` (execução de binários Windows) | — | — | ausente | **não testado** |
@@ -37,6 +37,13 @@ ligador (`lld`) e os cabeçalhos de libc vêm do zig. Testar por ele prova a
 portabilidade **do código** ao frontend Clang; não prova que o driver `clang`
 do LLVM, com `-Wl` e `libgcc` do sistema, se comporte igual. Por isso o item 9
 continua "não testado".
+
+Atualização pós-Fase 6 (item 8): o workflow
+[`.github/workflows/mingw-w64.yml`](../.github/workflows/mingw-w64.yml) compila e
+**executa** a suíte nativamente no Windows em UCRT64, MINGW64 e MINGW32 a cada
+push/pull request. A saída conferida fica nos logs do GitHub Actions, não no
+[relatório histórico da Fase 6](12-relatorio-fase-6.md), que continua descrevendo
+apenas a máquina daquela fase (sem MinGW nativo nem `wine`).
 
 ## 2. Padrões de C
 
@@ -130,12 +137,13 @@ execução. Isso é uma lacuna declarada, não uma aprovação.
 * **Sustentado por execução:** GCC 12 e frontend Clang 20, em C11/C17/gnu11,
   x86-64 Linux; 32 bits (i386/musl) em execução para `precedencia` e
   `fronteira`; C++17 para os cabeçalhos de módulo; recusa correta de C89, C99 e
-  de `<basicgol.h>` em C++.
+  de `<basicgol.h>` em C++; MinGW-w64 nativo em Windows (UCRT64/MINGW64/MINGW32)
+  pelo workflow `mingw-w64.yml`.
 * **Sustentado por compilação:** AArch64 Linux e Windows x86-64 (MinGW-w64).
 * **Avaliado, não executado:** MSVC (VS 2019 16.8+), com os riscos listados na
   §4.
-* **Não testado:** clang/clang-cl do LLVM como driver, MinGW nativo, TCC, icx,
-  PCC, execução em AArch64 e em Windows, `wine`, sanitizers no MSVC — e toda a
+* **Não testado:** clang/clang-cl do LLVM como driver, TCC, icx,
+  PCC, execução em AArch64, `wine`, sanitizers no MSVC — e toda a
   §8 (outros ~45 compiladores C conhecidos, do mais ao menos conhecido; nada
   foi executado).
 

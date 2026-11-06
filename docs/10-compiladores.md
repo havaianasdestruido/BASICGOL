@@ -155,6 +155,24 @@ x86_64-w64-mingw32-gcc -std=c11 -Wall -Wextra -I include programa.c \
     build/libbasicgol.a -o programa.exe
 ```
 
+Além da compilação cruzada acima, o workflow
+[`.github/workflows/mingw-w64.yml`](../.github/workflows/mingw-w64.yml) compila e
+**executa** a suíte nativamente no Windows (`windows-latest`) em três ambientes
+MSYS2: UCRT64, MINGW64 e MINGW32. Para reproduzir localmente, abra o terminal
+MSYS2 correspondente e rode na raiz do projeto:
+
+```sh
+pacman -S --needed diffutils make mingw-w64-ucrt-x86_64-gcc
+make all CC=gcc AR=ar
+make test CC=gcc AR=ar
+make exemplos CC=gcc AR=ar
+```
+
+Use `mingw-w64-x86_64-gcc` no MINGW64 ou `mingw-w64-i686-gcc` no MINGW32. O
+cabeçalho define `__USE_MINGW_ANSI_STDIO=1` (se o usuário ainda não definiu) para
+que `printf`/`scanf` usem a família C99/C11 do MinGW em MSVCRT e UCRT, incluindo
+`long double` e inteiros de 64 bits.
+
 ## 6. Conjunto de avisos adotado
 
 O Makefile compila tudo com:

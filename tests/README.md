@@ -59,6 +59,7 @@ tests/
 | `programa.c`, `*.c`, `*.h` | fontes do caso — a fonte BG é `.c` (todos compilados juntos) |
 | `entrada.txt` | o que vai para o `stdin` (ausente = `/dev/null`) |
 | `esperado.txt` | saída esperada em `stdout` (obrigatório em caso de execução) |
+| `alternativo.txt` | outra saída exata aceita quando a plataforma difere (ex.: precisão x87) |
 | `esperado_rc.txt` | código de saída esperado (padrão `0`) |
 | `esperado_stderr.txt` | trecho que precisa aparecer em `stderr` |
 | `esperado_erro.txt` | mensagens de erro **aceitas** (casos negativos) — ver abaixo |
@@ -92,6 +93,8 @@ Duas salvaguardas completam isso, para que a suíte não dependa da máquina:
   traduzido mudaria a mensagem inteira. A biblioteca em si nunca chama `setlocale` (D-17).
 * `tests/lib.sh` normaliza as aspas tipográficas (`‘ ’ “ ”` → `' "`) antes de comparar, então
   a comparação também vale quando alguém roda o runner fora do CI com outro locale.
+* Os runners comparam a saída de console sem `\r`: o CRT do Windows pode traduzir
+  `\n` para `\r\n`, enquanto os arquivos de saída esperada permanecem com LF.
 
 Os diagnósticos do **basicgolc** (`12_negativos_m1`) usam o mesmo formato — ali o texto é
 nosso e vem da especificação (§4.3), então basta uma linha por caso.

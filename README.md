@@ -17,7 +17,7 @@ foi executado está declarado, item por item, em
 [`docs/11-matriz-compatibilidade.md`](docs/11-matriz-compatibilidade.md) e
 [`docs/12-relatorio-fase-6.md`](docs/12-relatorio-fase-6.md) §8. Estado de cada
 ferramenta: **GCC executado**, **frontend Clang executado (via `zig cc`)**,
-**MinGW-w64 e AArch64 compilados**, **MSVC apenas avaliado** — e nada além disso é
+**MinGW-w64 nativo executado em CI (UCRT64/MINGW64/MINGW32)**, **AArch64 compilado**, **MSVC apenas avaliado** — e nada além disso é
 chamado de "suportado" em lugar nenhum.
 
 ---
@@ -75,7 +75,7 @@ Porém, se você já chegou a usar `Portugol`, sabe que ele é BEM similar a C, 
 O BASIC, como o prório nome já diz, é inspirado na linguagem `BASIC`, aonde sua sintaxe se diferencia MUITO de outras como `C`, portanto, eu decidi que fazer 2 modos de linguagem seria bem mais prático pra usuário que:
 - Querem experimentar coisas novas
 - Querem avançar um pouco mais na complexidade da sintaxe do `C`, mas aind asim manter a mesma lógica e os mesmos comandos
-- etc. 
+- etc.
 
 Meu foco principal é em compatibilidade multi-plataforma e multi-compilador, não quero que `BASICGOL` fique "preso" num estado aonde só compila no MSVC no Windows, quero que também funcione, por exemplo, no GCC sob Linux.
 
@@ -88,7 +88,7 @@ usa o vocabulário de [`docs/11`](docs/11-matriz-compatibilidade.md) §1, e não
 | **GCC** (versão livre e de código aberto, Linux/Windows/macOS) | **executado** — GCC 12.2.0, x86-64 Linux, suíte inteira |
 | **Clang (LLVM)** (diagnósticos rápidos e detalhados) | **executado** como *frontend* (Clang 20.1.2 via `zig cc`); o driver `clang` do LLVM não foi testado |
 | **Microsoft Visual C++ (MSVC)** | **avaliado** — nunca executado aqui; job de CI existe, mas não há registro verde |
-| **MinGW-w64** (GCC para Windows, 32/64 bits) | **compilado** — `x86_64-windows-gnu` por compilação cruzada; execução não (sem `wine`) |
+| **MinGW-w64** (GCC para Windows, 32/64 bits) | **executado em CI** — [`mingw-w64.yml`](.github/workflows/mingw-w64.yml) compila e roda a suíte nativamente em UCRT64, MINGW64 e MINGW32; o alvo `x86_64-windows-gnu` também é compilado por cross via `zig cc` |
 | **Intel oneAPI (ICX/ICPX)**, **TCC**, **PCC**, **Digital Mars**, **Open64** | **não testados** — indisponíveis neste ambiente |
 
 Eu tenho planos bem ambiciosos com essa linguagem (_uns até de mais_), os que me vem na cabeça nesse momento são:
@@ -144,6 +144,7 @@ cc -std=c11 -I include programa.gerado.c \
 | [`tests/run_portabilidade.sh`](tests/run_portabilidade.sh) | matriz de compiladores, padrões, avisos, multi-UO, C++, sanitizers e alvos cruzados |
 | [`tests/run_matriz.sh`](tests/run_matriz.sh) · [`tests/run_checkout_limpo.sh`](tests/run_checkout_limpo.sh) · [`tests/fuzz_basicgolc.py`](tests/fuzz_basicgolc.py) | suíte por compilador, verificação dos comandos do README, mutação do transpilador |
 | [`.github/workflows/testes.yml`](.github/workflows/testes.yml) | CI: matriz de compiladores × padrões, sanitizers, portabilidade, cobertura e avaliação MSVC |
+| [`.github/workflows/mingw-w64.yml`](.github/workflows/mingw-w64.yml) | CI Windows nativo: build, testes e artefatos em UCRT64, MINGW64 e MINGW32 |
 | [`tests/COBERTURA.md`](tests/COBERTURA.md) | matriz de rastreabilidade gerada: nomes, módulos, avisos, critérios e restrições |
 | [`docs/`](docs/) | especificação, referência e exemplos executáveis |
 | [`Makefile`](Makefile) | `make`, `make test`, `make test-portabilidade`, `make test-sanitize`, `make test-matriz`, `make fuzz`, `make test-checkout`, `make exemplos`, `make cobertura` (`make ajuda` lista tudo) |
@@ -335,6 +336,40 @@ Clang em `-std=c11` e `-std=c17` (`.github/workflows/testes.yml`) e MSVC com `cl
 > [`docs/11 §1`](docs/11-matriz-compatibilidade.md). Instruções por ferramenta (MSVC,
 > MinGW-w64, `zig cc`, alvos cruzados, sanitizers e o conjunto de avisos) estão em
 > [`docs/10-compiladores.md`](docs/10-compiladores.md).
+
+### MinGW-w64 no Windows
+
+O workflow [`MinGW-w64`](.github/workflows/mingw-w64.yml) compila e testa
+nativamente no Windows em três ambientes MSYS2: UCRT64 e MINGW64 (64 bits) e
+MINGW32 (32 bits). Ele roda em pushes, pull requests e manualmente pela aba
+**Actions**, sem alterar a suíte Linux existente.
+
+Para reproduzir o build de 64 bits, abra o terminal **UCRT64** do MSYS2, instale
+as ferramentas e execute na raiz do projeto:
+
+```sh
+pacman -S --needed diffutils make mingw-w64-ucrt-x86_64-gcc
+make all CC=gcc AR=ar
+make test CC=gcc AR=ar
+make exemplos CC=gcc AR=ar
+```
+
+Use o terminal e o pacote correspondentes ao outro ambiente: **MINGW64** com
+`mingw-w64-x86_64-gcc` ou **MINGW32** com `mingw-w64-i686-gcc`. Não use o terminal
+MSYS nem o GCC do Cygwin para esses builds nativos.
+
+Cada execução disponibiliza por 14 dias um artefato `basicgol-windows-...` na
+página do workflow, contendo o transpilador `basicgolc.exe`, a biblioteca
+`libbasicgol.a`, os headers e a licença. São artefatos de CI, não releases
+publicados. Bibliotecas estáticas devem ser usadas com a toolchain que as gerou;
+os exemplos abaixo usam a mesma instalação MSYS2:
+
+```sh
+./build/basicgolc.exe docs/exemplos/ola_mundo.c -o ola_mundo.gerado.c
+gcc -std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror -I include \
+    ola_mundo.gerado.c build/libbasicgol.a -lm -o ola_mundo.exe
+./ola_mundo.exe
+```
 
 ### Compatibilidade com MSVC (verificada em CI)
 
