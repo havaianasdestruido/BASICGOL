@@ -135,7 +135,18 @@ difere() {
     local esperado="$T_TMP/esperado.norm" obtido="$T_TMP/obtido.norm"
     tr -d '\r' < "$1" > "$esperado" || return 1
     tr -d '\r' < "$2" > "$obtido" || return 1
-    ! diff -q "$esperado" "$obtido" > /dev/null 2>&1
+    local resultado=0
+    diff -q "$esperado" "$obtido" > /dev/null 2>&1 || resultado=$?
+    if [ "${T_DEBUG_COMPARISON:-0}" = 1 ]; then
+        {
+            printf 'files: %s %s\n' "$1" "$2"
+            od -An -tx1 "$esperado"
+            od -An -tx1 "$obtido"
+            diff -u "$esperado" "$obtido"
+            printf 'diff rc=%s\n' "$resultado"
+        } | base64 -w 0 > "$PWD/build/comparison-debug.txt"
+    fi
+    [ "$resultado" -ne 0 ]
 }
 
 # Compara com o resultado principal ou, para casos dependentes de C11/plataforma,

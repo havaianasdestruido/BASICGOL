@@ -64,9 +64,10 @@ jobs:
 
       - name: Trace first Windows golden comparison
         run: |
-          T_LIBRARY=build/libbasicgol.a bash -x tests/run.sh 02_basico > build/trace.log 2>&1 || true
+          T_DEBUG_COMPARISON=1 T_LIBRARY=build/libbasicgol.a bash -x tests/run.sh 02_basico > build/trace.log 2>&1 || true
           trace=$(sed -n '/+ caso_execucao .*b01_ola/,/+ t_falhou .*b01_ola/p' build/trace.log | base64 -w 0)
           printf '::error::First comparison trace (base64): %s\n' "$trace"
+          printf '::error::Last comparison bytes (base64): %s\n' "$(cat build/comparison-debug.txt)"
 
       - name: Run language and library tests
         run: |
