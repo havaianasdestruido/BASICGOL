@@ -40,7 +40,7 @@ static void testa_console(void)
 {
     char buffer[8] = "sobra";
     char lido[64];
-    char uma_posicao[1] = "x";
+    char uma_posicao[1] = { 'x' }; /* capacidade de um byte; sem NUL (C4295) */
     FILE *entrada = cria_arquivo_temporario("abc\n1234567\n12345678\n\ncrlf\r\nfinal");
     FILE *saida = tmpfile();
     FILE *limite = cria_arquivo_temporario("x\n\n");

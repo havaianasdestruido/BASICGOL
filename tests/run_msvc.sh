@@ -129,8 +129,8 @@ for fonte in docs/exemplos/*.c; do
 
     # ---- caminho M0 (macros); dois exemplos so existem no M1
     if [ "$nome" != "para_contado" ] && [ "$nome" != "controle_para_acucar" ]; then
-        if "$CL" $FLAGS /I include "$fonte" "$T_LIBRARY" \
-                /Fo:"$BUILD/$nome.obj" /Fe:"$exe" > "$TMP/log" 2>&1; then
+        if "$CL" $FLAGS /I include "$fonte" \
+                /Fo:"$BUILD/$nome.obj" /Fe:"$exe" /link "$T_LIBRARY" > "$TMP/log" 2>&1; then
             confere_saida "$nome" M0 "./$exe" "$entrada"
         else
             anota "$TMP/log"
@@ -145,8 +145,8 @@ for fonte in docs/exemplos/*.c; do
         falha "$nome (M1)" "basicgolc falhou: $(head -3 "$TMP/log" | tr '\n' ' ')"
         continue
     fi
-    if "$CL" $FLAGS /I include "$gerado" "$T_LIBRARY" \
-            /Fo:"$BUILD/$nome-m1.obj" /Fe:"$exe" > "$TMP/log" 2>&1; then
+    if "$CL" $FLAGS /I include "$gerado" \
+            /Fo:"$BUILD/$nome-m1.obj" /Fe:"$exe" /link "$T_LIBRARY" > "$TMP/log" 2>&1; then
         confere_saida "$nome" M1 "./$exe" "$entrada"
     else
         anota "$TMP/log"

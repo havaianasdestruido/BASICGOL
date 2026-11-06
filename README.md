@@ -292,7 +292,7 @@ O código usa C11 padrão, sem extensões GNU ou recursos de C++ (D-15, C-11). O
 | Item | Avaliação |
 |---|---|
 | Modo C | `/std:c11` ou `/std:c17` (MSVC ≥ 19.28 / Visual Studio 2019 16.8+ para `_Generic`, `_Static_assert` e `_Noreturn`); o CI verifica `/std:c11`. |
-| Comando | `cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include programa.c build\libbasicgol.lib /Fe:programa.exe` |
+| Comando | `cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include programa.c /Fe:programa.exe /link build\libbasicgol.lib` |
 | Build archive | O Makefile usa `ar`; o workflow `msvc.yml` usa `lib.exe` (`build/libbasicgol.lib`). Para compilar sem o archive, passe os fontes dos módulos ao compilador (como no comando acima). |
 | Matemática | A UCRT incorpora a matemática; `-lm` não existe (e não é necessário). |
 | `long double` / `%Lg` | no MSVC `long double` equivale a `double`; `%Lg` é aceito pelo CRT. |

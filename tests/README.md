@@ -105,7 +105,7 @@ mkdir build\biblioteca
 cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS tools\basicgolc.c /Fo:build\basicgolc.obj /Fe:build\basicgolc.exe
 for %%f in (src\biblioteca\*.c) do cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include /c %%f /Fo:build\biblioteca\
 lib /nologo /OUT:build\libbasicgol.lib build\biblioteca\*.obj
-cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include tests\test_biblioteca.c build\libbasicgol.lib /Fo:build\test-biblioteca.obj /Fe:build\test-biblioteca.exe
+cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include tests\test_biblioteca.c /Fo:build\test-biblioteca.obj /Fe:build\test-biblioteca.exe /link build\libbasicgol.lib
 bash ./tests/run_biblioteca.sh build/test-biblioteca.exe
 bash ./tests/run_msvc.sh
 ```

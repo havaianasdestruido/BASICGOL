@@ -5,7 +5,9 @@ name: msvc
 # nenhuma fonte depende de extensão de GNU (D-15), e esta suíte prova isso.
 #
 # Particularidades do MSVC usadas aqui:
-#   /TC        fontes sempre C, mesmo num projeto configurado como C++ (D-14)
+#   /TC        fontes sempre C, mesmo num projeto configurado como C++ (D-14);
+#              com /TC o cl trata TODOS os arquivos da linha de comando como
+#              fontes C — por isso o .lib vai DEPOIS de /link (vai ao linkador)
 #   /std:c11   cl.exe moderno (VS 2019 16.8+ / VS 2022) tem _Generic e
 #              _Static_assert; sem ele o cabeçalho recusa compilar
 #   /W4 /WX    equivalente aproximado de -Wall -Wextra -Werror do testes.yml
@@ -65,7 +67,7 @@ jobs:
       - name: testes unitarios da biblioteca (test_biblioteca)
         shell: cmd
         run: |
-          cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include tests\test_biblioteca.c build\libbasicgol.lib /Fo:build\test-biblioteca.obj /Fe:build\test-biblioteca.exe > build\test_biblioteca.log 2>&1
+          cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include tests\test_biblioteca.c /Fo:build\test-biblioteca.obj /Fe:build\test-biblioteca.exe /link build\libbasicgol.lib > build\test_biblioteca.log 2>&1
           if errorlevel 1 (
             for /f "usebackq delims=" %%i in ("build\test_biblioteca.log") do echo ::error::%%i
             exit /b 2
