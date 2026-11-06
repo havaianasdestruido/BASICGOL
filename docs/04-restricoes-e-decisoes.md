@@ -661,7 +661,9 @@ legados de divisão/resto/absoluto são as exceções fatais documentadas.
 
 A escolha é manter o core em C11 + libc, com libm quando separada, sem dependência de
 terceiros ou helpers de sistema operacional. Não há semeadura implícita; o sorteio usa
-`rand()` e declara seu limite `RAND_MAX + 1`, previsibilidade e qualidade não garantida.
+um PRNG próprio (xorshift64*, semente derivada por splitmix64): a mesma semente gera a
+mesma sequência em qualquer plataforma, com universo de 2^32, previsibilidade inerente a PRNGs
+e nenhuma promessa de qualidade criptográfica.
 Funções específicas de plataforma, se necessárias no futuro, terão header/fonte separados
 e não serão incluídos por `<basicgol/biblioteca.h>`. O contrato completo está em
 [09 — Biblioteca padrão](09-biblioteca-padrao.md); cada função pública é exercitada em
@@ -727,4 +729,4 @@ Fase 2 pode começar por ele com risco técnico baixo.
 | R-05 | M1 vira um compilador de fato e atrasa a entrega | média | alto | limite de 4 atividades no autômato (§4.2 do 01); C nativo como escape |
 | R-06 | Divergência semântica M0 × M1 | baixa | alto | AC-06 (comparação de saídas) na Fase 2 |
 | R-07 | `_Generic` com tipos inesperados (enum, ponteiro) imprime errado sem aviso | média | médio | `ESCREVA_TEXTO`/`ESCREVA_FMT`, documentação, D-09 |
-| R-08 | Dependência de `-lm` em Windows/MinGW | baixa | baixo | PT-C documentado; exemplos testados em Linux e MinGW |
+| R-08 | Dependência de `-lm` em Windows/MinGW/MSVC | baixa | baixo | PT-C documentado; exemplos testados em Linux, MinGW e MSVC (CI); na UCRT `-lm` nem existe |

@@ -258,8 +258,9 @@ casos de borda e documenta os limites** ([07](docs/07-controle-de-fluxo.md)):
   devolvem `bool`; strings usam capacidade explícita, saídas ficam vazias/inalteradas em
   falha e a memória continua pertencendo ao chamador.
 * Operações matemáticas existentes reutilizam `<math.h>`. `bg_sorteia_ate` requer limite
-  e semente explícitos; a documentação limita as garantias de `rand()` (previsível,
-  global, não criptográfico e distribuição dependente da implementação).
+  e semente explícitos; o sorteio usa PRNG próprio (xorshift64*): a mesma semente gera a
+  mesma sequência em qualquer plataforma, com universo 2^32 (previsível, global ao
+  processo, não criptográfico).
 * O core não adiciona dependências além de C11/libc e libm quando separada; não inclui
   APIs de plataforma. Helpers específicos de plataforma ficam fora do agregado portátil.
 * `docs/09-biblioteca-padrao.md` documenta parâmetros, retornos, convenções, build e
@@ -289,8 +290,9 @@ verdadeiro **fora** do compilador em que foi escrito. Relatório completo em
   incluindo um de gravidade alta: `LEIA(LOGICO)` gravava um ponteiro de 8 bytes num
   objeto de 1 byte (stack-buffer-overflow), porque o `_Generic` do `LEIA` tinha
   `default: "%p"`. Hoje é **erro de compilação**, com ou sem `-Werror`.
-* **Nada de "suportado" sem execução**: MSVC está **avaliado**; AArch64 e Windows estão
-  **compilados, não executados**. A tabela de estados é a fonte da verdade.
+* **Nada de "suportado" sem execução**: o job `msvc` executa build + testes com `cl.exe`
+  no Windows a cada push/PR; AArch64 está **compilado, não executado**. A tabela de
+  estados é a fonte da verdade.
 
 ## Escopo
 
@@ -322,9 +324,9 @@ clang -std=c11 -Wall -Wextra -Wformat=2 -Wvla -I include programa.c \
 ```
 
 `-lm` é necessário em plataformas que separam a libm (por exemplo, Linux); em
-plataformas que incorporam a biblioteca matemática, omita a flag. O CI
-(`.github/workflows/testes.yml`) valida GCC e Clang em `-std=c11` e `-std=c17` para a
-linguagem; os módulos são compilados como C11.
+plataformas que incorporam a biblioteca matemática, omita a flag. O CI valida GCC e
+Clang em `-std=c11` e `-std=c17` (`.github/workflows/testes.yml`) e MSVC com `cl.exe` em
+`-std=c11` (`.github/workflows/msvc.yml`); os módulos são compilados como C11.
 
 > **Sobre o Clang neste projeto.** O que foi executado foi o *frontend* Clang (20.1.2),
 > através do `zig cc` 0.15.1, porque não havia binário do LLVM disponível. Os comandos
@@ -334,19 +336,34 @@ linguagem; os módulos são compilados como C11.
 > MinGW-w64, `zig cc`, alvos cruzados, sanitizers e o conjunto de avisos) estão em
 > [`docs/10-compiladores.md`](docs/10-compiladores.md).
 
-### Compatibilidade com MSVC (avaliação)
+### Compatibilidade com MSVC (verificada em CI)
 
-O código usa C11 padrão, sem extensões GNU ou recursos de C++ (D-15, C-11). A
-compatibilidade com `cl.exe` não foi executada neste ambiente; para compilar sem o
-archive Unix, passe os fontes dos módulos ao compilador:
+O código usa C11 padrão, sem extensões GNU ou recursos de C++ (D-15, C-11). O workflow
+[`msvc.yml`](.github/workflows/msvc.yml) compila e testa o projeto com `cl.exe`
+(Windows `windows-latest`, Visual Studio 2022, x64) a cada push e pull request:
+
+- `tools/basicgolc.c`, `src/biblioteca/*.c` e `tests/test_biblioteca.c` com
+  `/std:c11 /W4 /WX` (equivalente aproximado de `-Wall -Wextra -Wformat=2 -Wvla -Werror`;
+  `/W4` é onde o MSVC enxerga o que `-Wall -Wextra` enxerga);
+- a biblioteca empacotada como `.lib` por `lib.exe` (`build/libbasicgol.lib`),
+  substituindo o `ar` do Makefile;
+- os testes unitários da biblioteca, rodados pelo mesmo script usado em Linux
+  (as comparações normalizam `\r`, já que o CRT escreve `\n` como `\r\n` no modo texto);
+- os exemplos de `docs/exemplos` compilados nos caminhos M0 e M1 e comparados com a
+  saída dourada (`tests/run_msvc.sh`).
 
 | Item | Avaliação |
 |---|---|
-| Modo C | `/std:c11` ou `/std:c17` (MSVC ≥ 19.28 / Visual Studio 2019 16.8+ para `_Generic`, `_Static_assert` e `_Noreturn`). |
-| Comando indicativo | `cl /std:c11 /Iinclude programa.c src\biblioteca\consola.c src\biblioteca\matematica.c src\biblioteca\texto.c src\biblioteca\caractere.c src\biblioteca\utilidades.c /Fe:programa.exe` (não verificado aqui). |
-| Build archive | O Makefile usa `ar`; para MSVC, ligue os fontes diretamente ou crie um `.lib` com as ferramentas da plataforma. |
-| Matemática | Windows CRT geralmente não requer `-lm`; verifique a toolchain escolhida. |
+| Modo C | `/std:c11` ou `/std:c17` (MSVC ≥ 19.28 / Visual Studio 2019 16.8+ para `_Generic`, `_Static_assert` e `_Noreturn`); o CI verifica `/std:c11`. |
+| Comando | `cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include programa.c /Fe:programa.exe /link build\libbasicgol.lib` |
+| Build archive | O Makefile usa `ar`; o workflow `msvc.yml` usa `lib.exe` (`build/libbasicgol.lib`). Para compilar sem o archive, passe os fontes dos módulos ao compilador (como no comando acima). |
+| Matemática | A UCRT incorpora a matemática; `-lm` não existe (e não é necessário). |
 | `long double` / `%Lg` | no MSVC `long double` equivale a `double`; `%Lg` é aceito pelo CRT. |
+| `_CRT_*` | os `/D_CRT_SECURE_NO_WARNINGS` e `/D_CRT_NONSTDC_NO_WARNINGS` silenciam o C4996 (o CRT "sugere" `scanf_s`/`strncpy_s`); o projeto usa deliberadamente as funções do C11 padrão. |
+
+Localmente, o mesmo fluxo funciona num Developer Command Prompt (ou Git Bash com
+`cl.exe` no `PATH`): o `msvc.yml` mostra as linhas exatas de `cl`/`lib`, e
+`tests/run_msvc.sh` reconstrói os exemplos e confere a saída dourada.
 
 Se um projeto tratar `.c` como C++, forçar `/TC` no arquivo-fonte (a extensão já é
 `.c`, então não há renomeação — D-14). Para incluir `basicgol.h` em um projeto C

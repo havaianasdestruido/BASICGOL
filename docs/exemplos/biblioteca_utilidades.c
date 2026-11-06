@@ -1,6 +1,6 @@
 /*
  * biblioteca_utilidades.c — semente explícita e limite do sorteio.
- * rand() não é criptográfico e sua sequência varia entre implementações C.
+ * O PRNG é próprio (xorshift64*): a mesma semente gera a mesma sequência em qualquer plataforma.
  * Compilar a partir da raiz: make exemplos
  */
 #include <basicgol/utilidades.h>

@@ -96,6 +96,30 @@ Duas salvaguardas completam isso, para que a suíte não dependa da máquina:
 Os diagnósticos do **basicgolc** (`12_negativos_m1`) usam o mesmo formato — ali o texto é
 nosso e vem da especificação (§4.3), então basta uma linha por caso.
 
+## No Windows com MSVC
+
+A suíte de linhas de comando continua sendo `bash` (rode no Git Bash); o que muda é
+o compilador. `tests/run_biblioteca.sh` aceita o binário de testes compilado pelo MSVC
+(`build\test-biblioteca.exe`) e normaliza o `\r` que o CRT escreve no modo texto. Para os
+exemplos, `tests/run_msvc.sh` reconstrói cada um com `cl.exe` nos caminhos M0 e M1 e
+compara com a saída dourada (byte a byte, ignorando apenas `\r`):
+
+```bat
+:: num Developer Command Prompt (ou Git Bash: barras e / são aceitos pelo cl.exe)
+mkdir build\biblioteca
+cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS tools\basicgolc.c /Fo:build\basicgolc.obj /Fe:build\basicgolc.exe
+for %%f in (src\biblioteca\*.c) do cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include /c %%f /Fo:build\biblioteca\
+lib /nologo /OUT:build\libbasicgol.lib build\biblioteca\*.obj
+cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include tests\test_biblioteca.c /Fo:build\test-biblioteca.obj /Fe:build\test-biblioteca.exe /link build\libbasicgol.lib
+bash ./tests/run_biblioteca.sh build/test-biblioteca.exe
+bash ./tests/run_msvc.sh
+```
+
+O passo a passo exato (inclusive a linha do `lib.exe` sobre os `.obj`) está no workflow
+[`.github/workflows/msvc.yml`](../.github/workflows/msvc.yml), que roda tudo isso no
+`windows-latest` a cada push e pull request. `tests/run.sh` (a suíte da linguagem) depende
+do driver GCC — `-std=`, `-lm`, `-o` — e não fala `cl.exe`; não é para rodar no MSVC.
+
 ## Programas de portabilidade (`tests/portabilidade/`)
 
 Fora da árvore `casos/` — porque não são casos M0×M1 com saída dourada, e sim

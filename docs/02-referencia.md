@@ -202,7 +202,7 @@ por chamada; sem detecção de tipo em tempo de execução.
 | `ARREDONDA(x)` | N | função C (`llround`) | inteiro mais próximo, empate longe de zero |
 | `PISO(x)` / `TETO(x)` | N | macro → libm | piso/teto (`floor`/`ceil`) |
 | `SORTEIA(n)` | N | função C | inteiro pseudoaleatório em `0 … n-1`; para limites inválidos devolve 0 |
-| `INICIA_SORTEIO(semente)` | N | função C | inicializa explicitamente o gerador (`srand`) |
+| `INICIA_SORTEIO(semente)` | N | função C | inicializa explicitamente o PRNG próprio (`xorshift64*`, derivado por `splitmix64`); mesma semente → mesma sequência em qualquer plataforma |
 | `TAMANHO_TEXTO(s)` | N | função C | comprimento em bytes (`strlen`), devolve `NATURAL`; cada acento UTF-8 ocupa 2 bytes (D-20) |
 | `COPIA_TEXTO(destino, tam, origem)` | N | função C → `LOGICO` | copia com verificação de espaço |
 | `JUNTA_TEXTO(destino, tam, a, b)` | N | função C → `LOGICO` | concatena dois textos em `destino` |
