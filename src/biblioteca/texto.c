@@ -178,6 +178,7 @@ static const char *bg_pula_espaco_ascii_final(const char *texto)
 bool bg_texto_para_inteiro(const char *texto, int *saida)
 {
     const char *inicio;
+    const char *sobra;
     char *fim = NULL;
     long valor;
     int errno_anterior;
@@ -195,8 +196,8 @@ bool bg_texto_para_inteiro(const char *texto, int *saida)
     if (fim == inicio) {
         return false;
     }
-    fim = (char *) bg_pula_espaco_ascii_final(fim);
-    if (*fim != '\0' || erro_conversao == ERANGE
+    sobra = bg_pula_espaco_ascii_final(fim);
+    if (*sobra != '\0' || erro_conversao == ERANGE
         || valor < (long) INT_MIN || valor > (long) INT_MAX) {
         return false;
     }
@@ -207,6 +208,7 @@ bool bg_texto_para_inteiro(const char *texto, int *saida)
 bool bg_texto_para_natural(const char *texto, unsigned *saida)
 {
     const char *inicio;
+    const char *sobra;
     char *fim = NULL;
     unsigned long valor;
     int errno_anterior;
@@ -227,8 +229,8 @@ bool bg_texto_para_natural(const char *texto, unsigned *saida)
     if (fim == inicio) {
         return false;
     }
-    fim = (char *) bg_pula_espaco_ascii_final(fim);
-    if (*fim != '\0' || erro_conversao == ERANGE
+    sobra = bg_pula_espaco_ascii_final(fim);
+    if (*sobra != '\0' || erro_conversao == ERANGE
         || valor > (unsigned long) UINT_MAX) {
         return false;
     }
@@ -239,6 +241,7 @@ bool bg_texto_para_natural(const char *texto, unsigned *saida)
 bool bg_texto_para_real(const char *texto, double *saida)
 {
     const char *inicio;
+    const char *sobra;
     char *fim = NULL;
     double valor;
     int errno_anterior;
@@ -256,8 +259,8 @@ bool bg_texto_para_real(const char *texto, double *saida)
     if (fim == inicio) {
         return false;
     }
-    fim = (char *) bg_pula_espaco_ascii_final(fim);
-    if (*fim != '\0' || erro_conversao == ERANGE) {
+    sobra = bg_pula_espaco_ascii_final(fim);
+    if (*sobra != '\0' || erro_conversao == ERANGE) {
         return false;
     }
     *saida = valor;

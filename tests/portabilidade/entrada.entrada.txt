@@ -1,0 +1,9 @@
+42
+linha de texto
+abc
+7 restos
+3.5
+Z
+12x
+abcdef
+depois

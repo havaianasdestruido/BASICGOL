@@ -1,5 +1,16 @@
 name: testes
 
+# Fase 6 — o CI é a execução "de verdade" da matriz: aqui GCC e Clang são
+# compiladores reais (no ambiente de desenvolvimento da Fase 6 só havia GCC e
+# o frontend Clang empacotado no zig; ver docs/12-relatorio-fase-6.md).
+#
+#   suite       — linguagem + biblioteca, GCC e Clang, C11 e C17
+#   sanitizers  — a mesma suíte sob ASan+UBSan, GCC e Clang
+#   portabilidade — matriz, avisos, multi-UO, C++, sanitizers e fuzz
+#   msvc        — avaliação de compilação com cl.exe (não bloqueante: o
+#                 relatório da Fase 6 não executou MSVC; ver docs/11)
+#   cobertura   — a matriz de rastreabilidade está atualizada
+
 on:
   push:
   pull_request:
@@ -15,6 +26,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: versão do compilador
+        run: ${{ matrix.cc }} --version | head -1
+
       - name: suíte completa (M0 + M1 + biblioteca padrão)
         env:
           CC: ${{ matrix.cc }}
@@ -24,17 +38,116 @@ jobs:
       - name: exemplos com saída dourada
         run: make exemplos CC=${{ matrix.cc }}
 
-      - name: diagnostico (apenas em falha)
+      - name: cabeçalho em C11/C17 com -pedantic
+        run: |
+          printf '#include <basicgol.h>\nINICIO\n  ESCREVAL("x");\nFIM\n' > /tmp/h.c
+          ${{ matrix.cc }} -std=${{ matrix.std }} -pedantic -Wall -Wextra \
+            -Wformat=2 -Wvla -Werror -I include /tmp/h.c build/libbasicgol.a -lm -o /tmp/h
+          test "$(/tmp/h)" = x
+
+      - name: diagnóstico (apenas em falha)
         if: failure()
         continue-on-error: true
         env:
           CC: ${{ matrix.cc }}
           T_CFLAGS: -std=${{ matrix.std }} -Wall -Wextra -Wformat=2 -Wvla -Werror
         run: |
-          $CC --version | head -1 | sed 's/^/::notice::/'
           ./tests/run.sh -v > /tmp/log 2>&1 || true
           grep -A1 "FALHA" /tmp/log | head -60 | sed 's/^/::error::/'
           tail -3 /tmp/log | sed 's/^/::error::/'
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: suíte completa sob ASan + UBSan
+        env:
+          CC: ${{ matrix.cc }}
+          ASAN_OPTIONS: detect_leaks=1
+          UBSAN_OPTIONS: print_stacktrace=1
+        run: make test-sanitize CC=${{ matrix.cc }}
+
+  portabilidade:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: compilador e versões
+        run: |
+          ${{ matrix.cc }} --version | head -1
+          g++ --version | head -1
+
+      - name: matriz de portabilidade
+        env:
+          CC: ${{ matrix.cc }}
+        run: make test-portabilidade CC=${{ matrix.cc }} T_CC_ALT=${{ matrix.cc == 'gcc' && 'clang' || 'gcc' }}
+
+      - name: fuzz determinístico do transpilador
+        run: make fuzz CC=${{ matrix.cc }}
+
+      - name: artefato — relatório da matriz
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: matriz-${{ matrix.cc }}
+          path: build/relatorio/portabilidade.tsv
+          if-no-files-found: ignore
+
+  msvc:
+    # Avaliação, não certificação: este job compila com cl.exe e mostra o
+    # resultado. Enquanto não houver um resultado verde documentado em
+    # docs/11-matriz-compatibilidade.md, ele NÃO bloqueia o merge.
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: versão do cl
+        shell: cmd
+        run: cl 2>&1 | findstr /C:"Version"
+
+      - name: biblioteca + ola_mundo em /std:c11 /W4
+        shell: cmd
+        run: |
+          cl /nologo /std:c11 /W4 /Iinclude /Fe:ola.exe ^
+             docs\exemplos\ola_mundo.c ^
+             src\biblioteca\consola.c src\biblioteca\matematica.c ^
+             src\biblioteca\texto.c src\biblioteca\caractere.c ^
+             src\biblioteca\utilidades.c
+
+      - name: transpilador em /std:c11 /W4
+        shell: cmd
+        run: cl /nologo /std:c11 /W4 /Fe:basicgolc.exe tools\basicgolc.c
+
+      - name: executar o exemplo
+        shell: cmd
+        run: ola.exe
+
+      - name: caminho M1 no Windows (transpila e compila o C gerado)
+        shell: cmd
+        run: |
+          basicgolc.exe docs\exemplos\controle_lacos.c -o gerado.c
+          cl /nologo /std:c11 /W4 /Iinclude /Fe:gerado.exe gerado.c ^
+             src\biblioteca\consola.c src\biblioteca\matematica.c ^
+             src\biblioteca\texto.c src\biblioteca\caractere.c ^
+             src\biblioteca\utilidades.c
+          gerado.exe
+
+  cobertura:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
       - name: a matriz de cobertura está atualizada
         run: |

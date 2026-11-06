@@ -1,7 +1,7 @@
 # Cobertura de testes — BASICGOL
 
 > Documento **gerado** por `python3 tools/cobertura.py` (ou `make cobertura`).
-> Gerado em 2026-11-06. Não edite à mão: as seções 1–3 saem da árvore de testes.
+> Não edite à mão: as seções 1–3 saem da árvore de testes. A saída é determinística (sem data) para o CI poder compará-la com a versão versionada; use `--data` para um relatório datado.
 
 ## 0. Como rodar
 
@@ -15,9 +15,9 @@ make test-v          # idem, listando cada verificação aprovada
 
 Cada caso de execução roda **duas vezes** — caminho M0 (macros do cabeçalho) e
 caminho M1 (transpilador) — e só passa se os dois produzirem exatamente a saída
-esperada. Hoje são **132 casos em disco**; o total de verificações
+esperada. Hoje são **135 casos em disco**; o total de verificações
 (impresso no fim de `make test`) inclui também as checagens de sanidade, de linha de
-comando, os 7 avisos, os 34 casos negativos e as 4 provas de estresse.
+comando, os 7 avisos, os 37 casos negativos e as 4 provas de estresse.
 
 Legenda das suítes nas seções seguintes: os diretórios `tests/casos/*` são executados
 pelo `run.sh`; as suítes `01_sanidade`, `09_m1`, `10_exemplos` e `11_estresse` são
@@ -29,76 +29,76 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 
 | nome | onde é exercitado |
 |---|---|
-| `ABS` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/07_multiarquivo/m01_modulos/matematica.c` (+3) |
+| `ABS` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/07_multiarquivo/m01_modulos/matematica.c` (+6) |
 | `ACRESCENTA_TEXTO` | `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c` |
-| `AFIRME` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/05_entrada_saida/i13_afirme_ok/programa.c`, `tests/casos/05_entrada_saida/i14_afirme_dispara/programa.c` |
-| `ARREDONDA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/test_biblioteca.c` |
-| `ATE_QUE` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c09_repita_uma_vez/programa.c`, `tests/casos/03_controle/c10_repita_ate_que/programa.c`, `tests/casos/03_controle/c24_zero_iteracoes/programa.c` (+4) |
-| `BITS_DE` | `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
-| `CARACTERE` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t03_caractere/programa.c` (+8) |
-| `CARACTERE_MAIUSCULO` | `tests/casos/09_tipos_expr/t03_caractere/programa.c`, `tests/test_biblioteca.c` |
-| `CARACTERE_MINUSCULO` | `tests/casos/09_tipos_expr/t03_caractere/programa.c`, `tests/test_biblioteca.c` |
-| `CASO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c`, `tests/casos/04_estruturas/e07_enumeracao/programa.c` (+6) |
+| `AFIRME` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/05_entrada_saida/i13_afirme_ok/programa.c`, `tests/casos/05_entrada_saida/i14_afirme_dispara/programa.c` (+4) |
+| `ARREDONDA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/test_biblioteca.c`, `tests/portabilidade/fronteira.c`, `tests/portabilidade/precedencia.c` |
+| `ATE_QUE` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c09_repita_uma_vez/programa.c`, `tests/casos/03_controle/c10_repita_ate_que/programa.c`, `tests/casos/03_controle/c24_zero_iteracoes/programa.c` (+5) |
+| `BITS_DE` | `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c`, `tests/portabilidade/fronteira.c`, `tests/portabilidade/precedencia.c` |
+| `CARACTERE` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t03_caractere/programa.c` (+10) |
+| `CARACTERE_MAIUSCULO` | `tests/casos/09_tipos_expr/t03_caractere/programa.c`, `tests/test_biblioteca.c`, `tests/portabilidade/fronteira.c` |
+| `CARACTERE_MINUSCULO` | `tests/casos/09_tipos_expr/t03_caractere/programa.c`, `tests/test_biblioteca.c`, `tests/portabilidade/fronteira.c` |
+| `CASO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c`, `tests/casos/04_estruturas/e07_enumeracao/programa.c` (+7) |
 | `COMPARA_TEXTO` | `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c` |
 | `CONSTANTE` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/13_avisos/w07_tamanho_constante/programa.c`, `tests/run.sh` |
-| `CONTRARIO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c`, `tests/casos/04_estruturas/e07_enumeracao/programa.c` (+5) |
+| `CONTRARIO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c`, `tests/casos/04_estruturas/e07_enumeracao/programa.c` (+6) |
 | `COPIA_TEXTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/04_estruturas/e03_texto_buffer/programa.c`, `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c` (+1) |
-| `DIFERENTE` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c` |
-| `DIVIDE` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/09_tipos_expr/t10_estouro_divisao/programa.c`, `tests/casos/09_tipos_expr/t08_divisao_por_zero/programa.c`, `tests/run.sh` (+1) |
-| `E` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c` (+7) |
-| `ENQUANTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c06_enquanto_zero/programa.c`, `tests/casos/03_controle/c07_enquanto_pare/programa.c` (+9) |
-| `ENTAO` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c` (+44) |
+| `DIFERENTE` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c`, `tests/portabilidade/precedencia.c` |
+| `DIVIDE` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/09_tipos_expr/t10_estouro_divisao/programa.c`, `tests/casos/09_tipos_expr/t08_divisao_por_zero/programa.c`, `tests/run.sh` (+4) |
+| `E` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c` (+11) |
+| `ENQUANTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c06_enquanto_zero/programa.c`, `tests/casos/03_controle/c07_enquanto_pare/programa.c` (+10) |
+| `ENTAO` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c` (+47) |
 | `ENUMERACAO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/04_estruturas/e07_enumeracao/programa.c`, `tests/casos/12_negativos_m1/t10_enumeracao_com_chaves/programa.c`, `tests/casos/12_negativos_m1/t10_enumeracao_com_chaves/esperado_erro.txt` |
 | `EPSILON_REAL` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
 | `ERRO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/05_entrada_saida/i12_erro_fatal/programa.c`, `tests/casos/03_controle/c36_laco_entrada_sentinela/programa.c` |
-| `ESCOLHA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c` (+9) |
-| `ESCREVA` | `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c14_para_passo/programa.c`, `tests/casos/04_estruturas/e04_registro/programa.c` (+22) |
-| `ESCREVAL` | `tests/casos/02_basico/b01_ola/programa.c`, `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/02_basico/b05_caractere/programa.c` (+115) |
+| `ESCOLHA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c` (+10) |
+| `ESCREVA` | `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c14_para_passo/programa.c`, `tests/casos/04_estruturas/e04_registro/programa.c` (+23) |
+| `ESCREVAL` | `tests/casos/02_basico/b01_ola/programa.c`, `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/02_basico/b05_caractere/programa.c` (+123) |
 | `ESCREVA_ERRO` | `tests/casos/08_aplicacao/app_acervo/principal.c` |
-| `ESCREVA_FMT` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/05_entrada_saida/i03_fmt/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c` (+15) |
+| `ESCREVA_FMT` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/05_entrada_saida/i03_fmt/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c` (+18) |
 | `ESCREVA_LINHA` | `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c14_para_passo/programa.c`, `tests/casos/03_controle/c11_para_basico/programa.c` (+14) |
 | `ESCREVA_TEXTO` | `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c`, `tests/casos/04_estruturas/e06_vetor_registros/programa.c`, `tests/casos/04_estruturas/e05_registro_aninhado/programa.c`, `tests/casos/05_entrada_saida/i07_leia_texto_limpo/programa.c` (+3) |
 | `ESTATICO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/07_multiarquivo/m02_estatico_misto/contas.c`, `tests/lib.sh` |
-| `EXTERNO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/07_multiarquivo/m01_modulos/comum.h`, `tests/casos/07_multiarquivo/m02_estatico_misto/contas.h`, `tests/lib.sh` |
-| `E_DIGITO` | `tests/casos/09_tipos_expr/t03_caractere/programa.c`, `tests/test_biblioteca.c` |
-| `E_LETRA` | `tests/casos/09_tipos_expr/t03_caractere/programa.c`, `tests/test_biblioteca.c` |
-| `FACA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c15_para_acucar/programa.c`, `tests/casos/03_controle/c06_enquanto_zero/programa.c` (+14) |
-| `FALSO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/casos/09_tipos_expr/t13_extensoes/programa.c` (+5) |
-| `FIM` | `tests/casos/02_basico/b01_ola/programa.c`, `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/02_basico/b05_caractere/programa.c` (+129) |
-| `FIM_ENQUANTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c06_enquanto_zero/programa.c`, `tests/casos/03_controle/c07_enquanto_pare/programa.c` (+9) |
+| `EXTERNO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/07_multiarquivo/m01_modulos/comum.h`, `tests/casos/07_multiarquivo/m02_estatico_misto/contas.h`, `tests/lib.sh` (+1) |
+| `E_DIGITO` | `tests/casos/09_tipos_expr/t03_caractere/programa.c`, `tests/test_biblioteca.c`, `tests/portabilidade/fronteira.c`, `tests/portabilidade/cabecalhos_tu1.c` |
+| `E_LETRA` | `tests/casos/09_tipos_expr/t03_caractere/programa.c`, `tests/test_biblioteca.c`, `tests/portabilidade/fronteira.c` |
+| `FACA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c15_para_acucar/programa.c`, `tests/casos/03_controle/c06_enquanto_zero/programa.c` (+15) |
+| `FALSO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/casos/09_tipos_expr/t13_extensoes/programa.c` (+7) |
+| `FIM` | `tests/casos/02_basico/b01_ola/programa.c`, `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/02_basico/b05_caractere/programa.c` (+138) |
+| `FIM_ENQUANTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c06_enquanto_zero/programa.c`, `tests/casos/03_controle/c07_enquanto_pare/programa.c` (+10) |
 | `FIM_ENUMERACAO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/04_estruturas/e07_enumeracao/programa.c`, `tests/casos/12_negativos_m1/t10_enumeracao_com_chaves/programa.c` |
-| `FIM_ESCOLHA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c`, `tests/casos/04_estruturas/e07_enumeracao/programa.c` (+6) |
+| `FIM_ESCOLHA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c`, `tests/casos/04_estruturas/e07_enumeracao/programa.c` (+7) |
 | `FIM_REGISTRO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/04_estruturas/e04_registro/programa.c`, `tests/casos/04_estruturas/e06_vetor_registros/programa.c`, `tests/casos/04_estruturas/e05_registro_aninhado/programa.c` (+2) |
-| `FIM_SE` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c` (+44) |
+| `FIM_SE` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c` (+47) |
 | `FORMATA_TEXTO` | `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c` |
-| `FUNCAO` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/07_multiarquivo/m01_modulos/comum.h` (+10) |
-| `IGUAL` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/07_multiarquivo/m01_modulos/matematica.c` (+2) |
+| `FUNCAO` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/07_multiarquivo/m01_modulos/comum.h` (+12) |
+| `IGUAL` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/07_multiarquivo/m01_modulos/matematica.c` (+3) |
 | `INICIA_SORTEIO` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c` |
-| `INICIO` | `tests/casos/02_basico/b01_ola/programa.c`, `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/02_basico/b05_caractere/programa.c` (+129) |
-| `INTEIRO` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/02_basico/b05_caractere/programa.c` (+98) |
+| `INICIO` | `tests/casos/02_basico/b01_ola/programa.c`, `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/02_basico/b05_caractere/programa.c` (+138) |
+| `INTEIRO` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/02_basico/b05_caractere/programa.c` (+105) |
 | `INTEIRO16` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
 | `INTEIRO32` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
 | `INTEIRO64` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/04_estruturas/e08_recursao/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/05_entrada_saida/i01_formatos/programa.c` (+2) |
-| `INTEIRO8` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
+| `INTEIRO8` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c`, `tests/portabilidade/precedencia.c` |
 | `INTEIRO_CURTO` | `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c`, `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c` |
 | `INTEIRO_LONGO` | `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/05_entrada_saida/i01_formatos/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
 | `JUNTA_TEXTO` | `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/04_estruturas/e03_texto_buffer/programa.c`, `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c`, `tests/casos/05_entrada_saida/i09_texto_truncamento/programa.c` |
-| `LEIA` | `tests/casos/06_negativos/n16_leia_logico/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c`, `tests/casos/05_entrada_saida/i06_leia_texto_apos_leia/programa.c`, `tests/casos/05_entrada_saida/i15_leia_caractere_apos_numero/programa.c` |
-| `LEIA_INTEIRO` | `tests/casos/09_tipos_expr/t12_leia_numeros/programa.c`, `tests/casos/03_controle/c36_laco_entrada_sentinela/programa.c`, `tests/run.sh` |
-| `LEIA_OK` | `tests/casos/05_entrada_saida/i04_leia_tipos/programa.c`, `tests/casos/05_entrada_saida/i05_leia_falha/programa.c`, `tests/casos/05_entrada_saida/i06_leia_texto_apos_leia/programa.c`, `tests/casos/05_entrada_saida/i15_leia_caractere_apos_numero/programa.c` |
-| `LEIA_REAL` | `tests/casos/09_tipos_expr/t12_leia_numeros/programa.c` |
-| `LEIA_TEXTO` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/05_entrada_saida/i07_leia_texto_limpo/programa.c`, `tests/casos/05_entrada_saida/i06_leia_texto_apos_leia/programa.c`, `tests/casos/05_entrada_saida/i08_leia_texto_truncamento/programa.c` (+1) |
-| `LOGICO` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/07_multiarquivo/m01_modulos/comum.h` (+11) |
-| `LOGICO_DE` | `tests/casos/09_tipos_expr/t04_logico/programa.c` |
-| `MAXIMO` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/test_biblioteca.c` |
+| `LEIA` | `tests/casos/06_negativos/n21_leia_texto/programa.c`, `tests/casos/06_negativos/n16_leia_logico/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c`, `tests/casos/06_negativos/n22_leia_texto_fixo/programa.c` (+4) |
+| `LEIA_INTEIRO` | `tests/casos/09_tipos_expr/t12_leia_numeros/programa.c`, `tests/casos/03_controle/c36_laco_entrada_sentinela/programa.c`, `tests/run.sh`, `tests/portabilidade/entrada.c` |
+| `LEIA_OK` | `tests/casos/05_entrada_saida/i04_leia_tipos/programa.c`, `tests/casos/05_entrada_saida/i05_leia_falha/programa.c`, `tests/casos/05_entrada_saida/i06_leia_texto_apos_leia/programa.c`, `tests/casos/05_entrada_saida/i15_leia_caractere_apos_numero/programa.c` (+1) |
+| `LEIA_REAL` | `tests/casos/09_tipos_expr/t12_leia_numeros/programa.c`, `tests/portabilidade/entrada.c` |
+| `LEIA_TEXTO` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/06_negativos/n21_leia_texto/programa.c`, `tests/casos/06_negativos/n22_leia_texto_fixo/programa.c`, `tests/casos/05_entrada_saida/i07_leia_texto_limpo/programa.c` (+5) |
+| `LOGICO` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/07_multiarquivo/m01_modulos/comum.h` (+16) |
+| `LOGICO_DE` | `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/portabilidade/precedencia.c` |
+| `MAXIMO` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/test_biblioteca.c`, `tests/portabilidade/fronteira.c` (+1) |
 | `MAXIMO_INTEIRO` | `tests/casos/09_tipos_expr/t13_extensoes/programa.c`, `tests/casos/09_tipos_expr/t06_conversoes/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c`, `tests/casos/09_tipos_expr/t10_estouro_divisao/programa.c` |
 | `MAXIMO_NATURAL` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
 | `MAXIMO_REAL` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
-| `MINIMO` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/run.sh`, `tests/test_biblioteca.c` |
+| `MINIMO` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/run.sh`, `tests/test_biblioteca.c` (+3) |
 | `MINIMO_INTEIRO` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/09_tipos_expr/t13_extensoes/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c`, `tests/casos/09_tipos_expr/t10_estouro_divisao/programa.c` |
-| `MOD` | `tests/casos/02_basico/b02_aritmetica/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c`, `tests/casos/06_negativos/n07_mod_igual/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c` (+7) |
+| `MOD` | `tests/casos/02_basico/b02_aritmetica/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c`, `tests/casos/06_negativos/n07_mod_igual/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c` (+9) |
 | `MULTIPLICA_SEGURA` | `tests/casos/09_tipos_expr/t13_extensoes/programa.c` |
-| `NAO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/casos/09_tipos_expr/t05_precedencia/programa.c` (+2) |
+| `NAO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/casos/09_tipos_expr/t05_precedencia/programa.c` (+4) |
 | `NATURAL` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t06_conversoes/programa.c` (+3) |
 | `NATURAL16` | `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/esperado.txt`, `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c` |
 | `NATURAL32` | `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c` |
@@ -106,46 +106,46 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `NATURAL8` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t06_conversoes/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c` (+2) |
 | `NATURAL_CURTO` | `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/esperado.txt` (+1) |
 | `NATURAL_LONGO` | `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
-| `OU` | `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/casos/07_multiarquivo/m01_modulos/matematica.c`, `tests/casos/09_tipos_expr/t05_precedencia/programa.c`, `tests/casos/03_controle/c34_faixas_senao_se/programa.c` |
-| `OU_EXCLUSIVO` | `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/run.sh` |
-| `PARA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/03_controle/c12_para_vazio/programa.c`, `tests/casos/03_controle/c11_para_basico/programa.c` (+21) |
-| `PARA_PASSO` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c14_para_passo/programa.c`, `tests/casos/03_controle/c24_zero_iteracoes/programa.c`, `tests/casos/03_controle/c26_passo_zero_erro/programa.c` (+7) |
-| `PARE` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c`, `tests/casos/03_controle/c07_enquanto_pare/programa.c` (+11) |
-| `PISO` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c`, `tests/test_biblioteca.c` |
-| `POTENCIA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/test_biblioteca.c` |
+| `OU` | `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/casos/07_multiarquivo/m01_modulos/matematica.c`, `tests/casos/09_tipos_expr/t05_precedencia/programa.c`, `tests/casos/03_controle/c34_faixas_senao_se/programa.c` (+1) |
+| `OU_EXCLUSIVO` | `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/run.sh`, `tests/portabilidade/precedencia.c` |
+| `PARA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/03_controle/c12_para_vazio/programa.c`, `tests/casos/03_controle/c11_para_basico/programa.c` (+23) |
+| `PARA_PASSO` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c14_para_passo/programa.c`, `tests/casos/03_controle/c24_zero_iteracoes/programa.c`, `tests/casos/03_controle/c26_passo_zero_erro/programa.c` (+8) |
+| `PARE` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c18_escolha_pare/programa.c`, `tests/casos/03_controle/c07_enquanto_pare/programa.c` (+12) |
+| `PISO` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c`, `tests/test_biblioteca.c`, `tests/portabilidade/fronteira.c` |
+| `POTENCIA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/test_biblioteca.c`, `tests/portabilidade/fronteira.c`, `tests/portabilidade/precedencia.c` |
 | `PROCEDIMENTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/07_multiarquivo/m01_modulos/comum.h` (+10) |
-| `PROSSIGA` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/03_controle/c30_repita_prossiga/programa.c`, `tests/casos/03_controle/c35_escolha_no_laco/programa.c` (+6) |
-| `RAIZ` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/run.sh`, `tests/test_biblioteca.c` |
-| `REAL` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h` (+12) |
+| `PROSSIGA` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/03_controle/c30_repita_prossiga/programa.c`, `tests/casos/03_controle/c35_escolha_no_laco/programa.c` (+7) |
+| `RAIZ` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/run.sh`, `tests/run_matriz.sh`, `tests/test_biblioteca.c` (+3) |
+| `REAL` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h` (+13) |
 | `REAL_CURTO` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c`, `tests/casos/05_entrada_saida/i01_formatos/programa.c` (+2) |
 | `REAL_LONGO` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c`, `tests/casos/05_entrada_saida/i01_formatos/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` (+1) |
 | `REAL_PARA_INTEIRO` | `tests/casos/09_tipos_expr/t06_conversoes/programa.c` |
 | `REGISTRO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/04_estruturas/e04_registro/programa.c`, `tests/casos/04_estruturas/e06_vetor_registros/programa.c`, `tests/casos/04_estruturas/e05_registro_aninhado/programa.c` (+3) |
-| `REPITA` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c09_repita_uma_vez/programa.c`, `tests/casos/03_controle/c10_repita_ate_que/programa.c`, `tests/casos/03_controle/c24_zero_iteracoes/programa.c` (+6) |
-| `RESTO` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/06_negativos/n15_resto_com_real/programa.c`, `tests/casos/09_tipos_expr/t09_resto_por_zero/programa.c`, `tests/test_biblioteca.c` |
-| `RETORNE` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/04_estruturas/e08_recursao/programa.c` (+8) |
-| `SE` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c` (+50) |
-| `SENAO` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c`, `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/03_controle/c04_aninhado/programa.c` (+18) |
-| `SENAO_SE` | `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c34_faixas_senao_se/programa.c`, `tests/casos/12_negativos_m1/t02_senao_se/esperado_erro.txt` (+1) |
-| `SOMA_SEGURA` | `tests/casos/09_tipos_expr/t13_extensoes/programa.c`, `tests/run.sh` |
+| `REPITA` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c09_repita_uma_vez/programa.c`, `tests/casos/03_controle/c10_repita_ate_que/programa.c`, `tests/casos/03_controle/c24_zero_iteracoes/programa.c` (+7) |
+| `RESTO` | `tests/casos/09_tipos_expr/t07_divisao/programa.c`, `tests/casos/06_negativos/n15_resto_com_real/programa.c`, `tests/casos/09_tipos_expr/t09_resto_por_zero/programa.c`, `tests/test_biblioteca.c` (+1) |
+| `RETORNE` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/04_estruturas/e08_recursao/programa.c` (+10) |
+| `SE` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c` (+54) |
+| `SENAO` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/03_controle/c02_se_senao/programa.c`, `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/03_controle/c04_aninhado/programa.c` (+19) |
+| `SENAO_SE` | `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/03_controle/c34_faixas_senao_se/programa.c`, `tests/casos/12_negativos_m1/t02_senao_se/esperado_erro.txt` (+2) |
+| `SOMA_SEGURA` | `tests/casos/09_tipos_expr/t13_extensoes/programa.c`, `tests/run.sh`, `tests/portabilidade/cabecalhos_tu2.c`, `tests/portabilidade/cabecalhos_principal.c` |
 | `SORTEIA` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c`, `tests/test_biblioteca.c` |
 | `SUBTRAI_SEGURA` | `tests/casos/09_tipos_expr/t13_extensoes/programa.c` |
-| `TAMANHO_DE` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` |
-| `TAMANHO_TEXTO` | `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/04_estruturas/e03_texto_buffer/programa.c` (+3) |
-| `TAMANHO_VETOR` | `tests/casos/05_entrada_saida/i01_formatos/programa.c`, `tests/casos/04_estruturas/e09_funcao_vetor/programa.c`, `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c`, `tests/casos/04_estruturas/e02_tamanho_vetor/programa.c` (+1) |
-| `TETO` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c`, `tests/test_biblioteca.c` |
-| `TEXTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c` (+9) |
-| `TEXTOS_DIFERENTES` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c` |
-| `TEXTOS_IGUAIS` | `tests/casos/08_aplicacao/app_acervo/relatorio.c` |
-| `TEXTO_FIXO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/04_estruturas/e03_texto_buffer/programa.c` (+5) |
+| `TAMANHO_DE` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t01_inteiros/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c`, `tests/casos/06_negativos/n22_leia_texto_fixo/programa.c` (+4) |
+| `TAMANHO_TEXTO` | `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/04_estruturas/e03_texto_buffer/programa.c` (+4) |
+| `TAMANHO_VETOR` | `tests/casos/05_entrada_saida/i01_formatos/programa.c`, `tests/casos/04_estruturas/e09_funcao_vetor/programa.c`, `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c`, `tests/casos/04_estruturas/e02_tamanho_vetor/programa.c` (+3) |
+| `TETO` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c`, `tests/test_biblioteca.c`, `tests/portabilidade/fronteira.c` |
+| `TEXTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/02_basico/b05_caractere/programa.c`, `tests/casos/08_aplicacao/app_acervo/principal.c` (+10) |
+| `TEXTOS_DIFERENTES` | `tests/casos/02_basico/b07_tipos_e_utilitarios/programa.c`, `tests/portabilidade/precedencia.c` |
+| `TEXTOS_IGUAIS` | `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/portabilidade/precedencia.c` |
+| `TEXTO_FIXO` | `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/06_negativos/n21_leia_texto/programa.c` (+9) |
 | `TEXTO_PARA_INTEIRO` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/09_tipos_expr/t06_conversoes/programa.c`, `tests/casos/05_entrada_saida/i10_conversoes/programa.c`, `tests/casos/06_negativos/n13_texto_para_inteiro/programa.c` |
 | `TEXTO_PARA_NATURAL` | `tests/casos/09_tipos_expr/t06_conversoes/programa.c` |
 | `TEXTO_PARA_REAL` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/09_tipos_expr/t06_conversoes/programa.c`, `tests/casos/05_entrada_saida/i10_conversoes/programa.c` |
 | `TEXTO_VAZIO` | `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c` |
 | `TRECHO_TEXTO` | `tests/casos/09_tipos_expr/t11_texto_seguro/programa.c` |
 | `VAZIO` | `tests/casos/04_estruturas/e11_procedimento_vazio/programa.c` |
-| `VERDADEIRO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/casos/06_negativos/n16_leia_logico/programa.c` (+4) |
-| `VETOR` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/04_estruturas/e01_vetor_basico/programa.c`, `tests/casos/04_estruturas/e09_funcao_vetor/programa.c`, `tests/casos/04_estruturas/e02_tamanho_vetor/programa.c` (+5) |
+| `VERDADEIRO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/09_tipos_expr/t04_logico/programa.c`, `tests/casos/06_negativos/n16_leia_logico/programa.c` (+7) |
+| `VETOR` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/04_estruturas/e01_vetor_basico/programa.c`, `tests/casos/04_estruturas/e09_funcao_vetor/programa.c`, `tests/casos/04_estruturas/e02_tamanho_vetor/programa.c` (+6) |
 
 ## 2. Diagnósticos
 
@@ -163,7 +163,7 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 
 ### 2.2 Erros
 
-* **20 casos** de erro do compilador C (`tests/casos/06_negativos/`), cada um
+* **23 casos** de erro do compilador C (`tests/casos/06_negativos/`), cada um
   afirmando um trecho exato da mensagem (o catálogo humano está em
   [01 §12.3](../docs/01-especificacao.md)).
 * **14 casos** de erro do transpilador (`tests/casos/12_negativos_m1/`), que
@@ -177,7 +177,7 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `03_controle` | 40 | SE/SENAO_SE, ENQUANTO, REPITA/ATE_QUE, PARA, ESCOLHA, desvios |
 | `04_estruturas` | 11 | VETOR, TEXTO_FIXO, REGISTRO, ENUMERACAO, funções, recursão |
 | `05_entrada_saida` | 15 | ESCREVA*, LEIA*, formatação, ERRO/AFIRME, truncamento |
-| `06_negativos` | 20 | o compilador C recusa o que a especificação proíbe |
+| `06_negativos` | 23 | o compilador C recusa o que a especificação proíbe |
 | `07_multiarquivo` | 2 | módulos, EXTERNO/ESTATICO, C puro junto de BG |
 | `08_aplicacao` | 1 | sistema de acervo: 3 módulos + cabeçalho, estado privado, E/S |
 | `09_tipos_expr` | 15 | Fase 4: tipos, conversões, precedência, divisão verificada, texto seguro, entrada numérica, extensões opcionais |

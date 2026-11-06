@@ -216,7 +216,7 @@ Executado sobre os cinco documentos e os exemplos:
 - [x] Toda palavra-chave da tabela (03) aparece em pelo menos um exemplo (verificado por script: 0 ausentes entre as 86 palavras-chave da linguagem)
 - [x] Nenhuma palavra-chave aparece com dois nomes diferentes entre documentos
       (`SENAO_SE`, `ATE_QUE`, `ESCREVAL`, `ESCREVA_FMT`, `TEXTO_FIXO`, `PARA_PASSO`)
-- [x] Todo ID citado (C-xx, D-xx, P-xx, AC-xx, T-xx, W-xx, RG-xx, RB-xx) está definido
+- [x] Todo ID citado (C-xx, D-xx, DF-xx, FT-xx, P-xx, AC-xx, T-xx, W-xx, RG-xx, RB-xx) está definido
       exatamente uma vez e no documento certo
 - [x] Nenhum exemplo usa construtor de perfil X sem declarar `M1` no cabeçalho
 - [x] Nenhum exemplo usa construtor que a especificação proíbe
@@ -263,3 +263,29 @@ terceiros nem recursos de linguagem que não sejam necessários para os módulos
 `make test` passou com **304 verificações de linguagem**, **230 checks unitários** da
 biblioteca e **30 verificações de integração/falha fatal**. `make exemplos` compila os
 24 exemplos do repositório com avisos tratados como erro.
+
+---
+
+## 10. Portão de saída da Fase 6 — "portabilidade e endurecimento"
+
+A Fase 6 não acrescenta construtor nenhum à linguagem. Ela responde a uma pergunta
+única: **o que está escrito no projeto continua verdadeiro fora do compilador em que
+ele foi escrito?** Cada critério abaixo é verificável executando um comando.
+
+| ID | Critério | Verificação | Status |
+|---|---|---|---|
+| AC-52 | Cabeçalho, biblioteca e transpilador compilam sem avisos no conjunto adotado (`-Werror`), em dois frontends independentes | `make test-portabilidade` §3 (`c0` e `c1`) | **atendido** |
+| AC-53 | A suíte completa passa nos dois frontends, com o mesmo número de verificações | `make test-matriz` (307 de linguagem + 230 unitárias + 30 de integração por compilador) | **atendido** |
+| AC-54 | A suíte passa sob ASan + UBSan com LeakSanitizer, sem vazamento e sem UB | `make test-sanitize` | **atendido** |
+| AC-55 | Cada afirmativa de portabilidade identifica compilador, versão, alvo, padrão e se houve **execução** | [`11-matriz-compatibilidade.md`](11-matriz-compatibilidade.md) (vocabulário de 4 estados) + [`12`](12-relatorio-fase-6.md) §2 | **atendido** |
+| AC-56 | Toolchain não exercitado aparece como "avaliado" ou "não testado", nunca como "suportado" | §4 de [`11`](11-matriz-compatibilidade.md) (MSVC = avaliado); §1, itens 8–11 | **atendido** |
+| AC-57 | Nenhum aviso do conjunto adotado é silenciado para "limpar" o build; cada exceção tem causa identificada e teste que a fixa | [`10 §6`](10-compiladores.md); defeitos DF-01 e DF-06 em [`13`](13-defeitos-e-correcoes.md) | **atendido** |
+| AC-58 | Os comandos documentados funcionam a partir de um checkout limpo, sem `build/` | `make test-checkout` (13 verificações) | **atendido** |
+| AC-59 | Existe teste de mutação determinístico do transpilador, com contrato explícito (não derrubar, não travar) e relatório | `make fuzz` (`tests/fuzz_basicgolc.py`, seed fixa) | **atendido** |
+| AC-60 | O mesmo arquivo `.c` vale nos dois perfis: M0 e M1 produzem a mesma saída para os programas de portabilidade | `tests/run_portabilidade.sh` §5 (M0×M1) | **atendido** |
+
+`make test-portabilidade` fechou com **70 verificações aprovadas, 2 ignoradas e 0
+falhas**; `make test-matriz` passou a suíte inteira em GCC 12.2.0 e no frontend Clang
+20.1.2; `make test-sanitize` fechou limpo; 2000 mutações do transpilador não
+derrubaram nada. O que **não** foi executado está listado, item por item, em
+[`11 §1`](11-matriz-compatibilidade.md) e [`12 §8`](12-relatorio-fase-6.md).
