@@ -57,6 +57,16 @@ Na minha escola, por um longo período nós tivemos que estudar essa línguagem,
 
 A grande vantagem de usar o `BASICGOL` ao invés de `Portugol`, é o fato de que o `BASICGOL` é um header C11 simples, basta incluir ele no topo do seu arquivo que ele já está pronto para uso.
 
+Porém, se você já chegou a usar `Portugol`, sabe que ele é BEM similar a C, e pra facilitar a transição de Portugol -> BASICGOL; BASICGOL -> C, etc. eu decidi fazer com que a linguagem tenha dois modos:
+
+- [x] BASIC (padrão, atualmente o único implementado)
+- [ ] C (padrão, porém com sintaxe C, como `{}`, e praticamente tudo o que falta do BASIC comparado com C)
+
+O BASIC, como o prório nome já diz, é inspirado na linguagem `BASIC`, aonde sua sintaxe se diferencia MUITO de outras como `C`, portanto, eu decidi que fazer 2 modos de linguagem seria bem mais prático pra usuário que:
+- Querem experimentar coisas novas
+- Querem avançar um pouco mais na complexidade da sintaxe do `C`, mas aind asim manter a mesma lógica e os mesmos comandos
+- etc. 
+
 Meu foco principal é em compatibilidade multi-plataforma e multi-compilador, não quero que `BASICGOL` fique "preso" num estado aonde só compila no MSVC no Windows, quero que também funcione, por exemplo, no GCC sob Linux.
 
 Atualmente, o sistema tem foco principal nos seguintes compiladores:
