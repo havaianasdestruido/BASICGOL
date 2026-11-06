@@ -62,6 +62,26 @@ jobs:
       - name: Build transpiler and static library
         run: make all CC=gcc AR=ar
 
+      - name: Check Windows console output
+        run: |
+          gcc -std=c11 -I include docs/exemplos/ola_mundo.c build/libbasicgol.a -lm -o build/probe
+          ./build/probe > build/probe.out
+          probe=$( {
+            git config --show-origin --get core.autocrlf || true
+            printf 'golden\n'
+            od -An -tx1 tests/casos/02_basico/b01_ola/esperado.txt
+            printf 'actual\n'
+            od -An -tx1 build/probe.out
+            printf 'comparison\n'
+            T_TMP="$PWD/build"
+            . tests/lib.sh
+            difere tests/casos/02_basico/b01_ola/esperado.txt build/probe.out
+            printf 'rc=%s\n' "$?"
+            od -An -tx1 build/esperado.norm
+            od -An -tx1 build/obtido.norm
+          } | base64 -w 0)
+          printf '::error::Windows output probe (base64): %s\n' "$probe"
+
       - name: Run language and library tests
         run: |
           if ! make test CC=gcc AR=ar > build/test.log 2>&1; then
