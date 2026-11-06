@@ -254,13 +254,16 @@ detecção de compilador e documentação embutida, é entrega da Fase 2). Esta 
 #define ESCREVA_FMT(...)    printf(__VA_ARGS__)
 #define ESCREVA_ERRO(s)     fprintf(stderr, "%s", (s))
 
+/* Sem `default`: destino sem formato (LOGICO, TEXTO, TEXTO_FIXO) é
+ * violação de restrição do _Generic (C11 6.5.1.1p3) — erro de compilação,
+ * com ou sem -Werror. Com `default: "%p"` o scanf gravaria um ponteiro
+ * (8 bytes) dentro de um LOGICO de 1 byte. Ver DF-01 em 13-defeitos. */
 #define BG_SFMT(x) _Generic(&(x), \
     int *: "%d", unsigned *: "%u", long *: "%ld", unsigned long *: "%lu", \
     long long *: "%lld", unsigned long long *: "%llu", \
     float *: "%f", double *: "%lf", long double *: "%Lf", \
     char *: " %c", signed char *: " %hhd", unsigned char *: "%hhu", \
-    short *: "%hd", unsigned short *: "%hu", \
-    default: "%p")   /* default atinge LOGICO: -Wformat recusa */
+    short *: "%hd", unsigned short *: "%hu")
 #define LEIA(x)             ((void)(scanf(BG_SFMT(x), &(x)) == 1))
 #define LEIA_OK(x)          (scanf(BG_SFMT(x), &(x)) == 1)
 #define LEIA_TEXTO(b, t)    bg_leia_texto((b), (size_t)(t))

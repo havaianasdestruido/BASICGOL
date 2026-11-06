@@ -532,7 +532,7 @@ permite ler um `NATURAL8` sem gravar por cima de um byte:
 | `NATURAL8`, `NATURAL16`, `NATURAL_CURTO`, `NATURAL64` | `%hhu`, `%hu`, `%hu`, `%llu` | valor negativo é aceito pelo `scanf` e convertido módulo 2^n (comportamento de C, não da linguagem) |
 | `REAL_CURTO`, `REAL`, `REAL_LONGO` | `%f`, `%lf`, `%Lf` | `1e999` vira infinito: sem verificação de faixa (use `LEIA_REAL`) |
 | `CARACTERE` | `" %c"` | pula espaço em branco antes do caractere |
-| `LOGICO`, `TEXTO`, `TEXTO_FIXO` | — | **erro de compilação** (`-Wformat`): leia um `INTEIRO` e compare, ou use `LEIA_TEXTO` |
+| `LOGICO`, `TEXTO`, `TEXTO_FIXO` | — | **erro de compilação** (o `_Generic` do formato não tem `default`, C11 6.5.1.1p3 — desde a Fase 6 é erro, não aviso de `-Wformat`): leia um `INTEIRO` e compare, ou use `LEIA_TEXTO` |
 
 O caso `LOGICO` é recusado de propósito: `scanf` não tem conversão para `_Bool`, e
 `0/1`, `FALSO/VERDADEIRO`, `V/F` são todos razoáveis — escolher um seria inventar

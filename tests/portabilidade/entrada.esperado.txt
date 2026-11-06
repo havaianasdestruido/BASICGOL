@@ -1,0 +1,15 @@
+1 ok=1 n=42
+2 ok=1 linha=[linha de texto]
+3 ok=0 n=123
+4 ok=1 linha=[abc]
+5 n=7
+6 ok=1 linha=[ restos]
+7 ok=1 r=3.5
+8 c=Z
+9 ok=0 n=77
+10 ok=0 curto=[]
+11 ok=1 linha=[depois]
+12 ok=0 linha=[]
+13 ok=0 n=5
+14 n=5
+entrada: ok

@@ -1,4 +1,6 @@
+# artefatos de build (um diretório por configuração; ver Makefile)
 build/
+build-*/
 *.o
 *.obj
 *.gerado.c
@@ -6,3 +8,4 @@ build/
 *.exe
 *.pdb
 *.ilk
+__pycache__/

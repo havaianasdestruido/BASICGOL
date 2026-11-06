@@ -8,7 +8,13 @@
 
 // Le notas ate a sentinela 0 e mostra a media. Com a sentinela logo na primeira
 // leitura, o laço executa zero vezes e a media nao e calculada.
-PROCEDIMENTO mostra_media() {
+//
+// Nota (Fase 6, DF-08): procedimento sem parametros se declara com (VAZIO), nao
+// com () vazio. Em C, `()` significa "parametros nao especificados" (protótipo
+// antigo, obsoleto no C23) e o Clang 20 recusa com -Wstrict-prototypes, que faz
+// parte do conjunto adotado. GCC aceita em silencio; o Clang nao — e o codigo
+// portatil e o que os dois aceitam.
+PROCEDIMENTO mostra_media(VAZIO) {
     INTEIRO nota = 0;
     INTEIRO qtd = 0;
     INTEIRO soma = 0;
