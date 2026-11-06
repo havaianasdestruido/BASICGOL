@@ -122,7 +122,8 @@ Eu tenho planos bem ambiciosos com essa linguagem (_uns até de mais_), os que m
 - [ ] Portar funções úteis do C++ pra `BASICGOL` (só as mais úteis mesmo)
 - - [ ] Exemplos: `VETOR_DINAMICO` (alternativa simplificada a `std::vector`), `PILHA` (`std::stack`), `FILA` (`std::queue`), `PAR` (`std::pair`), `OPCIONAL` (`std::optional`), `MINIMO`/`MAXIMO` (`std::min`/`std::max`), `TROCA` (`std::swap`), `STRING` (manipulação de texto com tamanho dinâmico), `UNICO_PTR` (propriedade exclusiva de memória inspirada em `std::unique_ptr`) e `ESCOPO_RECURSO` (liberação automática de recursos inspirada em RAII). A implementação deverá usar estruturas, funções e macros C11, com gerenciamento de memória explícito quando necessário e documentação clara das diferenças em relação ao C++
 - [ ] Fazer exemplos maiores, demonstrando a capacidade da linguagem, como sistemas inteiros, servidores HTTP, projetos IoT, etc.
-- [ ] Reescrever apps feitos para DOS com `BASICGOL`
+- [ ] Adicionar exemplos com WebAssembly
+- [ ] Reescrever apps feitos para DOS com `BASICGOL` para rodar em sistemas modernos
 - [ ] Adicionar camadas de abstração para facilitar programação I/O entre sistemas
 - - [ ] Mais espeficiadamente, por exemplo, criar uma camada de abstração de I/O multiplataforma para o `BASICGOL`, permitindo operações como `ABRE_ARQUIVO()`, `LE_ARQUIVO()`, `ESCREVE_ARQUIVO()`, `FECHA_ARQUIVO()`, `LE_PORTA_SERIAL()` e `ESCREVE_PORTA_SERIAL()` sem depender diretamente das APIs específicas de cada sistema operacional. Permitindo que o mesmo código BASICGOL leia dados de uma porta serial no Windows (Win32 API) e no Linux (termios/POSIX), mantendo uma interface comum e delegando os detalhes específicos da plataforma a implementações em C
 - [ ] Fazer um app de exemplo que use Lua, demonstrando a capacidade de usar linguagens "embed"-dáveis, como se fosse um CLI pra enviar comandos Lua. (JIT)
