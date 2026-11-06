@@ -66,6 +66,11 @@ falha() {
     if [ -n "${2:-}" ]; then
         printf '        %s\n' "$2"
     fi
+    if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+        printf '::error::FALHA %s\n' "$1"
+        [ -n "${2:-}" ] && printf '::error::%s\n' "$2"
+        return 0
+    fi
 }
 
 confere_saida() {
@@ -86,7 +91,13 @@ confere_saida() {
             falha "$nome ($rotulo)" \
                   "saida difere do dourado (docs/exemplos/$nome.esperado.txt)"
             diff -u <(tr -d '\r' < "docs/exemplos/$nome.esperado.txt") \
-                     "$TMP/out" | sed -n '1,10p' | sed 's/^/        /'
+                     "$TMP/out" > "$TMP/diff" || true
+            sed -n '1,10p' "$TMP/diff" | sed 's/^/        /'
+            if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+                sed -n '1,10p' "$TMP/diff" | while IFS= read -r linha; do
+                    printf '::error::%s\n' "$linha"
+                done
+            fi
             return
         fi
     fi
@@ -96,6 +107,12 @@ confere_saida() {
             [ -z "$linha" ] && continue
             if ! grep -qF -- "$linha" "$TMP/out"; then
                 falha "$nome ($rotulo)" "saida nao contem: $linha"
+                if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+                    printf '::error::saida produzida:\n'
+                    sed -n '1,20p' "$TMP/out" | while IFS= read -r linha_out; do
+                        printf '::error::| %s\n' "$linha_out"
+                    done
+                fi
                 falhou=1
             fi
         done < "docs/exemplos/$nome.contem.txt"
