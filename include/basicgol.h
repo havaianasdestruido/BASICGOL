@@ -40,8 +40,8 @@
 /* ------------------------------------------------------------- exigir C11 */
 
 #if !defined(__STDC_VERSION__) || (__STDC_VERSION__ < 201112L)
-#  if defined(_MSC_VER) && (_MSC_VER >= 1928)
-     /* MSVC ≥ 19.28 em modo C (/std:c11 ou /std:c17): segue em frente. */
+#  if defined(_MSC_VER) && (_MSC_VER >= 1928) && defined(_MSVC_LANG)
+     /* MSVC moderno em modo C: segue em frente */
 #  else
 #    error "BASICGOL exige C11 ou superior (_Generic). Compile com -std=c11 ou -std=c17."
 #  endif
@@ -59,18 +59,6 @@
 #include <errno.h>
 #include <limits.h>
 #include <float.h>
-
-/* ---------------------------------------------------------- long double */
-/* C11 6.5.1.1: duas associações de um mesmo _Generic cujos tipos são
- * compatíveis deixam o programa malformado. Onde `long double` não oferece
- * nada além de `double` (MSVC, Apple aarch64), as associações abaixo colidiriam
- * com as de `double` — e os mesmos valores já casam com `double:` por serem
- * o mesmo tipo. Quando os tipos diferem (x87, quad do glibc), nada muda. */
-#if LDBL_MANT_DIG == DBL_MANT_DIG && LDBL_MAX_EXP == DBL_MAX_EXP
-#  define BG_LD_ASSOC(assoc)     /* some; a associação de double absorve tudo */
-#else
-#  define BG_LD_ASSOC(assoc)     assoc,
-#endif
 
 /* =====================================================================
  * 1. Biblioteca padrão modular (prefixo bg_)
@@ -195,8 +183,7 @@
     int: bg_divide_i, long: bg_divide_l, long long: bg_divide_ll,           \
     unsigned: bg_divide_u, unsigned long: bg_divide_ul,                     \
     unsigned long long: bg_divide_ull, float: bg_divide_f,                  \
-    double: bg_divide_d,                                                    \
-    BG_LD_ASSOC(long double: bg_divide_ld)                                  \
+    double: bg_divide_d, long double: bg_divide_ld,                         \
     default: bg_divide_d)((a), (b), __FILE__, __LINE__)
 
 #define BG_RESTO(a, b) _Generic((a) + (b),                                  \
@@ -257,14 +244,12 @@
     short: "%hd", unsigned short: "%hu", int: "%d", unsigned int: "%u", \
     long: "%ld", unsigned long: "%lu", long long: "%lld",               \
     unsigned long long: "%llu", float: "%g", double: "%g",              \
-    BG_LD_ASSOC(long double: "%Lg")                                     \
-    char *: "%s", const char *: "%s", default: "%p")
+    long double: "%Lg", char *: "%s", const char *: "%s", default: "%p")
 
 #define BG_SFMT(x) _Generic(&(x),                                      \
     int *: "%d", unsigned *: "%u", long *: "%ld", unsigned long *: "%lu", \
     long long *: "%lld", unsigned long long *: "%llu",                    \
-    float *: "%f", double *: "%lf",                                     \
-    BG_LD_ASSOC(long double *: "%Lf")                                   \
+    float *: "%f", double *: "%lf", long double *: "%Lf",                 \
     char *: " %c", signed char *: " %hhd", unsigned char *: "%hhu",       \
     short *: "%hd", unsigned short *: "%hu", default: "%p")
 

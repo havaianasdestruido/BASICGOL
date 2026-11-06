@@ -163,16 +163,7 @@ Os trechos de saída de pré-processador mostrados na §4 são reais (com a tabe
 
 Trecho normativo do cabeçalho (a implementação completa, com nomes prefixados,
 detecção de compilador e documentação embutida, é entrega da Fase 2). Esta é a forma
-**verificada**. Dois detalhes de portabilidade valem registro:
-
-* o despacho para `long double` fica atrás de `BG_LD_ASSOC`, que evapora quando
-  `LDBL_MANT_DIG == DBL_MANT_DIG && LDBL_MAX_EXP == DBL_MAX_EXP` (MSVC e Apple
-  aarch64, onde `long double` é `double`) — do contrário, duas associações do mesmo
-  `_Generic` nomeariam o mesmo tipo e o programa seria malformado (C11 6.5.1.1).
-  Onde `long double` é mais largo (x87, quad do glibc), a associação permanece;
-* `BG_LD_ASSOC(assoc)` expande para `assoc,` quando os tipos diferem, e para nada
-  caso contrário — nesses builds, valores `long double` casam com a associação
-  `double:`, o que é exatamente a semântica do CRT/ABI em questão.
+**verificada**:
 
 ```c
 /* ---- programa ---- */
@@ -249,21 +240,13 @@ detecção de compilador e documentação embutida, é entrega da Fase 2). Esta 
 #define TEXTOS_IGUAIS(a, b)     (strcmp((a), (b)) == 0)
 #define TEXTOS_DIFERENTES(a, b) (strcmp((a), (b)) != 0)
 
-/* ---- long double (ver nota de portabilidade acima) ---- */
-#if LDBL_MANT_DIG == DBL_MANT_DIG && LDBL_MAX_EXP == DBL_MAX_EXP
-#  define BG_LD_ASSOC(assoc)     /* some */
-#else
-#  define BG_LD_ASSOC(assoc)     assoc,
-#endif
-
 /* ---- E/S ---- */
 #define BG_FMT(x) _Generic((x), \
     _Bool: "%d", char: "%c", signed char: "%hhd", unsigned char: "%hhu", \
     short: "%hd", unsigned short: "%hu", int: "%d", unsigned int: "%u", \
     long: "%ld", unsigned long: "%lu", long long: "%lld", \
     unsigned long long: "%llu", float: "%g", double: "%g", \
-    BG_LD_ASSOC(long double: "%Lg") \
-    char *: "%s", const char *: "%s", default: "%p")
+    long double: "%Lg", char *: "%s", const char *: "%s", default: "%p")
 #define ESCREVA(x)          printf(BG_FMT(x), (x))
 #define ESCREVAL(x)         (printf(BG_FMT(x), (x)), fputc('\n', stdout))
 #define ESCREVA_LINHA()     fputc('\n', stdout)
@@ -274,8 +257,7 @@ detecção de compilador e documentação embutida, é entrega da Fase 2). Esta 
 #define BG_SFMT(x) _Generic(&(x), \
     int *: "%d", unsigned *: "%u", long *: "%ld", unsigned long *: "%lu", \
     long long *: "%lld", unsigned long long *: "%llu", \
-    float *: "%f", double *: "%lf", \
-    BG_LD_ASSOC(long double *: "%Lf") \
+    float *: "%f", double *: "%lf", long double *: "%Lf", \
     char *: " %c", signed char *: " %hhd", unsigned char *: "%hhu", \
     short *: "%hd", unsigned short *: "%hu", \
     default: "%p")   /* default atinge LOGICO: -Wformat recusa */
@@ -525,7 +507,7 @@ int bg_abs_i(int valor); /* bg_abs_l/ll/f/d; mínimo assinado é erro fatal */
 int bg_min_i(int a, int b); /* bg_min_l/d, bg_max_i/l/d */
 long long bg_round_l(double valor);
 
-/* utilidades — PRNG próprio (xorshift64*), não criptográfico */
+/* utilidades — rand() global, não criptográfico */
 void bg_inicia_sorteio(unsigned semente);
 bool bg_sorteia_ate(unsigned limite_exclusivo, unsigned *saida);
 int bg_sorteia(int n); /* alias compatível: n inválido devolve 0 */
@@ -536,8 +518,7 @@ explícita incluindo NUL; memória e streams pertencem ao chamador; falhas recup
 retornam `false` sem alterar saídas numéricas; as conversões preservam `errno`. Só
 `bg_erro` e os wrappers de linguagem para entradas impossíveis (divisor zero, quociente
 assinado não representável e magnitude de `ABS` que não cabe) encerram o processo. O sorteio exige
-semente explícita e universo de sorteio de 2^32 (independente da plataforma); detalhes e
-limitações estão
+semente explícita e declara a faixa limitada por `RAND_MAX`; detalhes e limitações estão
 em [09](09-biblioteca-padrao.md).
 
 Requisitos de qualidade da biblioteca:
@@ -557,7 +538,7 @@ Requisitos de qualidade da biblioteca:
 | RB-11 | `DIVIDE`/`RESTO` recusam zero e quociente assinado não representável, com diagnóstico na origem da macro |
 | RB-12 | Conversores restauram `errno` após usar `strto*`; `false` é a indicação de falha |
 | RB-13 | `NULL` é texto vazio onde documentado; operações com destino suportam sobreposição |
-| RB-14 | o PRNG tem semente explícita, universo de 2^32 documentado e nenhuma promessa criptográfica |
+| RB-14 | `rand()` tem semente explícita, limite documentado e nenhuma promessa criptográfica |
 
 ---
 

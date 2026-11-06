@@ -55,7 +55,7 @@ BG_MAXIMO_REAL|DBL_MAX
 BG_EPSILON_REAL|DBL_EPSILON
 BG_OU_EXCLUSIVO(a,b)|((bool) (((a) != 0) != ((b) != 0)))
 BG_LOGICO_DE(x)|((bool) ((x) != 0))
-BG_DIVIDE(a,b)|_Generic((a) + (b), int: bg_divide_i, long: bg_divide_l, long long: bg_divide_ll, unsigned: bg_divide_u, unsigned long: bg_divide_ul, unsigned long long: bg_divide_ull, float: bg_divide_f, double: bg_divide_d, BG_LD_ASSOC(long double: bg_divide_ld) default: bg_divide_d)((a), (b), __FILE__, __LINE__)
+BG_DIVIDE(a,b)|_Generic((a) + (b), int: bg_divide_i, long: bg_divide_l, long long: bg_divide_ll, unsigned: bg_divide_u, unsigned long: bg_divide_ul, unsigned long long: bg_divide_ull, float: bg_divide_f, double: bg_divide_d, long double: bg_divide_ld, default: bg_divide_d)((a), (b), __FILE__, __LINE__)
 BG_RESTO(a,b)|_Generic((a) + (b), int: bg_resto_i, long: bg_resto_l, long long: bg_resto_ll, unsigned: bg_resto_u, unsigned long: bg_resto_ul, unsigned long long: bg_resto_ull)((a), (b), __FILE__, __LINE__)
 BG_ACRESCENTA_TEXTO(d,t,o)|bg_acrescenta_texto((d), (size_t) (t), (o))
 BG_TRECHO_TEXTO(d,t,o,i,q)|bg_trecho_texto((d), (size_t) (t), (o), (size_t) (i), (size_t) (q))
