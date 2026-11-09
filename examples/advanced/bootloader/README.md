@@ -9,6 +9,10 @@ i686-elf-gcc -ffreestanding -nostdlib -I ../../../include \
   bootloader.c -o bootloader.elf -T linker.ld
 ```
 
+## Status
+
+Este exemplo nao foi compilado neste ambiente (sem toolchain freestanding). Trate como ilustrativo.
+
 ## Notas
 - Requer toolchain freestanding (i686-elf-gcc) e um linker script.
 - Sem biblioteca padrão; apenas macros BASICGOL e acesso direto ao hardware.

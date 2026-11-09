@@ -21,6 +21,10 @@ emrun wasm_exemplo.html
 # ou sirva os arquivos com um servidor HTTP local
 ```
 
+## Status
+
+Este exemplo nao foi compilado neste ambiente (sem Emscripten). Trate como ilustrativo.
+
 ## Notas
 - A biblioteca padrão (libbasicgol) deve ser compilada para WASM separadamente
   se for utilizada (emcc src/biblioteca/*.c -I ../../../include).
