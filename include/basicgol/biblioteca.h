@@ -14,5 +14,6 @@
 #include <basicgol/matematica.h>
 #include <basicgol/texto.h>
 #include <basicgol/utilidades.h>
+#include <basicgol/filesystem.h>
 
 #endif /* BASICGOL_BIBLIOTECA_H */
