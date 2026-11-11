@@ -6,17 +6,47 @@ sidebar_position: 1
 
 # Começar com BASICGOL
 
-BASICGOL é uma camada de macros sobre C11. Um programa é um arquivo `.c` que inclui `basicgol.h`; não há máquina virtual nem interpretador no caminho de execução.
+BASICGOL é uma camada de macros sobre C11. Um programa é um arquivo `.c` que inclui
+`basicgol.h`; não há máquina virtual nem interpretador no caminho de execução. O
+transpilador `basicgolc` é opcional e só existe para o açúcar sintático que o
+pré-processador não consegue produzir.
 
-## 1. Compilar a biblioteca e o transpilador
+Esta página leva do zero ao primeiro programa compilado, e explica o que fazer quando
+o compilador reclama.
+
+## 1. O que você precisa ter instalado
+
+| Requisito | Para quê | Observação |
+|---|---|---|
+| Compilador C11 | compilar o programa e a biblioteca | GCC, Clang e MinGW-w64 foram exercitados; MSVC é apenas avaliado |
+| `make` | construir `build/basicgolc` e `build/libbasicgol.a` | o Makefile pressupõe ambiente Unix-like |
+| `ar` | criar o archive estático da biblioteca | o alvo `biblioteca` usa `ar rcs` |
+| Bash | runners de teste e exemplos | no Windows, Git Bash/MSYS2; não é CMD/PowerShell |
+| Python 3.10+ | apenas para o gerador deste site | não é necessário para compilar BASICGOL |
+
+Se você só quer usar a linguagem, um compilador C11 e `make` bastam. Node.js, Python e
+`npm` entram apenas na construção da documentação.
+
+## 2. Compilar a biblioteca e o transpilador
 
 ```bash
 make
 ```
 
-Isso produz `build/basicgolc` e `build/libbasicgol.a`. No Windows, o projeto usa os workflows MSYS2/MinGW e MSVC documentados no repositório; o Makefile pressupõe um ambiente Unix-like.
+Isso produz `build/basicgolc` e `build/libbasicgol.a`. Alvos úteis do mesmo Makefile:
 
-## 2. Escrever um programa
+```bash
+make biblioteca      # somente build/libbasicgol.a
+make test            # suíte da linguagem + biblioteca
+make test-biblioteca # somente os módulos da biblioteca
+make exemplos        # compila os exemplos versionados
+make ajuda           # lista todos os alvos
+```
+
+No Windows, o projeto usa os workflows MSYS2/MinGW e MSVC documentados no repositório.
+O `Makefile` não é um projeto Visual Studio.
+
+## 3. Escrever um programa
 
 ```c
 #include <basicgol.h>
@@ -42,7 +72,21 @@ INICIO
 FIM
 ```
 
-## 3. Compilar diretamente — M0
+O arquivo tem extensão `.c` de propósito (decisão D-14): ele é C válido depois da
+expansão das macros, e a maioria das ferramentas de C o trata corretamente.
+
+### O que cada bloco faz
+
+| Trecho | Expansão conceitual | Perfil |
+|---|---|---|
+| `INICIO` | `int main(void) {` | N (macros) |
+| `FIM` | `}` | N |
+| `FUNCAO REAL media(...)` | `REAL media(...)` — `FUNCAO` expande para nada | N |
+| `SE ... ENTAO` / `SENAO` / `FIM_SE` | `if (...) {` / `} else {` / `}` | N |
+| `ESCREVAL(x)` | escrita de **um** valor com quebra de linha, formato escolhido por `_Generic` | N |
+| `LEIA(x)` | leitura formatada de um escalar; o formato vem do tipo do destino | N |
+
+## 4. Compilar diretamente — caminho M0
 
 ```bash
 cc -std=c11 -Wall -Wextra -Wformat=2 -I include programa.c \
@@ -50,9 +94,15 @@ cc -std=c11 -Wall -Wextra -Wformat=2 -I include programa.c \
 ./programa
 ```
 
-M0 usa as macros do cabeçalho. Construtores como `SE ... ENTAO`, `ENQUANTO ... FACA` e `PARA (i, a, b)` são redutíveis no pré-processador.
+M0 usa apenas as macros do cabeçalho. Construtores como `SE ... ENTAO`,
+`ENQUANTO ... FACA` e `PARA (i, a, b)` são redutíveis no pré-processador, sem etapa
+extra.
 
-## 4. Usar a sintaxe açucarada — M1
+A ordem dos argumentos importa em toolchains Unix: primeiro a fonte, depois o archive
+`build/libbasicgol.a`, e `-lm` por último. Se a plataforma já incorpora libm, `-lm`
+pode ser omitido; ele é obrigatório no GCC/Clang do Linux quando há matemática.
+
+## 5. Usar a sintaxe açucarada — caminho M1
 
 ```c
 INICIO
@@ -69,9 +119,64 @@ cc -std=c11 -I include programa.gerado.c build/libbasicgol.a -lm -o programa
 ./programa
 ```
 
-M1 traduz blocos e açúcar sintático; o compilador C continua responsável por tipos, semântica, otimização e ligação.
+M1 traduz blocos e açúcar sintático; o compilador C continua responsável por tipos,
+semântica, otimização e ligação. O C gerado também recebe o cabeçalho BASICGOL, então
+as macros continuam disponíveis.
 
-## 5. Conferir antes de integrar
+### M0 ou M1? Como decidir
+
+| Situação | Caminho | Por quê |
+|---|---|---|
+| Só usa construtores que são macros | M0 | menos uma ferramenta no build |
+| Usa `PARA i DE … ATE … FACA` ou `PASSO` | M1 | exige reordenar tokens |
+| Quer diagnóstico de bloco (`FIM_SE` órfão etc.) | M1 | o pré-processador não enxerga estrutura |
+| Quer o build mais simples possível | M0 | um único comando de compilação |
+| Precisa de binário idêntico em qualquer alvo | qualquer um | o resultado final é C compilado pelo mesmo compilador |
+
+Os dois caminhos usam a mesma fonte e a mesma biblioteca. Não existe “dialeto M0” e
+“dialeto M1”: existe um subconjunto que dispensa o transpilador.
+
+## 6. Ler dados sem deixar lixo no fluxo
+
+`LEIA` é leitura formatada e pode deixar o newline no `stdin`. Para texto use
+`LEIA_TEXTO` com capacidade explícita; para uma linha convertida em número use
+`LEIA_INTEIRO`/`LEIA_REAL`.
+
+```c
+INICIO
+    TEXTO_FIXO(nome, 80);
+    INTEIRO idade = 0;
+
+    ESCREVA("Nome: ");
+    SE LEIA_TEXTO(nome, TAMANHO_DE(nome)) ENTAO
+        ESCREVA("Idade: ");
+        SE LEIA_INTEIRO(idade) ENTAO
+            ESCREVAL(nome);
+            ESCREVAL(idade);
+        SENAO
+            ESCREVAL("idade invalida");
+        FIM_SE
+    SENAO
+        ESCREVAL("nome invalido");
+    FIM_SE
+FIM
+```
+
+As três funções devolvem `LOGICO`; `false` significa que a conversão não foi completa e
+o destino numérico não foi alterado.
+
+## 7. Diagnósticos comuns de build
+
+| Mensagem | Causa provável | Correção |
+|---|---|---|
+| `BASICGOL exige C11` | faltou `-std=c11` ou o compilador está em C99 | adicione `-std=c11` |
+| `undefined reference to bg_*` | biblioteca não ligada ou fora de ordem | coloque `build/libbasicgol.a` depois da fonte |
+| `undefined reference to pow/sqrt` | falta `-lm` | adicione `-lm` ao final da linha |
+| erro de `_Generic` em `LEIA` | destino `LOGICO`, `TEXTO` ou `TEXTO_FIXO` | use `LEIA_TEXTO`/`LEIA_INTEIRO` |
+| `FIM_SE` sem `SE` (M1) | bloco desbalanceado | confira a estrutura ou compile em M0 para comparar |
+| aviso de `TAMANHO_VETOR(ponteiro)` | ponteiro não mede vetor | passe o vetor real ou o tamanho |
+
+## 8. Conferir antes de integrar
 
 ```bash
 make test
@@ -83,7 +188,67 @@ make test-portabilidade
 - [Funções da biblioteca](/referencia/funcoes/)
 - [Exemplos versionados](/exemplos/)
 - [Restrições e decisões](/projeto/04-restricoes-e-decisoes)
+- [Compiladores e flags](/projeto/10-compiladores)
 
-:::tip[Texto, números e falhas]
-`LEIA` é leitura formatada e pode deixar newline no fluxo. `LEIA_INTEIRO`/`LEIA_REAL` leem uma linha e devolvem sucesso. Para texto use `LEIA_TEXTO` com capacidade explícita. Operações de texto retornam `LOGICO` em vez de truncar silenciosamente.
-:::
+## Perguntas frequentes
+
+### Preciso instalar algo além de um compilador C?
+
+Para compilar e executar, não. `make` constrói a biblioteca e o transpilador, mas você
+também pode compilar os fontes de `src/biblioteca/*.c` diretamente junto do seu
+programa. Python e Node só entram na geração do site.
+
+```bash
+cc -std=c11 -Wall -Wextra -I include programa.c \
+   src/biblioteca/*.c -lm -o programa
+```
+
+### Por que o arquivo tem extensão `.c` e não `.bg`?
+
+Porque a fonte é C válido depois da expansão das macros e o projeto decidiu (D-14) não
+inventar uma extensão própria. Isso permite usar qualquer editor, linter, formatador e
+sistema de build de C sem configuração especial.
+
+### Meu programa não compila e a mensagem aponta para `basicgol.h`. O que fazer?
+
+Leia a primeira mensagem, não a última. Erros em macro costumam aparecer no ponto de
+uso. Compile com `-std=c11` e confirme que incluiu `include/`. Se a mensagem for de
+`_Generic`, provavelmente `LEIA` recebeu um tipo sem formato.
+
+```bash
+cc -std=c11 -Wall -Wextra -Wformat=2 -I include programa.c \
+   build/libbasicgol.a -lm -o programa 2>&1 | head -n 20
+```
+
+### `make` falhou no Windows. O Makefile não funciona?
+
+O Makefile pressupõe ambiente Unix-like (Bash, `ar`, `mktemp`). No Windows, use
+MSYS2/MinGW ou o workflow MSVC; não há suporte a `nmake` no repositório.
+
+### Posso misturar C normal e BASICGOL no mesmo arquivo?
+
+Sim, essa é a proposta. `#include`, `struct`, ponteiros e funções da biblioteca padrão
+continuam disponíveis. As palavras-chave em português são macros, então evite usá-las
+como nomes de variável.
+
+```c
+#include <basicgol.h>
+#include <string.h>
+
+INICIO
+    TEXTO_FIXO(s, 16);
+    COPIA_TEXTO(s, TAMANHO_DE(s), "abc");
+    ESCREVAL((INTEIRO) strlen(s));
+FIM
+```
+
+### Como sei se meu código precisa do M1?
+
+Se ele compila e roda sem `basicgolc`, você está em M0 e não precisa do transpilador.
+Se usa `PARA i DE … FACA`, o pré-processador não consegue reordenar os tokens e a
+compilação direta falha — é o sinal de que o caminho é M1.
+
+### Onde ficam os testes que provam o comportamento que estou usando?
+
+Cada página de símbolo tem uma seção **Como este símbolo aparece nos testes**, com
+arquivo, linha e trecho. Comece por [Testes](/testes/) e siga os links de linha.

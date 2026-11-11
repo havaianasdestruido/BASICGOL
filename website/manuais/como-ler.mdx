@@ -8,7 +8,28 @@ sidebar_position: 3
 
 ## Uma página por contrato, apelidos reunidos
 
-`SE` e `BG_SE` aparecem juntos porque um é alias textual do outro. A página reúne os usos dos dois nomes, mostra a definição canônica e a cadeia de expansão. O mesmo vale para os demais nomes curtos. Quando uma macro encaminha para uma função `bg_*`, a página mostra a relação e o contrato da função.
+`SE` e `BG_SE` aparecem juntos porque um é alias textual do outro. A página reúne os usos
+dos dois nomes, mostra a definição canônica e a cadeia de expansão. O mesmo vale para os
+demais nomes curtos. Quando uma macro encaminha para uma função `bg_*`, a página mostra a
+relação e o contrato da função.
+
+### Anatomia de uma página de símbolo
+
+| Seção | O que responde | Como foi produzida |
+|---|---|---|
+| Tipo e módulo | macro ou função, com ou sem argumentos, categoria | extração do fonte |
+| Assinatura e expansão | como se escreve e para que expande | corpo literal da macro ou protótipo |
+| Como funciona | contrato e mecânica | `contratos.json`, comentário ou corpo |
+| Exemplo de uso | chamada verossímil | contrato editorial, quando existe |
+| Implementação | código real | corpo extraído com linhas |
+| Como este símbolo aparece nos testes | onde e como é usado | varredura de referências com linha |
+| Evidência indireta | quem chama | grafo de chamadas do fonte |
+| Compiladores, padrão C e SO | guards e ressalvas | diretivas preservadas |
+| Checklist de integração | o que fazer para usar | derivado do tipo e do módulo |
+| Perguntas frequentes | dúvidas típicas daquele nome | dados da própria página |
+
+Nem toda seção aparece em toda página: um símbolo sem `#if` não tem ramo condicional, e
+um símbolo sem chamada em teste não tem evidência direta.
 
 ## Tipos de evidência
 
@@ -21,14 +42,114 @@ sidebar_position: 3
 | Ramo condicional | Existe `#if`/`#ifdef`/`#else` no fonte | Que o ramo foi compilado em todos os alvos |
 | Matriz histórica | Registro de execução/compilação/avaliação da fase documentada | Resultado automático do build atual deste site |
 
+### Exemplo de leitura
+
+Suponha uma página que mostra 18 ocorrências de `bg_copia_texto` em 4 arquivos. Isso
+significa que o identificador aparece 18 vezes nesses arquivos — não que a função foi
+chamada 18 vezes em execução, nem que todas as combinações de capacidade foram testadas.
+
+```bash
+# conferir manualmente uma referência citada pela página
+grep -n "bg_copia_texto" tests/test_biblioteca.c
+sed -n '1,20p' tests/test_biblioteca.c
+```
+
+O link de linha leva ao commit do build, então o trecho continua correspondendo ao código
+que gerou a página.
+
 ## Contagens
 
-As contagens do site são **estáticas**: símbolos definidos, casos em disco, ocorrências e modos localizados. O total impresso por `make test` é **dinâmico** e inclui verificações repetidas, sanitizers, ferramentas disponíveis e caminhos realmente executados. Não compare os dois números como se fossem a mesma métrica.
+As contagens do site são **estáticas**: símbolos definidos, casos em disco, ocorrências e
+modos localizados. O total impresso por `make test` é **dinâmico** e inclui verificações
+repetidas, sanitizers, ferramentas disponíveis e caminhos realmente executados. Não
+compare os dois números como se fossem a mesma métrica.
+
+| Métrica | Onde aparece | Natureza |
+|---|---|---|
+| símbolos inventariados | [Referência](/referencia/) | estática |
+| casos em disco | [Testes](/testes/) | estática |
+| ocorrências de um nome | página do símbolo | estática |
+| verificações aprovadas | saída de `make test` | dinâmica |
+| verificações de portabilidade | saída de `make test-portabilidade` | dinâmica |
 
 ## Lacunas são visíveis
 
-O [JSON de cobertura](pathname:///api/cobertura.json) lista símbolos sem referência direta e contratos sem resumo editorial. Uma guarda de inclusão pode legitimamente não ter teste direto; uma função exercitada apenas por um chamador precisa de evidência indireta. O gerador não transforma ausência em aprovação.
+O [JSON de cobertura](pathname:///api/cobertura.json) lista símbolos sem referência
+direta e contratos sem resumo editorial. Uma guarda de inclusão pode legitimamente não
+ter teste direto; uma função exercitada apenas por um chamador precisa de evidência
+indireta. O gerador não transforma ausência em aprovação.
+
+```bash
+python3 - <<'PY'
+import json
+d = json.load(open("website/static/api/cobertura.json"))
+print(len(d["sem_referencia_direta"]), "símbolos sem referência direta")
+print(d["sem_referencia_direta"][:10])
+PY
+```
 
 ## Fontes e permalinks
 
-Os links de fonte usam o commit do build quando disponível. Assim, a linha mostrada continua correspondendo ao código que gerou aquela página. Em uma árvore local ainda não commitada, o permalink usa o HEAD atual como referência; o build de CI usa o SHA do evento.
+Os links de fonte usam o commit do build quando disponível. Assim, a linha mostrada
+continua correspondendo ao código que gerou aquela página. Em uma árvore local ainda não
+commitada, o permalink usa o HEAD atual como referência; o build de CI usa o SHA do evento.
+
+```bash
+DOCS_COMMIT=HEAD python3 tools/gerar_documentacao.py --output /tmp/site
+```
+
+## Erros de interpretação comuns
+
+| Leitura | Problema | Leitura correta |
+|---|---|---|
+| “A página não tem teste, então não funciona” | ausência de referência direta não é ausência de implementação | verifique chamadores e cobertura |
+| “70 verificações de portabilidade = 70 alvos” | o número conta verificações, não plataformas | leia a matriz por alvo |
+| “A macro é a função” | macro é substituição de tokens; a função é código compilado | veja se existe `bg_*` associado |
+| “O exemplo é um teste” | exemplo editorial não é executado por si só | procure o caso dourado correspondente |
+| “O total do site mudou, a suíte regrediu” | métricas diferentes | compare logs de `make test` com logs |
+
+## Perguntas frequentes
+
+### O que significa “Nenhuma referência direta localizada”?
+
+Que a busca estática não encontrou aquele identificador nos arquivos de teste. Isso é
+comum em guardas de inclusão, macros de configuração e funções alcançadas apenas por
+chamadores. A página ainda mostra a definição e o contrato; a lacuna fica registrada no
+JSON de cobertura.
+
+```bash
+grep -R "MEU_SIMBOLO" tests/ docs/exemplos/ || echo "sem mencao direta"
+```
+
+### Uma ocorrência no código de teste prova que o comportamento foi verificado?
+
+Não. Prova que o nome é usado naquele ponto. Para saber se o resultado foi conferido,
+abra o caso e veja o arquivo `esperado` e o status exigido. Em testes unitários, procure
+a chamada de `VERIFICA` em volta do uso.
+
+### Por que a página mostra um trecho de teste e não um exemplo “bonito”?
+
+Porque o trecho é código que o repositório realmente compila. Exemplos editoriais são
+úteis, mas não têm a mesma força de evidência. Quando existe um contrato com exemplo, a
+página mostra os dois.
+
+### Posso confiar no link de linha depois de editar o arquivo?
+
+O permalink usa o commit do build. Se você editar o fonte sem regerar, o link continua
+apontando para a versão antiga — o que preserva a correspondência com a página, mas não
+mostra sua alteração local. Regenere o site para atualizar os permalinks.
+
+### Como citar esta documentação em um trabalho?
+
+Cite a página e o commit mostrado no link de fonte, e diga qual comando foi executado.
+Para números, prefira a saída literal do log (por exemplo, `make test`) à contagem
+estática da página.
+
+### O que é o inventário JSON e para que serve?
+
+É a saída determinística do gerador: nomes, aliases, tipo, arquivo, linha, assinatura,
+guards, chamadas e URL da página. Serve para auditoria e automação.
+
+```bash
+python3 -c "import json; d=json.load(open('website/static/api/inventario.json')); print(d['counts'])"
+```
