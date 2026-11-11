@@ -1202,5 +1202,596 @@
     "configuração": "Macro de configuração ou guarda de inclusão. Defina opções antes de incluir basicgol.h; guardas tornam inclusões repetidas seguras.",
     "operadores": "Reescrita tokenizada de operadores C. Precedência, conversões e efeitos colaterais seguem C, salvo proteção explícita mostrada na expansão.",
     "declarações": "Declaração C emitida pelo pré-processador; não há coleta de lixo, bounds checking ou redimensionamento automático."
+  },
+  "documentos": {
+    "01-especificacao": [
+      {
+        "q": "BASICGOL é uma linguagem interpretada ou tem máquina virtual?",
+        "a": [
+          "Nem uma coisa nem outra. O programa é um `.c` comum que inclui `basicgol.h`; o modelo de execução é exatamente o de C11, sem VM, coletor de lixo ou interpretador no caminho crítico.",
+          "O transpilador `basicgolc` é opcional: ele só reescreve tokens para C antes do compilador."
+        ],
+        "code": "#include <basicgol.h>\n\nINICIO\n    ESCREVAL(\"ola, mundo\");\nFIM",
+        "lang": "c"
+      },
+      {
+        "q": "O que significam os rótulos N, X e C?",
+        "a": [
+          "**N** é núcleo: redutível a C por substituição de tokens, na ordem, sem reordenar nada — funciona no caminho M0. **X** é extensão: exige reordenar ou inserir tokens e por isso só existe no M1. **C** é C nativo, sempre aceito.",
+          "Exemplo: o laço contado tem as duas formas; a forma com `DE … ATE … FACA` é X."
+        ],
+        "code": "/* X — só no M1 */\nPARA i DE 1 ATE 3 FACA\n    ESCREVAL(i);\nFIM_PARA\n\n/* N — macros puras, caminho M0 */\nPARA (i, 1, 3) {\n    ESCREVAL(i);\n}",
+        "lang": "c"
+      },
+      {
+        "q": "O que está fora do escopo da v1.0?",
+        "a": [
+          "Classes/orientação a objetos, exceções, genéricos, sobrecarga de operadores, coleta de lixo, concorrência nas palavras-chave, módulos/pacotes, reflexão e macros definidas pelo usuário em sintaxe BG.",
+          "A especificação também declara não-objetivos: não ser mais expressiva que C, não esconder ponteiros e não prometer portabilidade além da de C11."
+        ]
+      },
+      {
+        "q": "Onde encontro o critério para saber se um construtor pode existir?",
+        "a": [
+          "Na regra dos três rótulos (§2.3) e nas restrições do pré-processador em `04`. Se um construtor não pode ser reduzido a tokens C nem transpilado com segurança, ele não entra na linguagem — e isso é registrado como restrição, não como promessa futura."
+        ]
+      }
+    ],
+    "02-referencia": [
+      {
+        "q": "Onde vejo a expansão exata de uma palavra-chave?",
+        "a": [
+          "Na página gerada do símbolo (seção **Assinatura e expansão**) e em `03-mapeamento-para-c`. A referência mostra a forma, o perfil (N/X/C) e o significado; as páginas por nome mostram o corpo literal da macro e os usos reais nos testes."
+        ],
+        "code": "#include <basicgol.h>\n\nINICIO\n    INTEIRO idade = 0;\n    LEIA(idade);\n    SE idade >= 18 ENTAO\n        ESCREVAL(\"maior de idade\");\n    SENAO\n        ESCREVAL(\"menor de idade\");\n    FIM_SE\nFIM",
+        "lang": "c"
+      },
+      {
+        "q": "`LEIA` funciona com `LOGICO`, `TEXTO` ou `TEXTO_FIXO`?",
+        "a": [
+          "Não. O formato de `LEIA` vem de `_Generic` pelo tipo do destino e esses três tipos não têm associação: o compilador recusa com erro de `_Generic` (não é aviso).",
+          "Para texto use `LEIA_TEXTO` com capacidade explícita; para uma linha convertida use `LEIA_INTEIRO`/`LEIA_REAL`."
+        ],
+        "code": "TEXTO_FIXO(nome, 80);\nSE LEIA_TEXTO(nome, TAMANHO_DE(nome)) ENTAO\n    ESCREVAL(nome);\nSENAO\n    ESCREVAL(\"nao foi possivel ler\");\nFIM_SE",
+        "lang": "c"
+      },
+      {
+        "q": "Como junto dois textos? `\"a\" + \"b\"` não funciona.",
+        "a": [
+          "Correto: em C isso é aritmética de ponteiros e produz lixo. Use `JUNTA_TEXTO` (dois textos) ou `ACRESCENTA_TEXTO` (acrescenta ao conteúdo atual). Ambas devolvem `LOGICO` e esvaziam o destino em falha."
+        ],
+        "code": "TEXTO_FIXO(nome, 32);\nSE JUNTA_TEXTO(nome, TAMANHO_DE(nome), \"BASIC\", \"GOL\") ENTAO\n    ESCREVAL(nome);\nFIM_SE",
+        "lang": "c"
+      },
+      {
+        "q": "Por que existem duas formas de laço contado?",
+        "a": [
+          "`PARA (i, a, b)` é a forma N, redutível no pré-processador. `PARA i DE a ATE b FACA` é a forma X, que precisa de `basicgolc` para reordenar início, fim e incremento. As duas têm o mesmo significado e limites inclusivos."
+        ]
+      }
+    ],
+    "03-mapeamento-para-c": [
+      {
+        "q": "As expansões mostradas são reais ou ilustrativas?",
+        "a": [
+          "São reais: a seção 4 do documento registra a saída literal de `gcc -E -P`. A tabela de expansões também é conferida com `cc -E -dM` pelos testes, e a página de cada macro mostra o corpo extraído do cabeçalho."
+        ],
+        "code": "cc -std=c11 -I include -E -P programa.c | sed -n '1,40p'\ncc -std=c11 -I include -E -dM programa.c | grep -E '^#define (BG_SE|SE) '",
+        "lang": "bash"
+      },
+      {
+        "q": "O que não é mapeável para macros?",
+        "a": [
+          "Tudo que exige reordenar tokens ou inserir texto que o programador não escreveu. O caso clássico é `PARA i DE 1 ATE 10 FACA`: as palavras aparecem antes do corpo, mas o `for` de C precisa de inicialização, condição e incremento no cabeçalho. Isso é M1.",
+          "`SENAO SE` (dois tokens) também não é normalizável pelas macros: use `SENAO_SE`."
+        ]
+      },
+      {
+        "q": "Como auditar um construtor específico?",
+        "a": [
+          "Siga a cadeia: tabela mestra → definição normativa → página gerada do símbolo → referências em testes. A página mostra a definição canônica, a expansão e cada ocorrência com linha, o que permite reproduzir exatamente o que foi compilado."
+        ]
+      },
+      {
+        "q": "Por que a tabela reversa (BG para C) existe?",
+        "a": [
+          "Para uso didático: ela mostra o que o aluno escreveria em C e serve de ponte para sair do dialeto. É material de aula, não uma API nem uma promessa de tradução automática nos dois sentidos."
+        ]
+      }
+    ],
+    "04-restricoes-e-decisoes": [
+      {
+        "q": "Por que `SENAO SE` não funciona?",
+        "a": [
+          "Porque `SENAO` fecha a chave do `if`; a sequência resultante não é um `else if` válido para o M1. A linguagem oferece `SENAO_SE`. Se você precisa de um `SE` realmente aninhado, escreva-o dentro de um bloco `SENAO … FIM_SE`."
+        ],
+        "code": "SE nota >= 7.0 ENTAO\n    ESCREVAL(\"aprovado\");\nSENAO_SE nota >= 5.0 ENTAO\n    ESCREVAL(\"recuperacao\");\nSENAO\n    ESCREVAL(\"reprovado\");\nFIM_SE",
+        "lang": "c"
+      },
+      {
+        "q": "O que é a dupla avaliação de argumentos (C-10)?",
+        "a": [
+          "Macros não são funções: se um parâmetro aparece duas vezes na expansão, a expressão é avaliada duas vezes. Efeitos colaterais (`i++`, chamadas com efeito) podem acontecer mais de uma vez. As macros que precisam de avaliação única delegam a uma função C, e o documento lista quais casos são protegidos."
+        ]
+      },
+      {
+        "q": "O que são as decisões D-xx?",
+        "a": [
+          "São escolhas de projeto registradas com estado — decidido, rejeitado, adiado — e justificativa. Elas explicam por que a linguagem não tem ponto e vírgula opcional, não usa `=` como igualdade e não chama `setlocale`, por exemplo."
+        ]
+      },
+      {
+        "q": "Uma restrição documentada pode ser contornada pelo usuário?",
+        "a": [
+          "Em geral não dentro da sintaxe BG, porque a limitação é do pré-processador e não do projeto. Você pode sempre escrever C nativo no mesmo arquivo; a restrição vale para o que a camada de macros promete."
+        ]
+      }
+    ],
+    "05-criterios-de-aceitacao": [
+      {
+        "q": "O que significa uma fase estar concluída?",
+        "a": [
+          "Que os critérios numerados foram verificados e que os portões de entrada e saída foram cumpridos. O documento registra o veredito de cada critério; não basta a funcionalidade existir."
+        ]
+      },
+      {
+        "q": "Como os critérios são verificados na prática?",
+        "a": [
+          "Por comandos reproduzíveis e casos dourados. Sempre que possível o critério aponta para um teste que falha se a garantia desaparecer."
+        ],
+        "code": "make test\nmake test-biblioteca\nmake test-portabilidade\nmake test-sanitize",
+        "lang": "bash"
+      },
+      {
+        "q": "Um critério aprovado aqui vale para qualquer compilador?",
+        "a": [
+          "Não. A aprovação vale para os alvos efetivamente executados. MSVC é avaliado, AArch64 é compilado e o frontend Clang foi exercitado via `zig cc`; a distinção está na matriz e não pode ser apagada."
+        ]
+      },
+      {
+        "q": "Como mudar a especificação sem quebrar o processo?",
+        "a": [
+          "O documento define o processo de mudança: registrar a decisão, atualizar especificação e critérios, adicionar teste e rodar a suíte. Uma mudança de comportamento sem teste correspondente não é considerada concluída."
+        ]
+      }
+    ],
+    "06-tipos-e-expressoes": [
+      {
+        "q": "Qual é a largura de `INTEIRO`?",
+        "a": [
+          "A do `int` da plataforma (pelo menos 16 bits). Para largura exata existem `INTEIRO8/16/32/64` e `NATURAL8/16/32/64`; as constantes de faixa mostram os valores reais do ambiente em vez de presumir 32 bits."
+        ],
+        "code": "ESCREVAL(MAXIMO_INTEIRO);\nESCREVAL(MINIMO_INTEIRO);\nESCREVAL(TAMANHO_DE(INTEIRO64));",
+        "lang": "c"
+      },
+      {
+        "q": "O que conta como verdadeiro em `SE`?",
+        "a": [
+          "`LOGICO_DE(x)` normaliza para 0/1 e testa `x != 0`. Zero, `0.0`, `'\\0'`, `FALSO` e ponteiro nulo são falsos; qualquer outro valor é verdadeiro, inclusive negativo, `NAN` e o ponteiro para string vazia `\"\"`."
+        ],
+        "code": "SE LOGICO_DE(contador) ENTAO\n    ESCREVAL(\"tem valor\");\nFIM_SE",
+        "lang": "c"
+      },
+      {
+        "q": "Como converter texto em número com segurança?",
+        "a": [
+          "Use `TEXTO_PARA_INTEIRO`, `TEXTO_PARA_NATURAL` ou `TEXTO_PARA_REAL`: devolvem `LOGICO`, recusam sobra de caracteres, estouro e faixa inválida, e não alteram o destino em falha."
+        ],
+        "code": "INTEIRO n = 0;\nSE TEXTO_PARA_INTEIRO(\"42\", &n) ENTAO\n    ESCREVAL(n);\nSENAO\n    ERRO(\"entrada invalida\");\nFIM_SE",
+        "lang": "c"
+      },
+      {
+        "q": "Posso concatenar ou comparar textos com `+` e `==`?",
+        "a": [
+          "`+` é aritmética de ponteiros; `==` compara endereços, não conteúdo. Use `JUNTA_TEXTO`, `ACRESCENTA_TEXTO`, `COMPARA_TEXTO`, `TEXTOS_IGUAIS` e `TEXTOS_DIFERENTES`."
+        ]
+      }
+    ],
+    "07-controle-de-fluxo": [
+      {
+        "q": "O laço contado inclui o limite final?",
+        "a": [
+          "Sim, os dois extremos são inclusivos: `PARA (i, 4, 4)` executa uma vez. Se `fim < inicio`, executa zero vezes; `REPITA` é o único que sempre executa ao menos uma vez."
+        ],
+        "code": "PARA (i, 1, 3) {\n    ESCREVAL(i);   /* 1, 2, 3 */\n}",
+        "lang": "c"
+      },
+      {
+        "q": "Passo zero provoca laço infinito?",
+        "a": [
+          "Não. O projeto transformou isso em erro: no M0 e no M1 com passo variável, `bg_passo_zero` imprime `PARA_PASSO: passo zero (o laco nunca avancaria)` e encerra com status 1, antes da primeira iteração. No M1 com passo literal, a tradução recusa `PASSO 0`."
+        ],
+        "code": "PARA_PASSO (i, 1, 3, 0) {   /* erro fatal, não laço infinito */\n    ESCREVAL(i);\n}",
+        "lang": "c"
+      },
+      {
+        "q": "`PARE` dentro de `ESCOLHA` sai do laço?",
+        "a": [
+          "Não. `PARE` afeta só a construção mais interna: dentro de `ESCOLHA` dentro de laço, ele sai do `ESCOLHA` e o laço continua. Para sair de dois laços use uma bandeira."
+        ]
+      },
+      {
+        "q": "`SENAO` seguido de `SE` é permitido?",
+        "a": [
+          "Há uma divergência documentada: o M0 aceita como bloco aninhado e o M1 recusa pela regra CND-2. O padrão recomendado passa nos dois caminhos: abra um `SE` dentro do `SENAO` e feche com `FIM_SE`."
+        ]
+      }
+    ],
+    "08-relatorio-controle-de-fluxo": [
+      {
+        "q": "Quantas verificações a fase 3 adicionou?",
+        "a": [
+          "50 verificações novas, com 294 aprovadas e nenhuma reprovada no total da fase. A tabela §1 detalha por seção; 37 casos de controle rodam em M0 e M1 e 3 rodam só em M1 por serem açúcar."
+        ]
+      },
+      {
+        "q": "Quais defeitos foram encontrados?",
+        "a": [
+          "Três: `PARA_PASSO` com passo zero não terminava; o M1 aceitava `ATE_QUE(cond)` sem `;`; e a mensagem de `SENAO SE` era enganosa. Todos foram corrigidos e fixados por teste (`c26`, `c27`, `t14`, `t02`, `c39`)."
+        ]
+      },
+      {
+        "q": "O que não foi verificado nesta fase?",
+        "a": [
+          "Clang nativo, MSVC, MinGW, revisão humana dos critérios e desempenho de laços. A seção §5 declara cada lacuna; versão da linguagem mantida em 1.1.0."
+        ]
+      },
+      {
+        "q": "Como reproduzir o relatório?",
+        "a": [
+          "Os comandos estão no §6 do documento e correspondem aos alvos do Makefile. Compare os números com o log da execução, não com as contagens estáticas do site."
+        ],
+        "code": "make test\nmake test-portabilidade\nmake test-sanitize",
+        "lang": "bash"
+      }
+    ],
+    "09-biblioteca-padrao": [
+      {
+        "q": "Preciso linkar `-lm`?",
+        "a": [
+          "No caminho GCC/Clang sim, quando o programa usa funções de matemática: o glibc separa libm. A ordem importa — fonte/objeto, depois `build/libbasicgol.a`, e `-lm` por último. O CRT do MSVC não usa essa flag."
+        ],
+        "code": "make biblioteca\ncc -std=c11 -Wall -Wextra -Wformat=2 -I include programa.c \\\n   build/libbasicgol.a -lm -o programa",
+        "lang": "bash"
+      },
+      {
+        "q": "Como a biblioteca reporta erro?",
+        "a": [
+          "Funções recuperáveis devolvem `LOGICO`: `false` significa argumento inválido, entrada inválida, truncamento ou falha de E/S. Saídas numéricas não são alteradas em falha e strings ficam vazias quando há espaço para o NUL.",
+          "Poucas operações são fatais por decisão de linguagem: `bg_erro`, `DIVIDE`, `RESTO` e `ABS` em casos não definidos ou não representáveis."
+        ]
+      },
+      {
+        "q": "Quem é dono da memória dos buffers?",
+        "a": [
+          "O chamador. A biblioteca não retém ponteiros nem transfere propriedade; `bg_junta_texto` usa um temporário interno e o libera antes de retornar. Capacidade é sempre em bytes, incluindo o NUL."
+        ]
+      },
+      {
+        "q": "A biblioteca pode ser usada de C++?",
+        "a": [
+          "Sim, de forma opcional: os cabeçalhos foram corrigidos para compilar em C++ (DF-03) e o teste `cpp_inclusao.cpp` cobre a inclusão. C++ não é a linguagem-alvo nem muda a API."
+        ]
+      }
+    ],
+    "10-compiladores": [
+      {
+        "q": "Qual é o comando mínimo no GCC?",
+        "a": [
+          "Compilar com C11, incluir `include/` e ligar a biblioteca. O fluxo M1 acrescenta uma passada por `basicgolc` antes do compilador."
+        ],
+        "code": "make\ncc -std=c11 -Wall -Wextra -Wformat=2 -Wvla -I include programa.c \\\n   build/libbasicgol.a -lm -o programa\n./programa",
+        "lang": "bash"
+      },
+      {
+        "q": "MSVC é suportado?",
+        "a": [
+          "Não no vocabulário do projeto: MSVC é **avaliado**, nunca executado neste ambiente. Existe job de CI e o documento descreve as flags previstas, mas sem registro verde isso não é chamado de suportado."
+        ]
+      },
+      {
+        "q": "Como rodar a suíte sob sanitizers?",
+        "a": [
+          "O alvo `make test-sanitize` recompila e executa com ASan, UBSan e LeakSanitizer, com `-fno-sanitize-recover=all`. Sanitizers estão disponíveis apenas em GCC/Clang."
+        ],
+        "code": "make test-sanitize",
+        "lang": "bash"
+      },
+      {
+        "q": "Quais avisos são esperados e não são defeitos?",
+        "a": [
+          "`-Wparentheses` em `a OU b E c`, `-Wimplicit-fallthrough` em `ESCOLHA` com queda intencional (use `__attribute__((fallthrough))`) e `-Wsizeof-pointer-div` em `TAMANHO_VETOR(ponteiro)`. O documento explica cada um e por que a correção não é mudar a semântica."
+        ]
+      }
+    ],
+    "11-matriz-compatibilidade": [
+      {
+        "q": "O que significam executado, compilado, avaliado e não testado?",
+        "a": [
+          "**Executado**: a suíte rodou e há registro. **Compilado**: gerou binário, sem execução. **Avaliado**: houve análise do código/flags, sem compilar nem rodar. **Não testado**: não há evidência. A matriz usa apenas esses quatro estados."
+        ]
+      },
+      {
+        "q": "AArch64 é suportado?",
+        "a": [
+          "Foi **compilado** por cross-compilação e não executado; portanto não é chamado de suportado nem de verde. O mesmo vale para `x86_64-windows-gnu`."
+        ]
+      },
+      {
+        "q": "Clang foi testado?",
+        "a": [
+          "O *frontend* Clang 20.1.2 foi executado via `zig cc`; o driver `clang` do LLVM não foi testado. A distinção entre frontend e driver é registrada explicitamente na matriz."
+        ]
+      },
+      {
+        "q": "Posso citar a matriz como garantia de portabilidade?",
+        "a": [
+          "Cite como registro do que foi exercitado, com as datas e ferramentas do relatório. Implementação compartilhada não é certificação universal; lacunas estão listadas, não escondidas.",
+          "O relatório cru e o resumo da matriz são os artefatos que sustentam a citação."
+        ],
+        "code": "make test-portabilidade\nsed -n '1,20p' build/relatorio/portabilidade.tsv",
+        "lang": "bash"
+      }
+    ],
+    "12-relatorio-fase-6": [
+      {
+        "q": "Quais números a fase 6 registrou?",
+        "a": [
+          "307 verificações de linguagem, 230 unitárias da biblioteca, 30 de integração/falhas fatais, 70 de portabilidade aprovadas (2 ignoradas), 2000 mutações de fuzz sem crash e 24 exemplos compilando com aviso = erro."
+        ]
+      },
+      {
+        "q": "O que foi realmente executado?",
+        "a": [
+          "GCC 12.2.0 (suíte inteira), frontend Clang via `zig cc`, sanitizers, matriz de portabilidade e fuzz. MSVC, MinGW nativo e `clang` do LLVM estavam ausentes do ambiente e aparecem como avaliados/não executados."
+        ]
+      },
+      {
+        "q": "Como reproduzir os resultados?",
+        "a": [
+          "Os comandos e a saída literal estão no §1 e no §3; o ambiente exato (versões, libc, binutils) está no §2. Números de log não devem ser comparados com contagens estáticas do site."
+        ],
+        "code": "make test\nmake test-matriz\nmake test-portabilidade\nmake test-sanitize\nmake fuzz",
+        "lang": "bash"
+      },
+      {
+        "q": "Quais defeitos a fase encontrou?",
+        "a": [
+          "Oito defeitos de produto e de ferramentas, detalhados em `13`. O mais grave foi DF-01: `LEIA` com tipo sem formato escrevia um ponteiro no destino; a correção passou a recusar esses tipos em tempo de compilação."
+        ]
+      }
+    ],
+    "13-defeitos-e-correcoes": [
+      {
+        "q": "O que era o DF-01?",
+        "a": [
+          "`LEIA` escolhia formato com `_Generic` e terminava em `default: \"%p\"`. Para `LOGICO` isso fazia `scanf(\"%p\", &pronto)` escrever 8 bytes num objeto de 1 byte — stack-buffer-overflow detectado pelo ASan. A correção removeu o fallback: tipos sem formato agora são recusados pelo compilador."
+        ],
+        "code": "LOGICO pronto;\nLEIA(pronto);   /* hoje: erro de compilacao; use LEIA_OK/LEIA_TEXTO */",
+        "lang": "c"
+      },
+      {
+        "q": "Por que `PROCEDIMENTO x()` sem `VAZIO` é defeito?",
+        "a": [
+          "Em C, `f()` declara parâmetros não especificados e `f(void)` declara nenhum. O primeiro é protótipo antigo e o Clang com `-Wstrict-prototypes` recusa. A correção foi escrever `(VAZIO)` nos exemplos; a regra vale para `FUNCAO` também."
+        ]
+      },
+      {
+        "q": "O que não é defeito?",
+        "a": [
+          "A seção §3 lista comportamentos intencionais que não devem ser “consertados”, como a semântica de `PARE` no laço mais interno e o passo zero tratado como erro. Mudá-los quebraria o contrato documentado."
+        ]
+      },
+      {
+        "q": "Como os defeitos são fixados?",
+        "a": [
+          "Cada correção tem reprodução, causa e um teste que falha se o defeito voltar. O relatório também separa defeitos de produto dos defeitos nas ferramentas de teste."
+        ]
+      }
+    ],
+    "api-reference": [
+      {
+        "q": "Este arquivo é a referência completa?",
+        "a": [
+          "Não: ele é um índice curto dos cabeçalhos públicos. A referência por símbolo é gerada do código em [Referência](/referencia/), e a consulta por palavra-chave está em `02-referencia`."
+        ]
+      },
+      {
+        "q": "Quais cabeçalhos devo incluir?",
+        "a": [
+          "`basicgol.h` já reexporta os módulos da biblioteca. Incluir o cabeçalho do módulo diretamente é útil quando você quer apenas aquele contrato, mas o resultado é o mesmo."
+        ],
+        "code": "#include <basicgol.h>\n/* equivalente a incluir tambem basicgol/biblioteca.h */\n\n#include <basicgol/texto.h>   /* contrato do modulo de texto */",
+        "lang": "c"
+      },
+      {
+        "q": "O que preciso ligar no build?",
+        "a": [
+          "`build/libbasicgol.a` e, no caminho GCC/Clang, `-lm` quando houver matemática. No Windows o artefato equivalente é `.lib` quando gerado pelo MSVC."
+        ]
+      },
+      {
+        "q": "Onde obtenho a lista de nomes em formato de máquina?",
+        "a": [
+          "No inventário JSON publicado pelo build do site. Ele traz nome, aliases, tipo, arquivo, linha, assinatura, guards, chamadas e URL da página."
+        ]
+      }
+    ],
+    "feature-matrix": [
+      {
+        "q": "O que significa “Disponível” nesta matriz?",
+        "a": [
+          "Que o recurso existe no código atual e tem teste associado, não que todo compilador da face da Terra o execute. A matriz de compatibilidade é quem registra o estado por alvo."
+        ]
+      },
+      {
+        "q": "O que é o caminho M1?",
+        "a": [
+          "O transpilador `basicgolc`, que traduz blocos e o açúcar `PARA i DE … FACA`. Ele não substitui o compilador C: só reescreve o texto antes dele."
+        ],
+        "code": "PARA i DE 1 ATE 3 FACA\n    ESCREVAL(i);\nFIM_PARA",
+        "lang": "c"
+      },
+      {
+        "q": "Por que “IDE/syntax highlighting” é opcional?",
+        "a": [
+          "O projeto não inclui extensão de editor nem gramática de realce. Como a fonte é C com macros, o realce de C já funciona; qualquer integração específica é externa ao escopo."
+        ]
+      },
+      {
+        "q": "A matriz inclui recursos planejados?",
+        "a": [
+          "Não. Recursos não implementados não são documentados como disponíveis; os planos ficam no README e no TODO, separados do que existe."
+        ]
+      }
+    ],
+    "limitations": [
+      {
+        "q": "Quais são as limitações mais importantes?",
+        "a": [
+          "Não há VM, GC, interpretador nem compilador próprio; construtores não redutíveis a macros exigem M1 ou não existem. MSVC é avaliado e AArch64 foi compilado, não executado. Sanitizers só existem em GCC/Clang."
+        ]
+      },
+      {
+        "q": "Uma limitação pode virar erro silencioso?",
+        "a": [
+          "O projeto prefere recusar a aceitar em silêncio: tipos sem formato em `LEIA` são erro de compilação, truncamento de texto devolve `false` e passo zero é erro fatal. O que não tem evidência é declarado como não testado."
+        ],
+        "code": "LOGICO ok = COPIA_TEXTO(destino, TAMANHO_DE(destino), origem);\nSE NAO ok ENTAO\n    ESCREVAL(\"nao coube: o destino ficou vazio\");\nFIM_SE",
+        "lang": "c"
+      },
+      {
+        "q": "Preciso de Node.js para usar a linguagem?",
+        "a": [
+          "Não. Node e Python só são necessários para construir este site de documentação. Compilar e executar BASICGOL exige apenas um compilador C11 e a biblioteca."
+        ]
+      },
+      {
+        "q": "Onde vejo o plano de melhorias?",
+        "a": [
+          "No `TODO.md` e no README. A lista de planos é explicitamente separada do estado atual; nada ali é apresentado como suportado."
+        ]
+      }
+    ],
+    "tutorial-quickstart.pt": [
+      {
+        "q": "Qual é o primeiro programa?",
+        "a": [
+          "Um arquivo `.c` que inclui `basicgol.h`, abre com `INICIO`, escreve com `ESCREVAL` e fecha com `FIM`."
+        ],
+        "code": "#include <basicgol.h>\n\nINICIO\n    ESCREVAL(\"Ola, mundo!\");\nFIM",
+        "lang": "c"
+      },
+      {
+        "q": "Como declaro variáveis e leio do teclado?",
+        "a": [
+          "Declare com o tipo antes do nome. Para números, `LEIA` usa `_Generic`; para texto, use `TEXTO_FIXO` com capacidade e `LEIA_TEXTO`."
+        ],
+        "code": "INICIO\n    INTEIRO idade = 0;\n    TEXTO_FIXO(nome, 64);\n\n    ESCREVA(\"Nome: \");\n    LEIA_TEXTO(nome, TAMANHO_DE(nome));\n    ESCREVA(\"Idade: \");\n    LEIA(idade);\n\n    ESCREVAL(nome);\n    ESCREVAL(idade);\nFIM",
+        "lang": "c"
+      },
+      {
+        "q": "Como escrevo uma função?",
+        "a": [
+          "Use `FUNCAO tipo nome(parametros)` com corpo entre chaves e `RETORNE`. Procedimentos usam `PROCEDIMENTO` e, sem parâmetros, escreva `(VAZIO)`."
+        ],
+        "code": "FUNCAO INTEIRO dobro(INTEIRO x) {\n    RETORNE x * 2;\n}\n\nINICIO\n    ESCREVAL(dobro(21));\nFIM",
+        "lang": "c"
+      },
+      {
+        "q": "Como compilo o tutorial?",
+        "a": [
+          "O fluxo é o mesmo do restante do projeto; use `-I include` e ligue a biblioteca."
+        ],
+        "code": "make\ncc -std=c11 -Wall -Wextra -Wformat=2 -I include programa.c \\\n   build/libbasicgol.a -lm -o programa\n./programa",
+        "lang": "bash"
+      }
+    ],
+    "visao-geral": [
+      {
+        "q": "O que é BASICGOL, em uma frase?",
+        "a": [
+          "Um dialeto didático em português entregue como camada de macros C11, com um transpilador opcional para o açúcar sintático. O resultado executado é C nativo."
+        ]
+      },
+      {
+        "q": "Quais são os números atuais?",
+        "a": [
+          "307 verificações de linguagem, 230 unitárias da biblioteca e 30 de integração/falhas fatais; 70 verificações de portabilidade aprovadas e 135 casos em disco. Linguagem 1.1.0, biblioteca 1.0.0."
+        ]
+      },
+      {
+        "q": "Como começo a usar?",
+        "a": [
+          "Construa a biblioteca e o transpilador, escreva um `.c` que inclua `basicgol.h` e compile."
+        ],
+        "code": "make\ncc -std=c11 -Wall -Wextra -Wformat=2 -I include programa.c \\\n   build/libbasicgol.a -lm -o programa\n./programa",
+        "lang": "bash"
+      },
+      {
+        "q": "O README promete suporte a MSVC?",
+        "a": [
+          "Não. Ele registra estados com o vocabulário da matriz: GCC executado, frontend Clang executado, MinGW-w64 executado em CI, AArch64 compilado e MSVC apenas avaliado."
+        ]
+      }
+    ],
+    "cobertura-versionada": [
+      {
+        "q": "O que este relatório mede?",
+        "a": [
+          "A rastreabilidade entre construtores documentados e casos em disco. Ele é gerado por `tools/cobertura.py` e versionado para o CI comparar; não é cobertura de linhas nem de ramos."
+        ]
+      },
+      {
+        "q": "Como regenerar o relatório?",
+        "a": [
+          "Use o alvo do Makefile. A saída é determinística de propósito; `--data` gera uma versão datada para leitura humana."
+        ],
+        "code": "make cobertura\npython3 tools/cobertura.py --data",
+        "lang": "bash"
+      },
+      {
+        "q": "Um nome sem caso significa que não funciona?",
+        "a": [
+          "Não. Significa que não há caso de execução associado diretamente. O nome pode ser guarda de inclusão, configuração ou alcançado por chamadores; a lacuna é visível para revisão, não uma condenação."
+        ]
+      },
+      {
+        "q": "Quantos casos existem hoje?",
+        "a": [
+          "135 casos em disco. O total de verificações impresso por `make test` é maior porque inclui sanidade, linha de comando, avisos, negativos e estresse."
+        ]
+      }
+    ],
+    "leiame-original": [
+      {
+        "q": "Quais são os comandos de teste?",
+        "a": [
+          "`make test` roda a suíte completa; os demais alvos isolam camadas (biblioteca, portabilidade, sanitizers, matriz, fuzz, checkout limpo)."
+        ],
+        "code": "make test\nmake test-biblioteca\nmake test-portabilidade\nmake test-sanitize\nmake fuzz",
+        "lang": "bash"
+      },
+      {
+        "q": "O que preciso ter instalado?",
+        "a": [
+          "Bash, compilador C11, `ar`, `mktemp`, `diff` e Python 3 para a cobertura. Os runners criam diretórios temporários e os apagam ao terminar; no Windows o projeto usa Git Bash/MSYS2."
+        ]
+      },
+      {
+        "q": "Como rodo só uma suíte?",
+        "a": [
+          "`./tests/run.sh` aceita o prefixo do nome da suíte."
+        ],
+        "code": "./tests/run.sh 03",
+        "lang": "bash"
+      },
+      {
+        "q": "Por que o total impresso muda entre execuções?",
+        "a": [
+          "Porque o runner conta o que realmente executou naquele ambiente: ferramentas disponíveis, sanitizers e modos. As contagens do site são estáticas e não substituem o log."
+        ]
+      }
+    ]
   }
 }

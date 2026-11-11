@@ -96,6 +96,33 @@ class GeradorTest(unittest.TestCase):
             (base / "b" / "docs" / "stale.mdx").write_text("stale", encoding="utf-8")
             self.assertTrue(any("obsoleto" in p for p in check_outputs(base / "a", base / "b" / "docs", base / "b" / "static" / "api")))
 
+    def test_toda_pagina_tem_faq_com_codigo(self) -> None:
+        """Toda página MDX gerada traz FAQ própria e pelo menos um trecho de código."""
+        import json
+        contracts = json.loads((ROOT / "tools/documentacao/contratos.json").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as tmp:
+            renderer = Renderer(self.inv, contracts, "https://github.com/havaianasdestruido/BASICGOL",
+                                "test-commit")
+            renderer.write(Path(tmp) / "docs")
+            pages = sorted(p for p in Path(tmp, "docs").rglob("*.mdx"))
+            self.assertGreater(len(pages), 500)
+            for page in pages:
+                text = page.read_text(encoding="utf-8")
+                self.assertIn("## Perguntas frequentes", text, page)
+                self.assertIn("```", text.split("## Perguntas frequentes", 1)[1], page)
+
+    def test_faq_de_simbolo_usa_dados_da_pagina(self) -> None:
+        """A FAQ repete a expansão real e a contagem de referências do símbolo."""
+        import json
+        contracts = json.loads((ROOT / "tools/documentacao/contratos.json").read_text(encoding="utf-8"))
+        renderer = Renderer(self.inv, contracts, "https://github.com/havaianasdestruido/BASICGOL",
+                            "test-commit")
+        symbol = self.inv.by_name["BG_SE"][0]
+        text = renderer.symbol_faq(symbol, renderer.contract(symbol), "Abre um condicional.")
+        self.assertIn("## Perguntas frequentes", text)
+        self.assertIn("if (", text)
+        self.assertIn("ocorrência", text)
+
     def test_nao_apaga_saida_nao_gerenciada(self) -> None:
         """Limpeza recusa diretório sem marcador de geração."""
         with tempfile.TemporaryDirectory() as tmp:

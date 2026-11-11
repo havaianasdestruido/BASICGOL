@@ -7,11 +7,108 @@ slug: /guias/
 
 # Guias
 
-- [Começar com BASICGOL](/guias/comecar)
-- [Arquitetura e fluxo de tradução](/guias/arquitetura)
-- [Como ler a referência e a evidência de testes](/guias/como-ler)
-- [Compiladores, sistemas operacionais e portabilidade](/guias/portabilidade)
-- [Build, Makefile e CI](/guias/build)
-- [Publicação no GitHub Pages e manutenção automática](/guias/publicacao)
+Esta seção é escrita à mão e versionada; a [Referência](/referencia/) e as páginas de
+[Testes](/testes/) são geradas a cada build. Os guias explicam **como usar** e **como
+interpretar** o que o gerador mostra.
 
-A especificação normativa e as decisões históricas ficam em [Projeto](/projeto/). A referência de símbolos, os casos de teste e o inventário interno são regenerados a cada build.
+## Trilhas de leitura
+
+| Você quer… | Comece por | Depois |
+|---|---|---|
+| escrever o primeiro programa | [Começar](/guias/comecar) | [Referência de palavras-chave](/referencia/linguagem/) |
+| entender o que o compilador faz com seu código | [Arquitetura](/guias/arquitetura) | [Mapeamento para C](/projeto/03-mapeamento-para-c) |
+| confiar nos números e nas evidências | [Como ler](/guias/como-ler) | [Testes](/testes/) |
+| portar para outro compilador ou SO | [Portabilidade](/guias/portabilidade) | [Matriz de compatibilidade](/projeto/11-matriz-compatibilidade) |
+| manter ou publicar a documentação | [Publicação](/guias/publicacao) | [Build e CI](/guias/build) |
+
+## O que está em cada guia
+
+- [Começar com BASICGOL](/guias/comecar) — requisitos, build, M0 vs M1, leitura de
+  dados, diagnósticos comuns e primeiro programa completo.
+- [Arquitetura e fluxo de tradução](/guias/arquitetura) — componentes, o que cada etapa
+  faz e não faz, contrato de erros e como o site é montado a partir do código.
+- [Como ler a referência e a evidência de testes](/guias/como-ler) — anatomia de uma
+  página de símbolo, tipos de evidência, contagens, lacunas e permalinks.
+- [Compiladores, sistemas operacionais e portabilidade](/guias/portabilidade) —
+  vocabulário de estados, matriz resumida, guards, CRLF e como auditar um símbolo.
+- [Build, Makefile e CI](/guias/build) — alvos reais extraídos do Makefile, workflows e
+  comandos de verificação.
+- [Publicação no GitHub Pages e manutenção automática](/guias/publicacao) — pipeline,
+  ambiente local, variáveis, contratos editoriais e solução de problemas.
+
+## A documentação em números
+
+| Camada | Como é produzida | O que garante |
+|---|---|---|
+| Guias | escrita manual, versionada | explicação e contexto |
+| Referência | extração estática do código | nomes, expansões, guards, usos |
+| Testes | extração dos casos em disco | entradas, saídas, negativos, avisos |
+| Projeto | importação de `docs/` e README | histórico, decisões e relatórios |
+| Internos | extração de tools/tests | transpilador, harness e scripts |
+
+```bash
+# reconstruir o site do zero
+python3 -m venv .venv
+.venv/bin/python -m pip install -r tools/documentacao/requirements.txt
+cd website && npm ci && npm run build
+```
+
+## Como os guias evitam promessas vazias
+
+Cada afirmação sobre comportamento aponta para uma página gerada, um teste ou um
+documento datado. Quando não há execução registrada, o texto diz isso explicitamente —
+por exemplo, MSVC é **avaliado**, não “suportado”. Se um guia contradizer o código, o
+código e a página gerada vencem, e o guia deve ser corrigido.
+
+## Perguntas frequentes
+
+### Por onde começo se nunca usei BASICGOL?
+
+Comece por [Começar](/guias/comecar): instale um compilador C11, rode `make`, escreva o
+programa mínimo e compile. Só depois avance para o caminho M1.
+
+```c
+#include <basicgol.h>
+
+INICIO
+    ESCREVAL("ola, mundo");
+FIM
+```
+
+### Qual é a diferença entre “Guias”, “Referência” e “Projeto”?
+
+Guias explicam o uso; a Referência é gerada do código atual; Projeto preserva
+especificação, decisões e relatórios históricos. Uma página de referência descreve o que o
+fonte faz agora; um relatório descreve o que foi executado em uma fase.
+
+### Preciso ler a especificação para programar?
+
+Não para começar. A referência e os guias bastam para o uso diário. A especificação é
+útil quando você precisa saber por que uma construção existe, qual é o contrato de erro ou
+se algo está fora do escopo.
+
+### Onde encontro exemplos prontos?
+
+Em [Exemplos](/exemplos/), com fontes versionados e saídas douradas quando existem. Eles
+também são compilados por `make exemplos`.
+
+```bash
+make exemplos
+```
+
+### Os guias são atualizados automaticamente?
+
+Não. Eles são escritos à mão e copiados para o build. O gerador atualiza a referência, os
+testes, os exemplos e a importação de `docs/`; se um guia ficar desatualizado, ele deve ser
+corrigido no próprio arquivo.
+
+### Como sugiro uma correção na documentação?
+
+Abra um pull request alterando o guia em `website/manuais/` ou o contrato em
+`tools/documentacao/contratos.json`, rode o gerador e inclua o resultado de
+`npm run build` na descrição. O build trata links quebrados como erro.
+
+```bash
+python3 tools/gerar_documentacao.py --strict
+cd website && npm run build
+```

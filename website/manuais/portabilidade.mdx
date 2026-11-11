@@ -8,7 +8,29 @@ sidebar_position: 4
 
 ## Regra de leitura
 
-**Implementação compartilhada não é certificação universal.** Uma página de símbolo mostra o que o fonte faz; a matriz e os logs dizem onde isso foi exercitado. O projeto distingue *executado*, *compilado*, *avaliado* e *não testado*.
+**Implementação compartilhada não é certificação universal.** Uma página de símbolo
+mostra o que o fonte faz; a matriz e os logs dizem onde isso foi exercitado. O projeto
+distingue *executado*, *compilado*, *avaliado* e *não testado*.
+
+| Estado | Definição | Exemplo no projeto |
+|---|---|---|
+| **executado** | a suíte rodou e há registro | GCC 12.2.0 x86-64 Linux |
+| **compilado** | gerou binário, sem execução | AArch64 por cross-compilação |
+| **avaliado** | houve análise de código/flags, sem compilar nem rodar | MSVC |
+| **não testado** | não há evidência | TCC, PCC, Intel oneAPI |
+
+Nenhuma página deste site promove um alvo a “suportado” sem execução registrada.
+
+## Matriz resumida
+
+| Ferramenta | Estado | O que foi feito |
+|---|---|---|
+| GCC 12.2.0 | executado | suíte inteira, incluindo portabilidade |
+| Frontend Clang 20.1.2 via `zig cc` | executado | suíte inteira como frontend alternativo |
+| MinGW-w64 (UCRT64/MINGW64/MINGW32) | executado em CI | build, testes e artefatos nativos |
+| MSVC | avaliado | job de CI existe; sem registro verde local |
+| AArch64 / `x86_64-windows-gnu` | compilado | cross-compilação, sem execução |
+| `clang`/`clang++` do LLVM | não testado | ausente do ambiente |
 
 ## Diferenças que aparecem no código
 
@@ -25,12 +47,58 @@ sidebar_position: 4
 | stdout em modo texto | console e runners | Windows pode emitir CRLF; comparações normalizam CR |
 | locale | conversões reais | `strtod` segue a locale C corrente; ASCII do módulo caractere não segue locale |
 
+### Como ativar as extensões opcionais
+
+O bloco de extensões é opt-in e falha cedo quando não há suporte:
+
+```c
+#define BG_USAR_EXTENSOES 1
+#include <basicgol.h>
+
+INICIO
+    INTEIRO a = 0;
+    INTEIRO b = 0;
+    INTEIRO soma = 0;
+
+    ESCREVA("a: ");
+    LEIA(a);
+    ESCREVA("b: ");
+    LEIA(b);
+
+    /* usa __builtin_*_overflow quando disponível; false em estouro */
+    SE SOMA_SEGURA(a, b, &soma) ENTAO
+        ESCREVAL(soma);
+    SENAO
+        ESCREVAL("estouro de inteiro");
+    FIM_SE
+FIM
+```
+
+Se o compilador não oferecer o suporte, o cabeçalho emite `#error` em vez de cair em
+silêncio para uma implementação diferente.
+
 ## Sistemas e shells
 
-- A biblioteca e a linguagem são C; não há API de sistema operacional escondida nas operações de texto/caractere.
-- Os runners de teste são Bash e usam utilitários Unix. No Windows, os workflows usam Git Bash/MSYS2 e normalizam finais de linha.
-- O gerador de documentação é Python 3.10+ e não precisa de compilador C para extrair o inventário.
-- O site é estático; o GitHub Pages serve os arquivos gerados, não executa C nem Python no servidor.
+- A biblioteca e a linguagem são C; não há API de sistema operacional escondida nas
+  operações de texto/caractere.
+- Os runners de teste são Bash e usam utilitários Unix. No Windows, os workflows usam
+  Git Bash/MSYS2 e normalizam finais de linha.
+- O gerador de documentação é Python 3.10+ e não precisa de compilador C para extrair o
+  inventário.
+- O site é estático; o GitHub Pages serve os arquivos gerados, não executa C nem Python
+  no servidor.
+
+### Final de linha e saída de console
+
+O CRT do Windows pode traduzir `\n` para `\r\n` em streams de texto. Por isso os runners
+removem CR antes de comparar saídas douradas. Um teste que falha apenas por CR não é uma
+divergência de linguagem.
+
+```bash
+# normalização usada pelos runners (equivalente)
+tr -d '\r' < saida.txt > saida.sem_cr.txt
+diff -u esperado.txt saida.sem_cr.txt
+```
 
 ## Como auditar uma função
 
@@ -38,8 +106,98 @@ sidebar_position: 4
 2. Confira os guards em **Compiladores, padrão C e sistema operacional**.
 3. Siga os links de teste direto e os modos fatais, quando existirem.
 4. Para código interno, leia também os chamadores e a ressalva de caixa-preta.
-5. Consulte a [matriz histórica](/projeto/11-matriz-compatibilidade), o [relatório da fase](/projeto/12-relatorio-fase-6) e os logs atuais de [CI](/guias/build).
+5. Consulte a [matriz histórica](/projeto/11-matriz-compatibilidade), o
+   [relatório da fase](/projeto/12-relatorio-fase-6) e os logs atuais de
+   [CI](/guias/build).
 
-:::warning[Não extrapole]
-AArch64 compilado sem execução, MSVC apenas avaliado em um relatório histórico ou um fallback de macro não equivalem a uma suíte verde naquele alvo. As páginas preservam essa distinção em vez de inventar uma coluna “funciona” por compilador.
-:::
+```bash
+make test-portabilidade
+make test-matriz
+make test-sanitize
+```
+
+`test-portabilidade` cobre cabeçalhos, padrões, avisos, múltiplas unidades de tradução,
+C++, sanitizers e alvos cruzados. `test-matriz` repete a suíte com cada compilador
+encontrado.
+
+## O que fazer ao encontrar uma divergência
+
+1. Reproduza com o menor programa possível.
+2. Verifique se o problema é de linguagem, de biblioteca ou de ferramenta de teste.
+3. Rode o mesmo fonte nos dois caminhos (M0 e M1) quando aplicável.
+4. Registre o alvo exato, a versão e o comando; sem isso o relatório vira boato.
+5. Adicione um teste que falhe antes da correção.
+
+```c
+#include <basicgol.h>
+
+INICIO
+    ESCREVAL(TAMANHO_DE(INTEIRO));   /* bytes do int neste alvo */
+    ESCREVAL(MAXIMO_INTEIRO);        /* valor real, não presumido */
+FIM
+```
+
+## Perguntas frequentes
+
+### “Compila no GCC” significa que funciona no MSVC?
+
+Não. O GCC executado prova o caminho do GCC. MSVC é **avaliado**: houve análise das flags
+e do código, mas nenhum registro verde de execução neste ambiente. A matriz mantém essa
+distinção em vez de inventar uma coluna “funciona”.
+
+### Por que AArch64 não aparece como suportado se o binário compilou?
+
+Porque compilar não é executar. O binário foi gerado por cross-compilação, mas não rodou
+em hardware/emulação AArch64. O estado registrado é **compilado**.
+
+### Preciso definir `BG_USAR_EXTENSOES` para usar a linguagem?
+
+Não. As extensões são opcionais e servem para operações verificadas de soma/divisão em
+compiladores que oferecem `__builtin_*_overflow`. Sem a definição, a biblioteca usa o
+caminho portátil.
+
+```c
+#define BG_USAR_EXTENSOES 1
+#include <basicgol.h>
+```
+
+### Por que o teste passou no Linux e falhou no Windows?
+
+A causa mais comum é final de linha: o CRT pode escrever CRLF. Compare removendo CR e
+verifique se o caso tem arquivo alternativo para a plataforma. A segunda causa comum é
+largura de tipo (`int`, `long`) — use os tipos de largura exata e as constantes de faixa.
+
+```bash
+tr -d '\r' < saida.txt | diff -u esperado.txt -
+```
+
+### Clang foi realmente testado?
+
+O *frontend* Clang 20.1.2 foi executado via `zig cc`, e o relatório registra isso como
+frontend — não como “driver `clang` do LLVM testado”. O driver nativo não estava
+disponível no ambiente.
+
+### Sanitizers funcionam em qualquer compilador?
+
+Só em GCC/Clang. `make test-sanitize` recompila com ASan, UBSan e LeakSanitizer e usa
+`-fno-sanitize-recover=all`; não há equivalente no MSVC neste projeto.
+
+```bash
+make test-sanitize
+```
+
+### Meu programa usa `long` e os resultados mudam entre alvos. É bug?
+
+Provavelmente não: `long` tem largura diferente entre Windows (32 bits) e Linux 64 bits.
+Para dados que precisam de largura fixa, use `INTEIRO32`/`INTEIRO64` e equivalentes sem
+sinal, e leia os limites reais em vez de presumir.
+
+```c
+ESCREVAL(TAMANHO_DE(INTEIRO_LONGO));
+ESCREVAL(TAMANHO_DE(INTEIRO64));
+```
+
+### O site é gerado por Python. Isso afeta a portabilidade da linguagem?
+
+Não. Python e Node são necessários apenas para construir a documentação. Compilar e
+executar BASICGOL exige um compilador C11 e a biblioteca.

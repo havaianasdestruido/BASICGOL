@@ -417,6 +417,22 @@ def extract_python(inv: Inventory, source: Source) -> None:
         inv.warnings.append(f"Python inválido em {source.path}: {exc}")
         return
     lines = source.lines
+    offsets = [0]
+    for line in lines:
+        offsets.append(offsets[-1] + len(line) + 1)
+
+    def header_of(child: ast.AST) -> str:
+        """Recorta a assinatura até o início do primeiro comando do corpo.
+
+        Evita cortar em `:` de anotação ou de valor padrão, que não termina a
+        assinatura em Python.
+        """
+        body = getattr(child, "body", None) or []
+        first = body[0] if body else child
+        start = offsets[child.lineno - 1] + child.col_offset
+        end = offsets[first.lineno - 1] + first.col_offset
+        text = source.text[start:end].strip() if end > start else ""
+        return text or (source.text[start:offsets[child.lineno]].strip().splitlines()[0] + ":")
 
     def visit(node: ast.AST, prefix: str = "") -> None:
         """Visita recursivamente definições Python preservando qualificação de classe/função."""
@@ -431,7 +447,7 @@ def extract_python(inv: Inventory, source: Source) -> None:
                 args += [ast.get_source_segment(source.text, a) or a.arg for a in child.args.kwonlyargs]
                 if child.args.kwarg:
                     args.append("**" + child.args.kwarg.arg)
-                signature = body.split(":", 1)[0] + ":"
+                signature = header_of(child)
                 calls = sorted({n.func.id for n in ast.walk(child)
                                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Name)} |
                                {n.func.attr for n in ast.walk(child)
