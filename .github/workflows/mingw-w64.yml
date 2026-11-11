@@ -63,6 +63,15 @@ jobs:
       - name: Build transpiler and static library
         run: make all CC=gcc AR=ar
 
+      - name: DIAGNOSTICO temporario
+        if: always()
+        continue-on-error: true
+        run: |
+          rm -rf build
+          make all CC=gcc AR=ar > /tmp/build.log 2>&1 || true
+          echo "--- gcc: $(gcc -dumpversion)"
+          head -30 /tmp/build.log | sed 's/^/::error::/'
+
       - name: Run language and library tests
         run: |
           if ! make test CC=gcc AR=ar > build/test.log 2>&1; then
