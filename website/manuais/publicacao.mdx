@@ -86,6 +86,11 @@ npm run serve
 4. Rode `python3 tools/gerar_documentacao.py --check` para confirmar determinismo.
 5. Rode `cd website && npm run build` antes de abrir o pull request.
 
+O arquivo `llms.txt` na raiz do repositório é a fonte única do índice para agentes.
+O build copia esse arquivo para a raiz publicada do site, em `/BASICGOL/llms.txt`,
+e adiciona um link `describedby` às páginas. Atualize-o quando os recursos ou créditos
+mudarem; alterações nele também acionam o workflow de documentação.
+
 O diretório `website/docs/` é gerado e não deve ser editado à mão. Ele contém um marcador
 `.documentacao-gerada`; o gerador se recusa a apagar um diretório sem esse marcador.
 

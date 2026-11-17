@@ -14,6 +14,7 @@ on:
       - 'docs/**'
       - 'website/**'
       - 'README.md'
+      - 'llms.txt'
       - 'Makefile'
       - '.github/workflows/docs.yml'
   pull_request:
@@ -25,6 +26,7 @@ on:
       - 'docs/**'
       - 'website/**'
       - 'README.md'
+      - 'llms.txt'
       - 'Makefile'
       - '.github/workflows/docs.yml'
   workflow_dispatch:
@@ -87,6 +89,11 @@ jobs:
           DOCS_URL: ${{ vars.DOCS_URL || 'https://havaianasdestruido.github.io' }}
           DOCS_BASE_URL: ${{ vars.DOCS_BASE_URL || format('/{0}/', github.event.repository.name) }}
         run: npm run build:only
+
+      - name: Verificar publicação do llms.txt
+        env:
+          DOCS_BASE_URL: ${{ vars.DOCS_BASE_URL || format('/{0}/', github.event.repository.name) }}
+        run: python tests/documentacao/check_llms_build.py
 
       - name: Configurar Pages
         if: github.event_name != 'pull_request'

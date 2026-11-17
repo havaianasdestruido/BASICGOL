@@ -1,0 +1,29 @@
+# BASICGOL
+
+> BASICGOL is an educational programming language with Portuguese keywords, combining BASIC and Portugol readability with C11. Its documentation site contains guides, a code-derived reference, tests, examples, and project history, mainly in Brazilian Portuguese.
+
+BASICGOL programs are C files using a macro layer and library; they run as native C programs, without a virtual machine or interpreter. The optional `basicgolc` transpiler handles syntax that cannot be expressed by macros alone. Generated reference pages reflect source code and tests; hand-written guides and historical reports provide context. Check the compatibility matrix before claiming support for a compiler or platform: executed, compiled, evaluated, and untested are distinct states.
+
+## Documentation
+
+- [Documentation home](https://pato.is-a.dev/BASICGOL/): Overview of the site and its documentation sections.
+- [Getting started](https://pato.is-a.dev/BASICGOL/guias/comecar/): Prerequisites, build commands, and a first program.
+- [Getting started source](https://raw.githubusercontent.com/havaianasdestruido/BASICGOL/main/website/manuais/comecar.mdx): Text version of the guide.
+- [Language reference](https://raw.githubusercontent.com/havaianasdestruido/BASICGOL/main/docs/02-referencia.md): Keywords and language reference in Markdown.
+- [API reference](https://raw.githubusercontent.com/havaianasdestruido/BASICGOL/main/docs/api-reference.md): Public headers and linking information.
+- [Generated reference](https://pato.is-a.dev/BASICGOL/referencia/): Code-derived pages for macros and library functions, with contracts and test evidence.
+- [Examples](https://github.com/havaianasdestruido/BASICGOL/tree/main/docs/exemplos): Example programs and expected outputs.
+- [Compatibility matrix](https://raw.githubusercontent.com/havaianasdestruido/BASICGOL/main/docs/11-matriz-compatibilidade.md): Evidence and limitations for compilers and platforms.
+- [Tests](https://pato.is-a.dev/BASICGOL/testes/): Documentation of test cases and their evidence.
+
+## Project and credits
+
+- [Repository and README](https://github.com/havaianasdestruido/BASICGOL): Source code, project overview, build instructions, and issue tracker.
+- [Contributors](https://github.com/havaianasdestruido/BASICGOL/graphs/contributors): Project contributors and their contributions.
+- [License](https://github.com/havaianasdestruido/BASICGOL/blob/main/LICENSE): Apache License 2.0.
+
+## Optional
+
+- [Documentation publishing guide](https://raw.githubusercontent.com/havaianasdestruido/BASICGOL/main/website/manuais/publicacao.mdx): How the documentation is generated and published.
+- [Feature matrix](https://raw.githubusercontent.com/havaianasdestruido/BASICGOL/main/docs/feature-matrix.md): Summary of language features.
+- [Limitations](https://raw.githubusercontent.com/havaianasdestruido/BASICGOL/main/docs/limitations.md): Known limitations and boundaries.

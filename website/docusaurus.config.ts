@@ -1,3 +1,5 @@
+import {copyFile} from 'node:fs/promises';
+import path from 'node:path';
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
@@ -7,6 +9,20 @@ const config: Config = {
   tagline: 'A legibilidade do BASIC e do Portugol, com a portabilidade de C11.',
   url: process.env.DOCS_URL ?? 'https://havaianasdestruido.github.io',
   baseUrl: process.env.DOCS_BASE_URL ?? '/BASICGOL/',
+  // The single source is kept at the repository root and published at the site root.
+  plugins: [
+    function publishLlmsTxt(context) {
+      return {
+        name: 'publish-llms-txt',
+        async postBuild({outDir}) {
+          await copyFile(path.resolve(context.siteDir, '../llms.txt'), path.join(outDir, 'llms.txt'));
+        },
+      };
+    },
+  ],
+  headTags: [
+    {tagName: 'link', attributes: {rel: 'describedby', href: `${process.env.DOCS_BASE_URL ?? '/BASICGOL/'}llms.txt`}},
+  ],
   organizationName: 'havaianasdestruido',
   projectName: 'BASICGOL',
   trailingSlash: true,
