@@ -1,0 +1,63 @@
+OK	docs/exemplos/adivinha.c	M0	executado e saida conferida
+OK	docs/exemplos/adivinha.c	M1	executado e saida conferida
+OK	docs/exemplos/biblioteca_caractere.c	M0	executado e saida conferida
+OK	docs/exemplos/biblioteca_caractere.c	M1	executado e saida conferida
+OK	docs/exemplos/biblioteca_consola.c	M0	executado e saida conferida
+OK	docs/exemplos/biblioteca_consola.c	M1	executado e saida conferida
+OK	docs/exemplos/biblioteca_matematica.c	M0	executado e saida conferida
+OK	docs/exemplos/biblioteca_matematica.c	M1	executado e saida conferida
+OK	docs/exemplos/biblioteca_texto.c	M0	executado e saida conferida
+OK	docs/exemplos/biblioteca_texto.c	M1	executado e saida conferida
+OK	docs/exemplos/biblioteca_utilidades.c	M0	executado e saida conferida
+OK	docs/exemplos/biblioteca_utilidades.c	M1	executado e saida conferida
+OK	docs/exemplos/cadastro.c	M0	executado e saida conferida
+OK	docs/exemplos/cadastro.c	M1	executado e saida conferida
+OK	docs/exemplos/contador_vogais.c	M0	executado e saida conferida
+OK	docs/exemplos/contador_vogais.c	M1	executado e saida conferida
+OK	docs/exemplos/controle_acumuladores.c	M0	executado e saida conferida
+OK	docs/exemplos/controle_acumuladores.c	M1	executado e saida conferida
+OK	docs/exemplos/controle_condicoes.c	M0	executado e saida conferida
+OK	docs/exemplos/controle_condicoes.c	M1	executado e saida conferida
+OK	docs/exemplos/controle_entrada.c	M0	executado e saida conferida
+OK	docs/exemplos/controle_entrada.c	M1	executado e saida conferida
+OK	docs/exemplos/controle_lacos.c	M0	executado e saida conferida
+OK	docs/exemplos/controle_lacos.c	M1	executado e saida conferida
+OK	docs/exemplos/controle_para_acucar.c	M1	executado e saida conferida
+OK	docs/exemplos/expressoes.c	M0	executado e saida conferida
+OK	docs/exemplos/expressoes.c	M1	executado e saida conferida
+OK	docs/exemplos/fatorial_recursivo.c	M0	executado e saida conferida
+OK	docs/exemplos/fatorial_recursivo.c	M1	executado e saida conferida
+OK	docs/exemplos/interop_c.c	M0	executado e saida conferida
+OK	docs/exemplos/interop_c.c	M1	executado e saida conferida
+OK	docs/exemplos/media_notas.c	M0	executado e saida conferida
+OK	docs/exemplos/media_notas.c	M1	executado e saida conferida
+OK	docs/exemplos/ola_mundo.c	M0	executado e saida conferida
+OK	docs/exemplos/ola_mundo.c	M1	executado e saida conferida
+OK	docs/exemplos/para_contado.c	M1	executado e saida conferida
+OK	docs/exemplos/primos.c	M0	executado e saida conferida
+OK	docs/exemplos/primos.c	M1	executado e saida conferida
+OK	docs/exemplos/tabuada.c	M0	executado e saida conferida
+OK	docs/exemplos/tabuada.c	M1	executado e saida conferida
+OK	docs/exemplos/tipos.c	M0	executado e saida conferida
+OK	docs/exemplos/tipos.c	M1	executado e saida conferida
+OK	docs/exemplos/utilidades.c	M0	executado e saida conferida
+OK	docs/exemplos/utilidades.c	M1	executado e saida conferida
+OK	docs/exemplos/vetores.c	M0	executado e saida conferida
+OK	docs/exemplos/vetores.c	M1	executado e saida conferida
+OK	examples/advanced/01_cadastro.c	M0	executado e saida conferida
+OK	examples/advanced/01_cadastro.c	M1	executado e saida conferida
+FALHA	examples/advanced/basicz/basicz.c	M0	compilacao: examples/advanced/basicz/basicz.c:32:59: error: expected ')'    32 |         ENQUANTO (fgets(linha, sizeof(linha), f) != NULL) {
+FALHA	examples/advanced/basicz/basicz.c	M1	transpilacao: examples/advanced/basicz/basicz.c:32: erro: 'ENQUANTO' exige 'FACA' antes de '{' (nao use chaves nem ';' no cabecalho do bloco)
+SONDAGEM FALHOU	examples/advanced/basicz-gui/basicz_gui.c	M0	compilacao: examples/advanced/basicz-gui/basicz_gui.c:4:10: fatal error: 'windows.h' file not found     4 | #include <windows.h>
+SONDAGEM FALHOU	examples/advanced/basicz-gui/basicz_gui.c	M1	transpilacao: examples/advanced/basicz-gui/basicz_gui.c:111: erro: 'ENQUANTO' exige 'FACA' antes de ';' (nao use chaves nem ';' no cabecalho do bloco)
+SONDAGEM FALHOU	examples/advanced/bootloader/bootloader.c	M0	compilacao: examples/advanced/bootloader/bootloader.c:10:19: error: expected ')'    10 |     ENQUANTO (*s) {
+SONDAGEM FALHOU	examples/advanced/bootloader/bootloader.c	M1	transpilacao: examples/advanced/bootloader/bootloader.c:10: erro: 'ENQUANTO' exige 'FACA' antes de '{' (nao use chaves nem ';' no cabecalho do bloco)
+SONDAGEM FALHOU	examples/advanced/wasm/wasm_exemplo.c	M0	compilacao: examples/advanced/wasm/wasm_exemplo.c:6:28: error: too many arguments provided to function-like macro invocation     6 |     ESCREVAL("2 + 3 = %d", 2 + 3);
+SONDAGEM FALHOU	examples/advanced/wasm/wasm_exemplo.c	M1	compilacao: <temporario>/generated.c:6:31: error: too many arguments provided to function-like macro invocation     6 |     BG_ESCREVAL("2 + 3 = %d", 2 + 3);
+OK	examples/beginner/01_ola_mundo.c	M0	executado e saida conferida
+OK	examples/beginner/01_ola_mundo.c	M1	executado e saida conferida
+OK	examples/beginner/02_tabuada.c	M0	executado e saida conferida
+OK	examples/beginner/02_tabuada.c	M1	executado e saida conferida
+OK	examples/intermediate/01_fatorial_fibonacci.c	M0	executado e saida conferida
+OK	examples/intermediate/01_fatorial_fibonacci.c	M1	executado e saida conferida
+RESUMO	fontes=32	aprovados=54	falhas=2	sondagens_compiladas=0	sondagens_falharam=6
