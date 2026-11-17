@@ -118,3 +118,19 @@ O script retorna código 1 se houver falha, inclusive nas sondagens especiais;
 `--object-only` não liga nem executa. Para cproc, QBE e `cproc-qbe` devem estar
 no `PATH`. Para o alvo Windows de `clang-cl`, instalar SDK/CRT e ligador
 apropriados e executar em Windows/Wine são trabalhos ainda pendentes.
+
+## Perguntas frequentes
+
+### Esta auditoria comprova suporte a todos os compiladores listados?
+
+Não. A tabela registra o que foi executado e as limitações de cada configuração;
+compiladores não obtidos ou sondagens sem execução no alvo não comprovam suporte.
+Consulte os logs e a matriz de compatibilidade antes de tirar conclusões.
+
+### Como repetir a suíte com GCC?
+
+Com GCC e as dependências instalados, use um diretório de build separado:
+
+```sh
+make CC=gcc BUILD=build-gcc test
+```
