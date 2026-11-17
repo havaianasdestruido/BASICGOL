@@ -9,6 +9,8 @@ make test-sanitize      # a suíte inteira sob ASan + UBSan + LeakSanitizer
 make test-matriz        # a suíte inteira com cada compilador encontrado
 make fuzz               # mutação determinística do transpilador
 make test-checkout      # os comandos do README, a partir de um checkout limpo
+python3 tests/auditar_exemplos.py --cc gcc --flag=-std=c11 --basicgolc build/basicgolc --library build/libbasicgol.a
+                        # também tenta examples/, com sondagens separadas por alvo
 ```
 
 A suíte de linguagem usa `bash`, um compilador C11, `build/basicgolc` e

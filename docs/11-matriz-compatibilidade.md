@@ -1,5 +1,10 @@
 # 11 — Matriz de compatibilidade (Fase 6)
 
+> Auditoria posterior: veja [14 — compiladores e exemplos (17/11/2026)](14-auditoria-compiladores-2026-11-17.md)
+> para resultados novos de `clang`, `clang-cl` no Linux, TCC, cproc e 8cc,
+> além das tentativas e lacunas para os demais. As tabelas históricas abaixo
+> descrevem a máquina e os testes da Fase 6, não substituem esse relatório.
+
 > **Como ler esta página.** Cada célula tem um dos quatro estados abaixo, e
 > nenhum outro. Não existe "deve funcionar" sem rótulo.
 >

@@ -1,0 +1,93 @@
+tcc -O2 -std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror -I include -o build-tcc/test-biblioteca tests/test_biblioteca.c build-tcc/libbasicgol.a -lm
+
+== 01 — sanidade (cabeçalho, C11, BG_SEM_APELIDOS, avaliação única)
+  FALHA expansoes do cabecalho batem com a tabela documentada (AC-22)
+        divergentes: BG_FUNCAO BG_FORMATA_TEXTO(d,t,...)
+
+== casos: 02_basico
+
+== casos: 03_controle
+
+== casos: 04_estruturas
+
+== casos: 05_entrada_saida
+
+== casos: 07_multiarquivo
+
+== casos: 08_aplicacao
+
+== casos: 09_tipos_expr
+  FALHA 09_tipos_expr/t13_extensoes (M0)
+        compilacao falhou: In file included from tests/casos/09_tipos_expr/t13_extensoes/programa.c:3: include/basicgol.h:325: error: #error "BG_USAR_EXTENSOES exige __builtin_*_overflow (GCC ou Clang)."
+
+== 06 — negativos: erros do compilador C (caminho M0)
+  FALHA 06_negativos/n01_se_sem_fim_se
+        diagnostico nao casa com nenhum de: [expected declaration or statement] [expected '}']: tests/casos/06_negativos/n01_se_sem_fim_se/programa.c:8: error: expression expected before '<eof>'
+  FALHA 06_negativos/n02_se_com_chaves_c
+        diagnostico nao casa com nenhum de: [expected ')']: tests/casos/06_negativos/n02_se_com_chaves_c/programa.c:5: error: ')' expected (got '{')
+  FALHA 06_negativos/n03_senao_se
+        diagnostico nao casa com nenhum de: [expected declaration or statement] [expected '}']: tests/casos/06_negativos/n03_senao_se/programa.c:11: error: expression expected before '<eof>'
+  FALHA 06_negativos/n04_escreval_dois_valores
+        diagnostico nao casa com nenhum de: [passed 2 arguments] [too many arguments provided to function-like macro invocation]: tests/casos/06_negativos/n04_escreval_dois_valores/programa.c:5: error: macro 'BG_ESCREVAL' used with too many args
+  FALHA 06_negativos/n07_mod_igual
+        diagnostico nao casa com nenhum de: [expected expression]: tests/casos/06_negativos/n07_mod_igual/programa.c:6: error: expression expected before '='
+  FALHA 06_negativos/n08_variavel_com_nome_de_palavra
+        diagnostico nao casa com nenhum de: [expected identifier or '(']: tests/casos/06_negativos/n08_variavel_com_nome_de_palavra/programa.c:5: error: identifier expected
+  FALHA 06_negativos/n10_falta_entao
+        diagnostico nao casa com nenhum de: [is not a function or function pointer]: tests/casos/06_negativos/n10_falta_entao/programa.c:6: error: function pointer expected
+  FALHA 06_negativos/n11_fim_a_mais
+        diagnostico nao casa com nenhum de: [expected identifier or '('] [extraneous closing brace]: tests/casos/06_negativos/n11_fim_a_mais/programa.c:7: error: declaration expected
+  FALHA 06_negativos/n14_mod_com_real
+        diagnostico nao casa com nenhum de: [invalid operands]: tests/casos/06_negativos/n14_mod_com_real/programa.c:5: error: invalid operand types for binary operation
+  FALHA 06_negativos/n15_resto_com_real
+        diagnostico nao casa com nenhum de: [not compatible with any]: tests/casos/06_negativos/n15_resto_com_real/programa.c:5: error: type 'double' does not match any association
+  FALHA 06_negativos/n16_leia_logico
+        diagnostico nao casa com nenhum de: [not compatible with any]: tests/casos/06_negativos/n16_leia_logico/programa.c:20: error: type '_Bool *' does not match any association
+  FALHA 06_negativos/n17_pare_fora_de_laco
+        diagnostico nao casa com nenhum de: [not within loop or switch] [not in loop or switch]: tests/casos/06_negativos/n17_pare_fora_de_laco/programa.c:6: error: cannot break
+  FALHA 06_negativos/n18_prossiga_fora_de_laco
+        diagnostico nao casa com nenhum de: [not within a loop] [not in loop statement]: tests/casos/06_negativos/n18_prossiga_fora_de_laco/programa.c:6: error: cannot continue
+  FALHA 06_negativos/n19_ate_que_com_virgula
+        diagnostico nao casa com nenhum de: [passed 2 arguments] [too many arguments provided to function-like macro]: tests/casos/06_negativos/n19_ate_que_com_virgula/programa.c:10: error: macro 'BG_ATE_QUE' used with too many args
+  FALHA 06_negativos/n20_escolha_com_virgula
+        diagnostico nao casa com nenhum de: [passed 2 arguments] [too many arguments provided to function-like macro]: tests/casos/06_negativos/n20_escolha_com_virgula/programa.c:7: error: macro 'BG_ESCOLHA' used with too many args
+  FALHA 06_negativos/n21_leia_texto
+        diagnostico nao casa com nenhum de: [not compatible with any]: tests/casos/06_negativos/n21_leia_texto/programa.c:15: error: type 'const char **' does not match any association
+  FALHA 06_negativos/n22_leia_texto_fixo
+        diagnostico nao casa com nenhum de: [not compatible with any]: tests/casos/06_negativos/n22_leia_texto_fixo/programa.c:15: error: type 'char (*)[8]' does not match any association
+  FALHA 06_negativos/n23_tamanho_de_ponteiro
+        compilou, mas deveria falhar
+
+== 06b — negativos: diagnosticos do transpilador (caminho M1)
+
+== 06c — avisos W-01..W-07 (cada um com o seu caso)
+
+== 09 — transpilador M1
+
+== 10 — exemplos do repositorio (M0 e M1 contra a saida dourada)
+
+== 11 — estresse
+
+=============================================
+FALHAS: 20 de 306 verificacoes
+  - expansoes do cabecalho batem com a tabela documentada (AC-22)
+  - 09_tipos_expr/t13_extensoes (M0)
+  - 06_negativos/n01_se_sem_fim_se
+  - 06_negativos/n02_se_com_chaves_c
+  - 06_negativos/n03_senao_se
+  - 06_negativos/n04_escreval_dois_valores
+  - 06_negativos/n07_mod_igual
+  - 06_negativos/n08_variavel_com_nome_de_palavra
+  - 06_negativos/n10_falta_entao
+  - 06_negativos/n11_fim_a_mais
+  - 06_negativos/n14_mod_com_real
+  - 06_negativos/n15_resto_com_real
+  - 06_negativos/n16_leia_logico
+  - 06_negativos/n17_pare_fora_de_laco
+  - 06_negativos/n18_prossiga_fora_de_laco
+  - 06_negativos/n19_ate_que_com_virgula
+  - 06_negativos/n20_escolha_com_virgula
+  - 06_negativos/n21_leia_texto
+  - 06_negativos/n22_leia_texto_fixo
+  - 06_negativos/n23_tamanho_de_ponteiro
+make: *** [Makefile:56: test] Error 1
