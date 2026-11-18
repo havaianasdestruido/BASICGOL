@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BASICGOL + JavaScript + WebAssembly</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 48rem; margin: 3rem auto; padding: 0 1rem; }
+    label, select, button { font: inherit; }
+    select { margin: 0 .5rem; }
+    pre { padding: 1rem; background: #f2f4f7; border-radius: .5rem; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>BASICGOL + JavaScript + WebAssembly</h1>
+  <p>Escolha uma função BASICGOL compilada por Emscripten e invoque-a do JavaScript.</p>
+  <label for="exemplo">Exemplo:</label>
+  <select id="exemplo">
+    <option value="01_soma">01 — soma</option>
+    <option value="02_fatorial">02 — fatorial</option>
+    <option value="03_media">03 — média real</option>
+    <option value="04_maior">04 — maior inteiro</option>
+    <option value="05_primo">05 — teste de primo</option>
+    <option value="06_fahrenheit">06 — Fahrenheit para Celsius</option>
+    <option value="07_limita">07 — limitar intervalo</option>
+  </select>
+  <button id="executar" type="button">Executar</button>
+  <pre id="resultado" aria-live="polite">Compile com ./build.sh e escolha um exemplo.</pre>
+  <script type="module" src="host.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="libbasicgol.so;libbasicgol.dylib;basicgol.dll" />
+    <Content Include="libbasicgol.so" CopyToOutputDirectory="PreserveNewest" Condition="Exists('libbasicgol.so')" />
+    <Content Include="libbasicgol.dylib" CopyToOutputDirectory="PreserveNewest" Condition="Exists('libbasicgol.dylib')" />
+    <Content Include="basicgol.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('basicgol.dll')" />
+  </ItemGroup>
+</Project>

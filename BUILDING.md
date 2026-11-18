@@ -21,7 +21,7 @@ src/biblioteca/    Standard library implementation (.c)
 tools/basicgolc.c  Transpiler (M1 path)
 tests/             Language + library test suites
 docs/              Specification, reference, compatibility matrix
-examples/          Beginner / intermediate / advanced programs
+examples/          Beginner / intermediate / advanced + interoperability programs
 website/           Docusaurus site (optional)
 ```
 
@@ -33,6 +33,8 @@ make biblioteca       # only the static library
 make test             # language suite + library tests
 make test-v           # verbose (lists every check)
 make exemplos         # compiles docs/exemplos
+make -C examples/integrations/cpp test       # C++ interop demos
+make -C examples/integrations/assembly test  # GNU Assembly interop demos
 make limpar           # clean
 ```
 
@@ -81,6 +83,14 @@ make test
 
 Runs `tests/run.sh` (language M0/M1 equivalence) and `tests/run_biblioteca.sh`
 (library unit tests). See `tests/README.md` for case conventions.
+
+## Interoperability examples
+
+[`examples/integrations/README.md`](examples/integrations/README.md) documents seven
+examples each for C++, C#, GNU Assembly, VB.NET, and JavaScript/WebAssembly with
+Emscripten. The C++ and Assembly folders include Makefiles; the managed-language
+examples require a .NET SDK, and the WebAssembly examples require `emcc` and an HTTP
+server. Platform and ABI constraints are listed in each guide.
 
 ## Troubleshooting
 

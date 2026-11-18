@@ -484,6 +484,12 @@ gcc -std=c11 -Wall -Wextra -I include docs/exemplos/ola_mundo.c \
 | Açúcar (M1) | `para_contado.c`, `controle_para_acucar.c` | `PARA i DE … ATE … [PASSO …] FACA` / `FIM_PARA`, `ATE cond;` |
 | Biblioteca padrão | `biblioteca_consola.c`, `biblioteca_matematica.c`, `biblioteca_texto.c`, `biblioteca_caractere.c`, `biblioteca_utilidades.c` | I/O limitado, matemática, texto, ASCII e sorteio com semente explícita |
 
+Para interoperabilidade com outras linguagens, há **7 exemplos por combinação** (35 no
+total) em [`examples/integrations/`](examples/integrations/README.md): C++, C#,
+Assembly, VB.NET e JavaScript/WebAssembly via Emscripten. Os guias incluem comandos e
+limites de plataforma; em particular, os fontes BASICGOL são compilados como C11 e
+expostos por uma ABI C.
+
 ## Limitações conhecidas (resumo)
 
 A lista completa e sua justificativa está em [`docs/04-restricoes-e-decisoes.md`](docs/04-restricoes-e-decisoes.md) (restrições C-01…C-23 e decisões D-01…D-28); o sumário executivo está em [`docs/01-especificacao.md` §19](docs/01-especificacao.md). Os principais itens que afetam o uso diário:

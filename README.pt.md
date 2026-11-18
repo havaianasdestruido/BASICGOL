@@ -49,5 +49,7 @@ make test
 - `docs/02-referencia.md` — referência de palavras-chave.
 - `docs/feature-matrix.md` — matriz de funcionalidades.
 - `docs/limitations.md` — limitações.
+- `examples/integrations/README.md` — sete exemplos por combinação: C++, C#,
+  Assembly, VB.NET e JavaScript com Emscripten.
 - `BUILDING.md` — instalação e compilação.
 - `RELEASE_CHECKLIST.md` — checklist de release.

@@ -1,6 +1,8 @@
 # BASICGOL + WebAssembly
 
-Exemplo de compilação de um programa BASICGOL para WebAssembly usando Emscripten.
+Exemplo mínimo de compilação de um programa BASICGOL para WebAssembly usando Emscripten.
+Para a integração JavaScript completa, com sete funções exportadas e host interativo,
+veja [`examples/integrations/emscripten`](../../integrations/emscripten/README.md).
 
 ## Pré-requisitos
 - Emscripten SDK (emcc) instalado e ativado.

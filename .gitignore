@@ -12,6 +12,19 @@ __pycache__/
 .venv/
 node_modules/
 
+# Artefatos gerados pelos exemplos de interoperabilidade.
+examples/integrations/emscripten/build/
+examples/integrations/csharp/bin/
+examples/integrations/csharp/obj/
+examples/integrations/csharp/libbasicgol.so
+examples/integrations/csharp/libbasicgol.dylib
+examples/integrations/csharp/basicgol.dll
+examples/integrations/vbnet/bin/
+examples/integrations/vbnet/obj/
+examples/integrations/vbnet/libbasicgol.so
+examples/integrations/vbnet/libbasicgol.dylib
+examples/integrations/vbnet/basicgol.dll
+
 # Documentação: fontes versionadas em website/, saída regenerada pelo Python.
 website/.docusaurus/
 website/build/
