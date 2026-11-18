@@ -44,6 +44,14 @@ Veja `docs/tutorial-quickstart.pt.md`.
 make test
 ```
 
+## Playground no navegador
+
+[`playground/`](playground/) compila e executa BASICGOL na própria aba (clang e
+wasm-ld em WebAssembly, sem servidor). Os 22 exemplos de `docs/exemplos/` estão
+lá, com a entrada de teste dourada. Como rodar e como verificar:
+[`playground/README.md`](playground/README.md). Licenças de terceiros:
+[`playground/ATRIBUICOES.md`](playground/ATRIBUICOES.md).
+
 ## Documentação
 
 - `docs/02-referencia.md` — referência de palavras-chave.
