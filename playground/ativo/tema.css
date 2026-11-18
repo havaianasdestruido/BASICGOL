@@ -1,0 +1,719 @@
+/*
+ * tema.css — folha de estilo do playground, fiel ao cplayground.com.
+ *
+ * É um porte do SCSS de https://github.com/reberhardt7/cplayground
+ * (src/client/styles/*.scss, GPL-3.0) para CSS puro, com os mesmos tokens:
+ * topbar de 60px com borda inferior de 3px, sidebar de 225px, painéis de 50%
+ * com 15px de padding, a mesma tipografia (Montserrat + Ubuntu Mono) e as
+ * mesmas três paletas (padrão, Monokai, Zenburn).
+ *
+ * As variáveis viram custom properties e cada paleta é um
+ * `:root[data-tema="..."]`; nada aqui depende de pré-processador.
+ */
+
+/* ------------------------------------------------------------------ fontes */
+
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../vendor/fonts/ubuntu-mono/ubuntu-mono-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../vendor/fonts/ubuntu-mono/ubuntu-mono-latin-400-italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../vendor/fonts/ubuntu-mono/ubuntu-mono-latin-700-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../vendor/fonts/ubuntu-mono/ubuntu-mono-latin-700-italic.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../vendor/fonts/montserrat/montserrat-latin-400-normal.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Montserrat';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('../vendor/fonts/montserrat/montserrat-latin-700-normal.woff2') format('woff2');
+}
+
+/* -------------------------------------------------------------- constantes */
+
+:root {
+  /* _constants.scss */
+  --topbar-height: 60px;
+  --sidebar-width: 225px;
+  --sidebar-footer-height: 90px;
+  --sidebar-spacing: 8px;
+  --pane-padding: 15px;
+  --layout-transition-time: 0.3s;
+  --primary-font: 'Montserrat', sans-serif;
+  --code-font: 'Ubuntu Mono', monospace;
+}
+
+/* ------------------------------------------------------------ paleta padrão */
+/* _colors.scss, sem @default: os valores do tema padrão. */
+
+:root,
+:root[data-tema='padrao'] {
+  --foreground-color: #d6dbd8;
+  --background-color: #352e3c;
+  --black: #29282e;
+  --red: #a63939;
+  --green: #87a140;
+  --yellow: #dba858;
+  --blue: #5b81a0;
+  --magenta: #85678f;
+  --cyan: #5e8d87;
+  --white: #818890;
+  --bright-black: #4f495f;
+  --bright-red: #d85b7b;
+  --bright-green: #92c74d;
+  --bright-yellow: #f0d974;
+  --bright-blue: #7daad1;
+  --bright-magenta: #b294bb;
+  --bright-cyan: #87c6be;
+  --bright-white: #c5c8c6;
+
+  /* $subtle-text-color: desaturate(darken($foreground-color, 35%), 5%) */
+  --subtle-text-color: #7d7d7a;
+  --scrollbar-color: #6f6478; /* lighten($background-color, 59%) */
+  --accent-color: var(--bright-black);
+  --topbar-bg-color: var(--accent-color);
+  --topbar-border-color: #6b5c73; /* saturate(lighten($topbar-bg-color, 8%), 10%) */
+  --topbar-disabled-color: #554f5a; /* desaturate(lighten($topbar-bg-color, 2%), 2%) */
+  --topbar-font-color: #fff;
+
+  --editor-gutter-color: var(--subtle-text-color);
+  --editor-cursor-color: #eee;
+  --editor-keyword-color: var(--bright-blue);
+  --editor-number-color: var(--bright-magenta);
+  --editor-function-color: var(--bright-cyan);
+  --editor-class-color: var(--bright-cyan);
+  --editor-string-color: var(--bright-yellow);
+  --editor-comment-color: var(--subtle-text-color);
+  --editor-variable-color: var(--bright-red);
+  --editor-attribute-color: var(--bright-green);
+}
+
+/* ----------------------------------------------------------------- Monokai */
+/* theme-monokai.scss */
+
+:root[data-tema='monokai'] {
+  --foreground-color: #fcfcfa;
+  --background-color: #2c292d;
+  --black: #272822;
+  --red: #f92672;
+  --green: #a6e22e;
+  --yellow: #75715e;
+  --blue: #66d9ef;
+  --magenta: #ae81ff;
+  --cyan: #a1efe4;
+  --white: #f8f8f2;
+  --bright-black: #75715e;
+  --bright-red: #f92672;
+  --bright-green: #a6e22e;
+  --bright-yellow: #e6db74;
+  --bright-blue: #66d9ef;
+  --bright-magenta: #ae81ff;
+  --bright-cyan: #a1efe4;
+  --bright-white: #f9f8f5;
+
+  --subtle-text-color: #9a9a94;
+  --scrollbar-color: #4d4a50;
+  --accent-color: #403c42; /* saturate(lighten($background-color, 12%), 3%) */
+  --topbar-bg-color: var(--accent-color);
+  --topbar-border-color: #5c565f;
+  --topbar-disabled-color: #4a464c;
+  --topbar-font-color: #fff;
+
+  --editor-gutter-color: #888;
+  --editor-cursor-color: #eee;
+  --editor-keyword-color: var(--bright-red);
+  --editor-number-color: var(--bright-magenta);
+  --editor-function-color: var(--bright-green);
+  --editor-class-color: var(--bright-blue);
+  --editor-string-color: var(--bright-yellow);
+  --editor-comment-color: var(--bright-black);
+  --editor-variable-color: var(--bright-red);
+  --editor-attribute-color: var(--magenta);
+}
+
+/* ----------------------------------------------------------------- Zenburn */
+/* theme-zenburn.scss */
+
+:root[data-tema='zenburn'] {
+  --foreground-color: #dcdccc;
+  --background-color: #3f3f3f;
+  --black: #4d4d4d;
+  --red: #705050;
+  --green: #60b48a;
+  --yellow: #f0dfaf;
+  --blue: #506070;
+  --magenta: #dc8cc3;
+  --cyan: #8cd0d3;
+  --white: #dcdccc;
+  --bright-black: #709080;
+  --bright-red: #dca3a3;
+  --bright-green: #c3bf9f;
+  --bright-yellow: #e0cf9f;
+  --bright-blue: #94bff3;
+  --bright-magenta: #ec93d3;
+  --bright-cyan: #93e0e3;
+  --bright-white: #ffffff;
+
+  --subtle-text-color: #8f8f88;
+  --scrollbar-color: #7f7f7f;
+  --accent-color: #5a5a5a;
+  --topbar-bg-color: var(--accent-color);
+  --topbar-border-color: #747474;
+  --topbar-disabled-color: #4f4f4f;
+  --topbar-font-color: #fff;
+
+  --editor-gutter-color: var(--subtle-text-color);
+  --editor-cursor-color: #eee;
+  --editor-keyword-color: var(--bright-yellow);
+  --editor-number-color: var(--bright-cyan);
+  --editor-function-color: var(--bright-red);
+  --editor-class-color: var(--yellow);
+  --editor-string-color: var(--bright-red);
+  --editor-comment-color: var(--bright-black);
+  --editor-variable-color: var(--bright-green);
+  --editor-attribute-color: var(--bright-green);
+}
+
+/* ------------------------------------------------------------- tipografia */
+/* _typography.scss */
+
+html {
+  font-family: var(--primary-font);
+}
+
+a,
+a:visited {
+  color: var(--foreground-color);
+}
+
+/* ---------------------------------------------------------------- layout */
+/* _layout.scss */
+
+html {
+  box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--background-color);
+  color: var(--foreground-color);
+}
+
+.primary-container {
+  height: calc(100% - var(--topbar-height));
+  width: 100%;
+  position: relative;
+}
+
+.code-container,
+.program-pane {
+  width: 50%;
+  height: 100%;
+  padding: var(--pane-padding);
+  transition:
+    width var(--layout-transition-time) ease-in-out,
+    margin-left var(--layout-transition-time) ease-in-out;
+  position: relative;
+  background: var(--background-color);
+}
+
+.primary-container.open-sidebar .code-container,
+.primary-container.open-sidebar .program-pane {
+  width: calc(50% - var(--sidebar-width) / 2);
+}
+
+.code-container {
+  border-right: 1px solid var(--topbar-border-color);
+  float: left;
+}
+
+.program-pane {
+  float: right;
+}
+
+.primary-container.open-sidebar .code-container {
+  margin-left: var(--sidebar-width);
+}
+
+.sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: 100%;
+  padding: var(--pane-padding);
+  float: left;
+  font-size: 0.8rem;
+  overflow-y: auto;
+  opacity: 0;
+  transition: opacity var(--layout-transition-time) ease-out;
+}
+
+.open-sidebar .sidebar {
+  opacity: 1;
+}
+
+/* Borda vertical entre a sidebar e o editor (aparece com a sidebar aberta). */
+.primary-container .code-container::before {
+  content: ' ';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  border-left: 1px solid var(--topbar-border-color);
+  opacity: 0;
+  transition: opacity var(--layout-transition-time) ease-out;
+}
+
+.primary-container.open-sidebar .code-container::before {
+  opacity: 1;
+}
+
+/* Modo de painel único: */
+
+.show-code-only .code-container {
+  width: 100%;
+  padding: 0px;
+}
+
+.show-code-only.open-sidebar .code-container {
+  width: calc(100% - var(--sidebar-width));
+}
+
+.show-code-only .program-pane {
+  position: absolute;
+  visibility: hidden;
+}
+
+.show-term-only .program-pane {
+  width: 100%;
+}
+
+.show-term-only.open-sidebar .program-pane {
+  width: calc(100% - var(--sidebar-width));
+}
+
+.show-term-only .code-container {
+  position: absolute;
+  visibility: hidden;
+}
+
+/* Painel do programa: */
+
+.program-pane {
+  padding: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.program-pane > div {
+  width: 100%;
+  flex-grow: 1;
+  flex-basis: 0;
+  overflow: auto;
+}
+
+.terminal-container {
+  padding: var(--pane-padding);
+}
+
+/* ---------------------------------------------------------------- topbar */
+/* _topbar.scss */
+
+.topbar {
+  height: var(--topbar-height);
+  width: 100%;
+  background-color: var(--topbar-bg-color);
+  border-bottom: 3px solid var(--topbar-border-color);
+  color: var(--topbar-font-color);
+}
+
+.topbar .btn {
+  height: 100%;
+  width: 120px;
+  position: relative;
+  text-align: center;
+  display: inline-block;
+  cursor: pointer;
+  background-color: var(--topbar-bg-color);
+  transition: background-color 0.3s ease-out;
+}
+
+.topbar #settings-btn {
+  width: 65px;
+  border-right: 1px solid var(--topbar-border-color);
+}
+
+.btn .icone {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+  vertical-align: -0.125em;
+}
+
+.btn i {
+  font-size: 1.1em;
+}
+
+.btn .main-text {
+  position: relative;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: top 0.3s ease-out;
+}
+
+.btn .shortcut {
+  position: absolute;
+  top: 65%;
+  transform: translateY(-50%);
+  font-size: 0.7em;
+  width: 100%;
+  opacity: 0;
+  transition:
+    top 0.3s ease-out,
+    opacity 0.3s ease-out;
+}
+
+.topbar .btn:hover {
+  background-color: var(--topbar-border-color);
+}
+
+.topbar .btn.disabled:hover {
+  background-color: var(--topbar-disabled-color);
+  cursor: default;
+}
+
+.btn.has-shortcut:hover:not(.disabled) .main-text {
+  top: 40%;
+}
+
+.btn.has-shortcut:hover:not(.disabled) .shortcut {
+  top: 75%;
+  opacity: 1;
+}
+
+.btn .icon {
+  display: inline-block;
+  position: relative;
+  margin-right: 10px;
+}
+
+#run-btn .main-text {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#run-btn .main-text .active,
+#run-btn .main-text .inactive {
+  transition: transform 0.4s ease-out;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+#run-btn .main-text .inactive {
+  transform: rotateX(180deg);
+  position: absolute;
+}
+
+#run-btn .run-icon .filled {
+  position: absolute;
+  top: 0;
+  left: 2px;
+  opacity: 0;
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out;
+}
+
+#run-btn .debug-icon .filled {
+  left: 0;
+}
+
+#run-btn .inactive .run-icon:after {
+  /* Só o botão visível tem o anel de "carregando". */
+  display: none;
+}
+
+#run-btn .run-icon:after {
+  content: ' ';
+  position: absolute;
+  top: -3px;
+  left: -4px;
+  display: block;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  border: 2px solid var(--topbar-font-color);
+  border-color: var(--topbar-font-color) transparent var(--topbar-font-color) transparent;
+  opacity: 0;
+  transition: opacity 0.2s ease-out 0s;
+}
+
+#run-btn.disabled .run-icon:after {
+  opacity: 1;
+  animation: loading-spinner 1.2s linear infinite;
+  transition: opacity 0.3s ease-out 0.2s;
+}
+
+@keyframes loading-spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+#run-btn.disabled .run-icon .filled {
+  opacity: 1;
+  transform: scale(0.75, 0.75);
+}
+
+#run-btn .run-icon .outline {
+  transition:
+    opacity 0.3s ease-out,
+    transform 0.3s ease-out;
+}
+
+#run-btn.disabled .run-icon .outline {
+  opacity: 0;
+  transform: scale(0.75, 0.75);
+}
+
+/* --------------------------------------------------------------- sidebar */
+/* _sidebar.scss */
+
+.sidebar-footer-spacer {
+  width: 100%;
+  height: var(--sidebar-footer-height);
+}
+
+.sidebar-footer {
+  background: linear-gradient(
+    to top,
+    var(--background-color) 0%,
+    var(--background-color) 50%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: var(--sidebar-width);
+  height: var(--sidebar-footer-height);
+  padding: var(--pane-padding);
+  padding-top: 25px;
+  text-align: center;
+}
+
+.sidebar h3 {
+  font-size: 1.2em;
+  font-weight: 400;
+  margin-bottom: var(--sidebar-spacing);
+}
+
+.sidebar h3:first-of-type {
+  margin-top: 0px;
+}
+
+.sidebar p {
+  margin: var(--sidebar-spacing) 0;
+}
+
+.sidebar select,
+.sidebar input[type='text'] {
+  width: 100%;
+}
+
+.flag-spacer {
+  height: 0.7em;
+}
+
+/* Envio de arquivos: */
+
+input[type='file'] {
+  width: 100%;
+}
+
+/* Esconde o status do arquivo enviado quando não há nenhum. */
+#uploaded-filename:empty {
+  display: none;
+}
+
+#uploaded-filename:empty + #btn-remove-uploaded-file {
+  display: none;
+}
+
+#uploaded-filename {
+  float: left;
+}
+
+#btn-remove-uploaded-file {
+  float: right;
+  cursor: pointer;
+  line-height: 1.3em;
+}
+
+#uploaded-filename,
+#btn-remove-uploaded-file {
+  margin-top: 0; /* O parágrafo anterior já tem margem inferior */
+  margin-bottom: var(--sidebar-spacing);
+}
+
+.small-loading-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid var(--topbar-font-color);
+  border-color: var(--topbar-font-color) transparent var(--topbar-font-color) transparent;
+  animation: loading-spinner 1.2s linear infinite;
+}
+
+.file-upload-error:empty {
+  display: none;
+}
+
+.file-upload-error {
+  color: var(--bright-red);
+}
+
+.oculto {
+  display: none !important;
+}
+
+/* -------------------------------------------------------------- formulários */
+/* _forms.scss */
+
+select,
+input[type='text'] {
+  background-color: var(--accent-color);
+  border: none;
+  border-radius: 3px;
+  height: 25px;
+  color: inherit;
+}
+
+select.inline,
+input[type='text'].inline {
+  margin-left: 8px;
+  padding: 0px 3px;
+}
+
+/* ------------------------------------------------------------- barra de rolagem */
+/* _scrollbar.scss */
+
+* {
+  scrollbar-color: var(--scrollbar-color) rgba(0, 0, 0, 0.08);
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-color);
+  border-radius: 5px;
+}
+
+/* ------------------------------------------------------- lista de exemplos */
+
+.lista-exemplos {
+  position: fixed;
+  top: var(--topbar-height);
+  left: 0;
+  width: 320px;
+  max-height: calc(100% - var(--topbar-height));
+  overflow-y: auto;
+  background: var(--topbar-bg-color);
+  border-right: 1px solid var(--topbar-border-color);
+  border-bottom: 1px solid var(--topbar-border-color);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  z-index: 10;
+}
+
+.lista-exemplos ul {
+  margin: 0;
+  padding: 8px 0;
+  list-style: none;
+}
+
+.lista-exemplos button {
+  display: block;
+  width: 100%;
+  padding: 8px 15px;
+  border: none;
+  background: transparent;
+  color: var(--topbar-font-color);
+  font-family: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.lista-exemplos button:hover {
+  background-color: var(--topbar-border-color);
+}
+
+/* ---------------------------------------------------------------- terminal */
+/* _terminal.scss */
+
+#terminal {
+  width: 100%;
+  height: 100%;
+}
+
+.terminal-container .xterm .xterm-viewport {
+  background-color: transparent !important;
+}

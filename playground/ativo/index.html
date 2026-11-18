@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="pt-BR" data-tema="padrao">
+  <head>
+    <title>BASICGOL Playground</title>
+    <link rel="stylesheet" href="../vendor/xterm/xterm.css" />
+    <link rel="stylesheet" href="tema.css" />
+    <link rel="canonical" href="https://havaianasdestruido.github.io/BASICGOL/" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta
+      name="description"
+      content="Escreva, compile e execute BASICGOL (C em português) direto no navegador, com Emscripten e WebAssembly."
+    />
+  </head>
+  <body class="show-split">
+    <div id="app">
+      <div class="topbar">
+        <div role="button" class="btn has-shortcut" id="settings-btn" tabindex="0" aria-label="Configurações">
+          <div class="main-text"><i class="icone" data-icone="cog"></i></div>
+          <div class="shortcut">cmd+,</div>
+        </div>
+        <div role="button" class="btn has-shortcut disabled" id="run-btn" tabindex="0" aria-label="Executar">
+          <div class="main-text">
+            <div class="inactive">
+              <div class="icon run-icon debug-icon">
+                <span class="outline"><i class="icone" data-icone="bug"></i></span>
+                <span class="filled"><i class="icone" data-icone="bug"></i></span>
+              </div>
+              Debug
+            </div>
+            <div class="active">
+              <div class="icon run-icon">
+                <span class="outline">&#9655;</span>
+                <span class="filled">&#9654;</span>
+              </div>
+              Run
+            </div>
+          </div>
+          <div class="shortcut">shift+enter</div>
+        </div>
+        <div role="button" class="btn has-shortcut" id="stop-btn" tabindex="0" aria-label="Parar">
+          <div class="main-text">
+            <div class="icon"><i class="icone" data-icone="stop"></i></div>
+            Stop
+          </div>
+          <div class="shortcut">cmd+.</div>
+        </div>
+        <div role="button" class="btn has-shortcut" id="examples-btn" tabindex="0" aria-label="Exemplos">
+          <div class="main-text">
+            <div class="icon"><i class="icone" data-icone="file-code"></i></div>
+            Exemplos
+          </div>
+          <div class="shortcut">cmd+e</div>
+        </div>
+        <div role="button" class="btn" id="limpar-btn" tabindex="0" aria-label="Limpar terminal">
+          <div class="main-text">
+            <div class="icon"><i class="icone" data-icone="trash-alt"></i></div>
+            Limpar
+          </div>
+        </div>
+        <div role="button" class="btn" id="terminal-btn" tabindex="0" aria-label="Ver só o terminal">
+          <div class="main-text">
+            <div class="icon"><i class="icone" data-icone="terminal"></i></div>
+            Terminal
+          </div>
+        </div>
+      </div>
+
+      <div class="primary-container" id="primary-container">
+        <div class="sidebar">
+          <h3>Linguagem/versão</h3>
+          <select id="language-select" aria-label="Linguagem">
+            <option value="BASICGOL 1.1">BASICGOL 1.1</option>
+          </select>
+
+          <h3>Compilador</h3>
+          <select id="compiler-select" aria-label="Compilador">
+            <option value="clang">clang (WebAssembly)</option>
+            <option value="clang-wall">clang + avisos (WebAssembly)</option>
+          </select>
+
+          <h3>Flags do compilador</h3>
+          <div id="compiler-flags">
+            <select id="compiler-optimization" aria-label="Otimização">
+              <option value="-O0">-O0</option>
+              <option value="-O1">-O1</option>
+              <option value="-O2" selected>-O2</option>
+              <option value="-O3">-O3</option>
+            </select>
+
+            <div class="flag-spacer"></div>
+
+            <label for="cflag--Wall">
+              <input id="cflag--Wall" type="checkbox" value="-Wall" checked />
+              -Wall (avisos recomendados)
+            </label><br />
+            <label for="cflag--Wextra">
+              <input id="cflag--Wextra" type="checkbox" value="-Wextra" />
+              -Wextra (avisos extras)
+            </label><br />
+            <label for="cflag--Werror">
+              <input id="cflag--Werror" type="checkbox" value="-Werror" />
+              -Werror (aviso vira erro)
+            </label><br />
+            <label for="cflag--pedantic">
+              <input id="cflag--pedantic" type="checkbox" value="-pedantic" />
+              -pedantic (C estrito)
+            </label><br />
+
+            <div class="flag-spacer"></div>
+
+            <label for="lflag--lm">
+              <input id="lflag--lm" type="checkbox" value="-lm" checked />
+              -lm (matemática)
+            </label><br />
+            <label for="lflag--lcanvas">
+              <input id="lflag--lcanvas" type="checkbox" value="-lcanvas" disabled />
+              -lcanvas (gráficos — não disponível)
+            </label><br />
+          </div>
+
+          <h3>Argumentos do programa</h3>
+          <input type="text" id="runtime-args" value="" aria-label="Argumentos" />
+
+          <h3>Arquivos de apoio</h3>
+          <p>
+            <small>
+              Envie um <code>.zip</code> com arquivos usados pelo programa
+              (<code>#include "meu.h"</code>). Ele é descompactado no mesmo diretório
+              do código-fonte — tudo dentro do navegador.
+            </small>
+          </p>
+          <p id="upload-spinner" class="oculto"><span class="small-loading-spinner"></span></p>
+          <p class="file-upload-error" id="upload-error"></p>
+          <p id="uploaded-filename"></p>
+          <i class="icone" id="btn-remove-uploaded-file" data-icone="times" role="button" tabindex="0" aria-label="Remover arquivo enviado"></i>
+          <input id="input-include-file" type="file" accept=".zip,application/zip" aria-label="Enviar arquivo .zip" />
+
+          <h3>Tema</h3>
+          <select id="theme-select" aria-label="Tema">
+            <option value="padrao">Padrão</option>
+            <option value="monokai">Monokai</option>
+            <option value="zenburn">Zenburn</option>
+          </select>
+
+          <h3>Ferramentas</h3>
+          <p id="toolchain-status"><small>Baixando e preparando as ferramentas…</small></p>
+          <p><small id="toolchain-detalhe"></small></p>
+
+          <div class="sidebar-footer-spacer"></div>
+          <div class="sidebar-footer">
+            BASICGOL 1.1 · compila no seu navegador<br />
+            com
+            <a href="https://emscripten.org/" target="_blank" rel="noopener">Emscripten</a>
+            e WebAssembly.<br />
+            <a href="https://github.com/havaianasdestruido/BASICGOL" target="_blank" rel="noopener">Código no GitHub</a>
+          </div>
+        </div>
+
+        <div class="code-container">
+          <div id="editor"></div>
+        </div>
+
+        <div class="program-pane">
+          <div class="terminal-container">
+            <div id="terminal"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../vendor/ace/ace.js" charset="utf-8"></script>
+    <script src="../vendor/ace/mode-c_cpp.js" charset="utf-8"></script>
+    <script src="../vendor/ace/theme-textmate.js" charset="utf-8"></script>
+    <script src="../vendor/xterm/xterm.js" charset="utf-8"></script>
+    <script src="../vendor/xterm/addon-fit.js" charset="utf-8"></script>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

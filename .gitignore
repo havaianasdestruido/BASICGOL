@@ -17,3 +17,10 @@ website/.docusaurus/
 website/build/
 website/docs/
 website/static/api/
+
+# Playground: o pacote de ferramentas e a origem baixada são artefatos de build
+# (grandes, regeneráveis com playground/tools/empacotar-toolchain.js).
+playground/publico/toolchain/
+playground/.toolchain-build/
+playground/.vendor-build/
+playground/.verificacao/
