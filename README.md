@@ -22,6 +22,25 @@ chamado de "suportado" em lugar nenhum.
 
 ---
 
+## Playground no navegador
+
+[`playground/`](playground/) é uma página estática que compila e executa BASICGOL
+**na própria aba**: clang e wasm-ld em WebAssembly, sem servidor, sem enviar código
+para lugar nenhum. Os 22 exemplos de `docs/exemplos/` estão lá, com a entrada de
+teste dourada pronta no terminal.
+
+```sh
+sh playground/tools/baixar-toolchain.sh      # baixa clang/lld (~18 MB)
+node playground/tools/empacotar-toolchain.js  # monta o pacote que a página carrega
+python3 -m http.server 8000                   # http://localhost:8000/playground/ativo/index.html
+```
+
+Detalhes, verificação (`verificar.js`, `verificar-navegador.mjs`,
+`verificar-pagina.mjs`) e licenças: [`playground/README.md`](playground/README.md)
+e [`playground/ATRIBUICOES.md`](playground/ATRIBUICOES.md).
+
+---
+
 ## Documentação viva (Docusaurus)
 
 A referência completa é gerada por Python a partir do código, dos testes e dos documentos
