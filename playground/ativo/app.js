@@ -432,7 +432,9 @@ async function iniciar() {
   const params = new URLSearchParams(location.search);
   const tema = params.get('theme') || localStorage.getItem(CHAVE_TEMA) || 'padrao';
   const temaValido = ['padrao', 'monokai', 'zenburn'].includes(tema) ? tema : 'padrao';
-  estado.layout = localStorage.getItem(CHAVE_LAYOUT) || 'split';
+  // Layout: `?layout=code|term` (modo embutido do cplayground) manda mais que o
+  // que ficou salvo, que manda mais que o padrão de tela dividida.
+  estado.layout = params.get('layout') || localStorage.getItem(CHAVE_LAYOUT) || 'split';
   if (!['split', 'code', 'term'].includes(estado.layout)) estado.layout = 'split';
   estado.sidebar = params.get('settings') === '1';
 
