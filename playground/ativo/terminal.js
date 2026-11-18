@@ -133,7 +133,16 @@ export class Terminal {
       this.aguardando = resolver;
       this.linha = '';
       this.emEdicao = true;
+      // O programa está esperando: leva o foco do teclado para o terminal, para
+      // que digitar funcione sem o usuário precisar clicar antes. Se ele estiver
+      // editando o código, o foco volta em seguida (ver app.js).
+      if (this.xterm && typeof this.xterm.focus === 'function') this.xterm.focus();
     });
+  }
+
+  /** true enquanto uma leitura está esperando o usuário. */
+  esperandoEntrada() {
+    return this.emEdicao;
   }
 
   /** Chamado pelo app.js com cada tecla (modo interativo). */
@@ -173,10 +182,15 @@ export class Terminal {
 
   // ---------------------------------------------------------- modo roteiro
 
-  /** Acrescenta texto ao roteiro de entrada (modo sem JSPI). */
-  adicionarAoRoteiro(dados) {
+  /**
+   * Acrescenta texto ao roteiro de entrada.
+   * `ecoar` reproduz o que foi digitado na tela (é o caso do usuário digitando);
+   * entrada posta pelo programa (a de teste de um exemplo) entra calada.
+   */
+  adicionarAoRoteiro(dados, { ecoar = true } = {}) {
     this.roteiro.push(dados);
     this.bytesRoteiro = new TextEncoder().encode(this.roteiro.join(''));
+    if (!ecoar) return;
     if (dados.includes('\r')) this.escreverCru('\r\n');
     else this.escreverCru(dados.replace(/\x7f/g, '\b \b'));
   }

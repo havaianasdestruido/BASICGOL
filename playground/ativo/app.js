@@ -8,7 +8,7 @@
  *   - atalhos de teclado e alternância de layout, iguais aos do cplayground.
  */
 
-import { Ferramentas, prepararFonte, lerZip } from './ferramentas.js';
+import { Ferramentas, prepararFonte, lerZip, dicasPara } from './ferramentas.js';
 import { Terminal, temJspi } from './terminal.js';
 import { criarWasiPrograma, DecodificadorSeguro } from './armazenamento.js';
 import { EXEMPLOS, acharExemplo } from './exemplos.js';
@@ -77,8 +77,16 @@ function montarIcones(icones) {
     const caminho = document.createElementNS(svgNS, 'path');
     caminho.setAttribute('d', icone.d);
     svg.appendChild(caminho);
-    // Mantém as classes/atributos do elemento original (ex.: o ícone dentro de
-    // um botão que tem hover/estado próprio).
+    // O `<i>` pode ser um botão por si só (`#btn-remove-uploaded-file`): todos
+    // os atributos e classes do original passam para o SVG, senão o id, o
+    // tabindex e o cursor se perdem junto com o elemento substituído.
+    for (const atributo of Array.from(el.attributes)) {
+      if (atributo.name === 'class') continue;
+      svg.setAttribute(atributo.name, atributo.value);
+    }
+    svg.setAttribute('class', ['icone', ...el.classList].join(' '));
+    for (const classe of Array.from(el.classList)) svg.classList.add(classe);
+    for (const filho of Array.from(el.childNodes)) svg.appendChild(filho);
     el.replaceWith(svg);
   });
 }
@@ -130,10 +138,19 @@ function salvarPrograma(texto) {
 
 function aplicarLayout() {
   const container = $('#primary-container');
+  const embutido = estado.layout !== 'split';
   container.classList.toggle('open-sidebar', estado.sidebar);
   container.classList.toggle('show-code-only', estado.layout === 'code');
   container.classList.toggle('show-term-only', estado.layout === 'term');
-  document.body.classList.toggle('show-split', estado.layout === 'split');
+  document.body.classList.toggle('show-split', !embutido);
+  document.body.classList.toggle('embedded', embutido);
+  // Os botões do modo embutido são os mesmos do cplayground.
+  for (const seletor of ['#edit-btn', '#split-pane-btn', '#open-in-basicgol-btn']) {
+    const botao = $(seletor);
+    if (botao) botao.classList.toggle('oculto', !embutido);
+  }
+  const editar = $('#edit-btn');
+  if (editar) editar.classList.toggle('oculto', !embutido || estado.layout === 'code');
   try { localStorage.setItem(CHAVE_LAYOUT, estado.layout); } catch (e) { /* ok */ }
   setTimeout(() => {
     editor.resize();
@@ -193,7 +210,6 @@ async function executar() {
   if (estado.rodando) return;
   definirRodando(true);
   terminal.limpar();
-  terminal.limparRoteiro();
 
   const codigo = editor.getValue();
   salvarPrograma(codigo);
@@ -201,10 +217,12 @@ async function executar() {
 
   terminal.detalhe('compilando no navegador (clang → wasm-ld)…');
   const inicio = performance.now();
+  const preparado = prepararFonte(codigo);
   let resultado;
   try {
     resultado = await ferramentas.compilar({
-      codigo: prepararFonte(codigo),
+      codigo: preparado.fonte,
+      deslocamentoLinhas: preparado.deslocamento,
       flags: flagsSelecionadas(),
       otimizacao: $('#compiler-optimization').value,
       arquivos: estado.arquivos,
@@ -217,6 +235,9 @@ async function executar() {
   }
 
   if (!resultado.sucesso) {
+    for (const dica of dicasPara(codigo, resultado.registro)) {
+      terminal.detalhe(`dica: ${dica}`);
+    }
     terminal.erro('compilação falhou. Corrija o programa e tente de novo.');
     definirRodando(false);
     return;
@@ -247,9 +268,13 @@ async function executarWasm(wasm) {
       if (canal === 'erro') terminal.escreverCru(`\x1b[91m${texto.replace(/\n/g, '\r\n')}\x1b[0m`);
       else terminal.escreverCru(texto.replace(/\n/g, '\r\n'));
     },
-    ler: (quantidade) => (interativo
-      ? terminal.lerLinha()
-      : terminal.lerRoteiro(quantidade)),
+    ler: (quantidade) => {
+      // Primeiro o que já foi digitado (ou a entrada de teste do exemplo);
+      // só quando acaba é que a leitura passa a esperar o teclado.
+      const pronta = terminal.lerRoteiro(quantidade);
+      if (pronta.length || !interativo) return pronta;
+      return terminal.lerLinha();
+    },
   };
 
   const argumentos = ($('#runtime-args').value || '').trim().split(/\s+/).filter(Boolean);
@@ -260,16 +285,15 @@ async function executarWasm(wasm) {
   });
 
   if (interativo) {
-    // Embrulha cada import que pode devolver Promise no Suspending: é o que
-    // permite a instância ser suspensa e retomada na mesma instrução.
-    for (const chave of Object.keys(imports)) {
-      if (typeof imports[chave] !== 'function') continue;
-      const original = imports[chave];
-      imports[chave] = (...args) => {
-        const r = original(...args);
-        return (r && typeof r.then === 'function') ? new WebAssembly.Suspending(() => r) : r;
-      };
-    }
+    // `fd_read` é o único import que pode demorar (espera o Enter). Com JSPI
+    // ele é *envolto* num `WebAssembly.Suspending`: o import passa a devolver
+    // sempre uma Promise, e o navegador suspende a instância até ela resolver,
+    // retomando na mesma instrução. (Envolver o valor de retorno não funciona:
+    // quem precisa ser "suspending" é o import, não o resultado.)
+    const lerOriginal = imports.fd_read;
+    imports.fd_read = new WebAssembly.Suspending(
+      (...args) => Promise.resolve(lerOriginal(...args)),
+    );
   }
 
   let instancia;
@@ -320,6 +344,9 @@ async function executarWasm(wasm) {
     pendente(new Uint8Array(0));
   }
 
+  // O foco pode ter ido para o terminal durante uma leitura: devolve ao editor.
+  if (editor && typeof editor.focus === 'function') editor.focus();
+
   const ms = Math.round(performance.now() - inicio);
   terminal.escreverCru('\r\n');
   if (codigoSaida === 0) terminal.detalhe(`[o programa terminou em ${ms} ms]`);
@@ -329,50 +356,39 @@ async function executarWasm(wasm) {
 
 /* ---------------------------------------------------------------- exemplos */
 
+/**
+ * Preenche o seletor de exemplos com os programas de `docs/exemplos/`.
+ * Escolher um deles troca o código do editor e põe no roteiro a entrada de
+ * teste do exemplo (a mesma dos testes dourados).
+ */
 function montarExemplos() {
-  const painel = document.createElement('div');
-  painel.className = 'lista-exemplos oculto';
-  painel.id = 'lista-exemplos';
-  const lista = document.createElement('ul');
+  const seletor = $('#examples-select');
   for (const exemplo of EXEMPLOS) {
-    const item = document.createElement('li');
-    const botao = document.createElement('button');
-    botao.type = 'button';
-    botao.textContent = exemplo.titulo;
-    botao.title = exemplo.arquivo;
-    botao.addEventListener('click', () => {
-      carregarExemplo(exemplo);
-      painel.classList.add('oculto');
-      alternarExemplos(false);
-    });
-    item.appendChild(botao);
-    lista.appendChild(item);
+    const opcao = document.createElement('option');
+    opcao.value = exemplo.arquivo;
+    opcao.textContent = exemplo.titulo;
+    seletor.appendChild(opcao);
   }
-  painel.appendChild(lista);
-  document.body.appendChild(painel);
-}
-
-function alternarExemplos(forcar) {
-  const painel = $('#lista-exemplos');
-  const abrir = forcar === undefined ? painel.classList.contains('oculto') : forcar;
-  painel.classList.toggle('oculto', !abrir);
+  seletor.addEventListener('change', (evento) => {
+    const exemplo = EXEMPLOS.find((e) => e.arquivo === evento.target.value);
+    if (!exemplo) return;
+    carregarExemplo(exemplo);
+    evento.target.value = ''; // volta ao "Escolha um exemplo…"
+  });
 }
 
 function carregarExemplo(exemplo) {
   editor.setValue(exemplo.codigo, -1);
   editor.clearSelection();
   salvarPrograma(exemplo.codigo);
-  terminal.limpar();
   terminal.limparRoteiro();
-  // Os exemplos com entrada dourada já vêm com ela no roteiro: sem JSPI, é o
-  // que permite "pôr o programa para rodar" e ver a saída esperada.
+  terminal.limpar();
+  // A entrada de teste do exemplo (a mesma dos testes dourados) fica pronta no
+  // terminal: é o que permite apertar Run e ver a saída esperada, sem digitar.
+  if (exemplo.entrada) terminal.adicionarAoRoteiro(exemplo.entrada, { ecoar: false });
+  terminal.detalhe(`exemplo carregado: ${exemplo.titulo}`);
   if (exemplo.entrada) {
-    terminal.adicionarAoRoteiro(exemplo.entrada);
-    terminal.limpar();
-    terminal.detalhe(`exemplo carregado: ${exemplo.titulo}`);
-    terminal.detalhe('a entrada de teste deste exemplo já está no terminal.');
-  } else {
-    terminal.detalhe(`exemplo carregado: ${exemplo.titulo}`);
+    terminal.detalhe(`entrada de teste pronta: ${JSON.stringify(exemplo.entrada)}`);
   }
 }
 
@@ -471,30 +487,18 @@ async function iniciar() {
     terminal.erro(e.message);
   });
 
-  // --- topbar
+  // --- topbar (só os botões do cplayground: configurações e Run)
   $('#run-btn').addEventListener('click', () => executar());
-  $('#stop-btn').addEventListener('click', () => {
-    if (!estado.rodando) return;
-    terminal.erro('interrompido.');
-    // Recarregar a página é a única forma de matar o wasm em execução.
-    window.location.reload();
-  });
   $('#settings-btn').addEventListener('click', alternarSidebar);
-  $('#limpar-btn').addEventListener('click', () => {
-    terminal.limpar();
-    terminal.limparRoteiro();
-  });
-  $('#terminal-btn').addEventListener('click', () => {
-    definirLayout(estado.layout === 'term' ? 'split' : 'term');
+  // No modo embutido aparecem Edit / Split / Open in BASICGOL.
+  $('#edit-btn').addEventListener('click', () => definirLayout('code'));
+  $('#split-pane-btn').addEventListener('click', () => definirLayout('split'));
+  $('#open-in-basicgol-btn').addEventListener('click', () => {
+    const base = new URL('.', location.href);
+    base.searchParams.set('p', btoa(unescape(encodeURIComponent(editor.getValue()))));
+    window.open(base.toString(), '_blank', 'noopener');
   });
   montarExemplos();
-  $('#examples-btn').addEventListener('click', () => alternarExemplos());
-  document.addEventListener('click', (evento) => {
-    const painel = $('#lista-exemplos');
-    if (painel.classList.contains('oculto')) return;
-    if (painel.contains(evento.target) || evento.target.closest('#examples-btn')) return;
-    alternarExemplos(false);
-  });
 
   // --- sidebar
   $('#theme-select').addEventListener('change', (e) => aplicarTema(e.target.value));
@@ -517,15 +521,9 @@ async function iniciar() {
     }
     if (meta && evento.key === 'e') {
       evento.preventDefault();
-      alternarExemplos();
+      definirLayout(estado.layout === 'code' ? 'split' : 'code');
       return;
     }
-    if (meta && evento.key === '.') {
-      evento.preventDefault();
-      if (estado.rodando) window.location.reload();
-      return;
-    }
-    if (evento.key === 'Escape') alternarExemplos(false);
   });
 
   // Ajusta o editor/terminal quando a janela muda de tamanho.

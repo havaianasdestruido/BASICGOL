@@ -110,6 +110,48 @@ export async function lerZip(bytes) {
 
 /* ------------------------------------------------------------------------- */
 
+/**
+ * Dicas para os erros mais comuns de quem está aprendendo (a tabela de
+ * `docs/01-especificacao.md` §12.4 lista o que o clang diz para cada um).
+ * A mensagem do compilador continua sendo a principal: a dica só a traduz.
+ */
+const DICAS = [
+  {
+    quando: (codigo, log) => /expected ';' after expression/.test(log),
+    dica: 'faltou ponto e vírgula no fim do comando (o ^ mostra onde).',
+  },
+  {
+    quando: (codigo, log) => /expected declaration or statement at end of input/.test(log),
+    dica: 'sobrou um bloco aberto: todo SE/ENQUANTO/REPITA/INICIO precisa do seu FIM.',
+  },
+  {
+    quando: (codigo, log) => /^[ \t]*PARA\s+\w+\s+DE\b/m.test(codigo) && /BG_PARA|expected/.test(log),
+    dica: 'o laco com DE/ATE/FACA existe so no caminho M1. No modo macro: PARA (i, 1, 10) { ... }',
+  },
+  {
+    quando: (codigo) => /^[ \t]*SE\b[^{\n]*\{/m.test(codigo),
+    dica: 'SE já abre parêntese: escreva SE cond ENTAO (sem { e sem ;).',
+  },
+  {
+    quando: (codigo) => /^[ \t]*SENAO\s+SE\b/m.test(codigo),
+    dica: 'SENAO SE não encadeia: use SENAO_SE.',
+  },
+  {
+    quando: (codigo) => /^[ \t]*VETOR\s+(INTEIRO|REAL|TEXTO|CARACTERE|LOGICO)\b/m.test(codigo),
+    dica: 'VETOR é uma chamada: VETOR(INTEIRO, v, 10);',
+  },
+  {
+    quando: (codigo) => /MOD\s*=/.test(codigo),
+    dica: 'não existe MOD=: use x = x MOD 3;',
+  },
+];
+
+/** Dicas que se aplicam a este programa, dado o log do compilador. */
+export function dicasPara(codigo, log) {
+  const texto = String(codigo || '');
+  return DICAS.filter((d) => d.quando(texto, log)).map((d) => d.dica);
+}
+
 export class Ferramentas {
   constructor({ aoProgredir = () => {}, aoTraco = null } = {}) {
     this.aoProgredir = aoProgredir;
@@ -391,13 +433,30 @@ export class Ferramentas {
    * @param {(linha:string)=>void} [o.aoRegistrar] recebe o log do compilador
    * @returns {Promise<{sucesso:boolean, wasm?:Uint8Array, registro:string}>}
    */
-  async compilar({ codigo, flags = [], otimizacao = '-O2', arquivos = null, aoRegistrar = () => {} }) {
+  async compilar({
+    codigo, flags = [], otimizacao = '-O2', arquivos = null,
+    deslocamentoLinhas = 0, aoRegistrar = () => {},
+  }) {
     await this.carregar();
     const registro = [];
+    /**
+     * O programa vai para o compilador num arquivo `main.cc` com algumas linhas
+     * acrescentadas no topo (o `#include <basicgol.h>` que o playground põe
+     * sozinho). O log do clang cita `main.cc:<linha>`, então descontamos essas
+     * linhas para o número bater com o que está no editor.
+     */
+    const ajustarLinhas = (texto) => {
+      if (!deslocamentoLinhas || !texto) return texto;
+      return texto.replace(/main\.cc:(\d+)/g, (tudo, numero) => {
+        const original = Number(numero) - deslocamentoLinhas;
+        return original >= 1 ? `main.cc:${original}` : tudo;
+      });
+    };
     const registrar = (linha) => {
       if (!linha) return;
-      registro.push(linha);
-      aoRegistrar(linha);
+      const ajustada = ajustarLinhas(linha);
+      registro.push(ajustada);
+      aoRegistrar(ajustada);
     };
 
     const fontesBiblioteca = this._montarDisco(codigo, arquivos || this.arquivosUsuario);
@@ -489,13 +548,21 @@ export function prepararFonte(codigo) {
   const temInicio = /(^|\n)[ \t]*INICIO\b/.test(fonte);
   const temMain = /(^|\n)[ \t]*(int|void)[ \t]+main[ \t]*\(/.test(fonte);
 
-  const cabecalho = (extra) => `#include <basicgol.h>\n${extra || ''}`;
+  /** Monta o resultado com o número de linhas acrescentadas no topo. */
+  const resultado = (cabecalho, corpo) => {
+    const linhas = cabecalho.split('\n').length - 1;
+    return { fonte: cabecalho + corpo, deslocamento: linhas };
+  };
 
-  if (temMain) return temInclude ? fonte : cabecalho(fonte);
+  if (temMain) {
+    return temInclude
+      ? { fonte, deslocamento: 0 }
+      : resultado('#include <basicgol.h>\n', fonte);
+  }
 
   const corpo = fonte
     .replace(/^[ \t]*#[ \t]*include[ \t]*[<"]basicgol\.h[>"][ \t]*$/m, '')
     .replace(/^[ \t]*#[ \t]*include[ \t]*<stdio\.h>[ \t]*$/m, '');
-  if (temInicio) return cabecalho(`#include <stdio.h>\n${corpo}`);
-  return cabecalho(`#include <stdio.h>\nINICIO\n${corpo}\nFIM\n`);
+  if (temInicio) return resultado('#include <basicgol.h>\n#include <stdio.h>\n', corpo);
+  return resultado('#include <basicgol.h>\n#include <stdio.h>\nINICIO\n', `${corpo}\nFIM\n`);
 }

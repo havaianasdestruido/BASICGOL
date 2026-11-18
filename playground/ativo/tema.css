@@ -461,6 +461,13 @@ body,
   position: absolute;
 }
 
+/* O botão "Run": a face "Debug" do cplayground fica escondida no verso (o
+   depurador não existe aqui), e o giro horizontal do cartão é o do original. */
+#run-btn .main-text .active {
+  transform: rotateX(0deg);
+  position: relative;
+}
+
 #run-btn .run-icon .filled {
   position: absolute;
   top: 0;
@@ -524,6 +531,12 @@ body,
 #run-btn.disabled .run-icon .outline {
   opacity: 0;
   transform: scale(0.75, 0.75);
+}
+
+#open-in-basicgol-btn {
+  font-size: 0.8em;
+  float: right;
+  width: 160px;
 }
 
 /* --------------------------------------------------------------- sidebar */
@@ -667,43 +680,130 @@ input[type='text'].inline {
   border-radius: 5px;
 }
 
-/* ------------------------------------------------------- lista de exemplos */
+/* ------------------------------------------------------------------ editor */
+/* _editor.scss do cplayground: o tema é o TextMate, mas as cores vêm dos
+   tokens da paleta (e não do CSS do Ace, que é claro por padrão). */
 
-.lista-exemplos {
-  position: fixed;
-  top: var(--topbar-height);
+.ace-tm {
+  font-family: var(--code-font);
+  font-size: 12pt;
+  background-color: var(--background-color);
+  color: var(--foreground-color);
+}
+
+.ace-tm .ace_gutter {
+  background: var(--background-color);
+  color: var(--editor-gutter-color);
+}
+
+.ace-tm .ace_print-margin {
+  width: 0px;
+  background: #fff;
+}
+
+.ace-tm .ace_fold {
+  background-color: var(--accent-color);
+}
+
+.ace-tm .ace_cursor {
+  color: var(--editor-cursor-color);
+}
+
+.ace-tm .ace_entity.ace_name.ace_tag,
+.ace-tm .ace_keyword,
+.ace-tm .ace_meta.ace_tag,
+.ace-tm .ace_storage {
+  color: var(--editor-keyword-color);
+}
+
+.ace-tm .ace_constant.ace_character,
+.ace-tm .ace_constant.ace_language,
+.ace-tm .ace_constant.ace_numeric,
+.ace-tm .ace_constant.ace_other {
+  color: var(--editor-number-color);
+}
+
+.ace-tm .ace_support.ace_constant,
+.ace-tm .ace_support.ace_function {
+  color: var(--editor-function-color);
+}
+
+.ace-tm .ace_support.ace_type,
+.ace-tm .ace_support.ace_class {
+  font-style: italic;
+  color: var(--editor-class-color);
+}
+
+.ace-tm .ace_keyword.ace_operator {
+  color: inherit;
+}
+
+.ace-tm .ace_string {
+  color: var(--editor-string-color);
+}
+
+.ace-tm .ace_comment,
+.ace-tm .ace_comment.ace_doc,
+.ace-tm .ace_doc {
+  color: var(--editor-comment-color);
+}
+
+.ace-tm .ace_variable {
+  color: var(--editor-variable-color);
+}
+
+.ace-tm .ace_entity.ace_name.ace_function,
+.ace-tm .ace_entity.ace_other,
+.ace-tm .ace_entity.ace_other.ace_attribute-name {
+  color: var(--editor-attribute-color);
+}
+
+.ace-tm .ace_marker-layer .ace_selection {
+  background: var(--accent-color);
+}
+
+.ace-tm.ace_multiselect .ace_selection.ace_start {
+  box-shadow: 0 0 3px 0px white;
+}
+
+.ace-tm .ace_marker-layer .ace_step {
+  background: rgb(33, 0, 102);
+}
+
+.ace-tm .ace_marker-layer .ace_bracket {
+  margin: -1px 0px 0px -1px;
+  border: 1px solid var(--editor-bracket-border-color, var(--bright-white));
+}
+
+.ace-tm .ace_marker-layer .ace_active-line,
+.ace-tm .ace_gutter-active-line {
+  background: rgba(0, 0, 0, 0.07);
+}
+
+.ace-tm .ace_marker-layer .ace_selected-word {
+  background: none;
+  border: 1px solid var(--editor-selected-word-border-color, var(--subtle-text-color));
+  border-radius: 2px;
+}
+
+.ace-tm .ace_indent-guide {
+  background: none;
+}
+
+/* Dentro do painel, o editor obedece ao padding de 15px do container. */
+.code-container #editor {
+  position: absolute;
+  top: var(--pane-padding);
+  right: var(--pane-padding);
+  bottom: var(--pane-padding);
+  left: var(--pane-padding);
+}
+
+.show-code-only .code-container #editor {
+  top: 0;
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 320px;
-  max-height: calc(100% - var(--topbar-height));
-  overflow-y: auto;
-  background: var(--topbar-bg-color);
-  border-right: 1px solid var(--topbar-border-color);
-  border-bottom: 1px solid var(--topbar-border-color);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-  z-index: 10;
-}
-
-.lista-exemplos ul {
-  margin: 0;
-  padding: 8px 0;
-  list-style: none;
-}
-
-.lista-exemplos button {
-  display: block;
-  width: 100%;
-  padding: 8px 15px;
-  border: none;
-  background: transparent;
-  color: var(--topbar-font-color);
-  font-family: inherit;
-  font-size: 0.85rem;
-  text-align: left;
-  cursor: pointer;
-}
-
-.lista-exemplos button:hover {
-  background-color: var(--topbar-border-color);
 }
 
 /* ---------------------------------------------------------------- terminal */

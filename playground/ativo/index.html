@@ -37,30 +37,25 @@
           </div>
           <div class="shortcut">shift+enter</div>
         </div>
-        <div role="button" class="btn has-shortcut" id="stop-btn" tabindex="0" aria-label="Parar">
+        <!-- Modo embutido (código ou terminal em tela cheia), espelhando o
+             cplayground: Edit, Split e Open in CPlayground. -->
+        <div role="button" class="btn has-shortcut oculto" id="edit-btn" tabindex="0" aria-label="Ver o código">
           <div class="main-text">
-            <div class="icon"><i class="icone" data-icone="stop"></i></div>
-            Stop
-          </div>
-          <div class="shortcut">cmd+.</div>
-        </div>
-        <div role="button" class="btn has-shortcut" id="examples-btn" tabindex="0" aria-label="Exemplos">
-          <div class="main-text">
-            <div class="icon"><i class="icone" data-icone="file-code"></i></div>
-            Exemplos
+            <div class="icon"><i class="icone" data-icone="code"></i></div>
+            Edit
           </div>
           <div class="shortcut">cmd+e</div>
         </div>
-        <div role="button" class="btn" id="limpar-btn" tabindex="0" aria-label="Limpar terminal">
+        <div role="button" class="btn oculto" id="split-pane-btn" tabindex="0" aria-label="Dividir a tela">
           <div class="main-text">
-            <div class="icon"><i class="icone" data-icone="trash-alt"></i></div>
-            Limpar
+            <div class="icon"><i class="icone" data-icone="columns"></i></div>
+            Split
           </div>
         </div>
-        <div role="button" class="btn" id="terminal-btn" tabindex="0" aria-label="Ver só o terminal">
+        <div role="button" class="btn oculto" id="open-in-basicgol-btn" tabindex="0" aria-label="Abrir no BASICGOL">
           <div class="main-text">
-            <div class="icon"><i class="icone" data-icone="terminal"></i></div>
-            Terminal
+            <div class="icon"><i class="icone" data-icone="external-link-alt"></i></div>
+            Open in BASICGOL
           </div>
         </div>
       </div>
@@ -74,8 +69,8 @@
 
           <h3>Compilador</h3>
           <select id="compiler-select" aria-label="Compilador">
-            <option value="clang">clang (WebAssembly)</option>
-            <option value="clang-wall">clang + avisos (WebAssembly)</option>
+            <option value="clang">clang</option>
+            <option value="clang-wall">clang + avisos</option>
           </select>
 
           <h3>Flags do compilador</h3>
@@ -91,30 +86,30 @@
 
             <label for="cflag--Wall">
               <input id="cflag--Wall" type="checkbox" value="-Wall" checked />
-              -Wall (avisos recomendados)
+              -Wall
             </label><br />
             <label for="cflag--Wextra">
               <input id="cflag--Wextra" type="checkbox" value="-Wextra" />
-              -Wextra (avisos extras)
+              -Wextra
             </label><br />
             <label for="cflag--Werror">
               <input id="cflag--Werror" type="checkbox" value="-Werror" />
-              -Werror (aviso vira erro)
+              -Werror
             </label><br />
             <label for="cflag--pedantic">
               <input id="cflag--pedantic" type="checkbox" value="-pedantic" />
-              -pedantic (C estrito)
+              -pedantic
             </label><br />
 
             <div class="flag-spacer"></div>
 
             <label for="lflag--lm">
               <input id="lflag--lm" type="checkbox" value="-lm" checked />
-              -lm (matemática)
+              -lm
             </label><br />
             <label for="lflag--lcanvas">
               <input id="lflag--lcanvas" type="checkbox" value="-lcanvas" disabled />
-              -lcanvas (gráficos — não disponível)
+              -lcanvas (gráficos, indisponível)
             </label><br />
           </div>
 
@@ -124,9 +119,8 @@
           <h3>Arquivos de apoio</h3>
           <p>
             <small>
-              Envie um <code>.zip</code> com arquivos usados pelo programa
-              (<code>#include "meu.h"</code>). Ele é descompactado no mesmo diretório
-              do código-fonte — tudo dentro do navegador.
+              Você pode enviar um arquivo .zip com arquivos que queira usar no
+              programa. Ele é descompactado no mesmo diretório do código-fonte.
             </small>
           </p>
           <p id="upload-spinner" class="oculto"><span class="small-loading-spinner"></span></p>
@@ -134,6 +128,13 @@
           <p id="uploaded-filename"></p>
           <i class="icone" id="btn-remove-uploaded-file" data-icone="times" role="button" tabindex="0" aria-label="Remover arquivo enviado"></i>
           <input id="input-include-file" type="file" accept=".zip,application/zip" aria-label="Enviar arquivo .zip" />
+
+          <!-- Extras do playground (o cplayground não tem exemplos prontos
+               nem temas trocáveis na página: o tema é uma URL). -->
+          <h3>Exemplos</h3>
+          <select id="examples-select" aria-label="Exemplos">
+            <option value="">Escolha um exemplo…</option>
+          </select>
 
           <h3>Tema</h3>
           <select id="theme-select" aria-label="Tema">
@@ -143,16 +144,15 @@
           </select>
 
           <h3>Ferramentas</h3>
-          <p id="toolchain-status"><small>Baixando e preparando as ferramentas…</small></p>
+          <p id="toolchain-status"><small>Baixando as ferramentas…</small></p>
           <p><small id="toolchain-detalhe"></small></p>
 
           <div class="sidebar-footer-spacer"></div>
           <div class="sidebar-footer">
-            BASICGOL 1.1 · compila no seu navegador<br />
-            com
+            BASICGOL 1.1 — compila no seu navegador com
             <a href="https://emscripten.org/" target="_blank" rel="noopener">Emscripten</a>
             e WebAssembly.<br />
-            <a href="https://github.com/havaianasdestruido/BASICGOL" target="_blank" rel="noopener">Código no GitHub</a>
+            Código no <a href="https://github.com/havaianasdestruido/BASICGOL" target="_blank" rel="noopener">GitHub</a>.
           </div>
         </div>
 

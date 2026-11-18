@@ -67,16 +67,6 @@ static void acrescentar(struct saida *s, const char *texto, size_t n)
     s->dados[s->usado] = '\0';
 }
 
-/** Formata **uma** conversão, com o argumento já do tipo certo. */
-static int formatar_um(char *destino, size_t tamanho, const char *especificacao, ...)
-{
-    va_list argumentos;
-    va_start(argumentos, especificacao);
-    int resultado = vsnprintf(destino, tamanho, especificacao, argumentos);
-    va_end(argumentos);
-    return resultado;
-}
-
 /** Escreve uma conversão no buffer de saída (crescendo se precisar). */
 static void acrescentar_convertido(struct saida *s, const char *especificacao, ...)
 {

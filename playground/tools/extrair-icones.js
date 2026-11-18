@@ -37,6 +37,8 @@ const ICONES = [
   'spinner',
   'lightbulb',
   'code',
+  'columns',
+  'pencil-alt',
   'keyboard',
   'download',
   'external-link-alt',
