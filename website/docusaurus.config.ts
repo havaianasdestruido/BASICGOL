@@ -1,5 +1,6 @@
 import {copyFile} from 'node:fs/promises';
 import path from 'node:path';
+const publishPlayground = require('../playground/tools/publicar.cjs');
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
@@ -16,6 +17,7 @@ const config: Config = {
         name: 'publish-llms-txt',
         async postBuild({outDir}) {
           await copyFile(path.resolve(context.siteDir, '../llms.txt'), path.join(outDir, 'llms.txt'));
+          await publishPlayground(outDir, context.baseUrl);
         },
       };
     },
@@ -69,6 +71,7 @@ const config: Config = {
       logo: {alt: 'BASICGOL', src: 'img/logo.svg'},
       items: [
         {to: '/guias/comecar', label: 'Começar', position: 'left'},
+        {href: 'pathname:///playground/', label: 'Playground', position: 'left'},
         {to: '/referencia/', label: 'Referência', position: 'left'},
         {to: '/testes/', label: 'Testes', position: 'left'},
         {to: '/internos/', label: 'Internos', position: 'left'},
@@ -80,6 +83,7 @@ const config: Config = {
       style: 'dark',
       links: [
         {title: 'Documentação', items: [
+          {label: 'Playground online', href: 'pathname:///playground/'},
           {label: 'Primeiros passos', to: '/guias/comecar'},
           {label: 'Referência viva', to: '/referencia/'},
           {label: 'Testes', to: '/testes/'},
