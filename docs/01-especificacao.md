@@ -1249,8 +1249,8 @@ mantém a especificação curta e o mapeamento 1:1.
 
 ## 18. Exemplos
 
-Programas completos em [`docs/exemplos/`](exemplos/) (13 programas no perfil M0 e 1 no perfil M1; saídas
-verificadas em [`exemplos/README.md`](exemplos/README.md)):
+Programas completos em [`docs/exemplos/`](exemplos/) — 24 programas, a maioria no perfil M0 e um
+no perfil M1 — com as saídas verificadas em [`exemplos/README.md`](exemplos/README.md):
 
 | Arquivo | Demonstra |
 |---|---|

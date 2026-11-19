@@ -82,6 +82,21 @@ class GeradorTest(unittest.TestCase):
         self.assertIn("&#123;x&#125;", escaped)
         self.assertIn("`SE x { y; }`", escaped)
 
+    def test_readme_centralizado_sobrevive_ao_escape(self) -> None:
+        """Logo e chamada centralizadas do README viram HTML do MDX, com URL do commit."""
+        import json
+        contracts = json.loads((ROOT / "tools/documentacao/contratos.json").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as tmp:
+            renderer = Renderer(self.inv, contracts, "https://github.com/havaianasdestruido/BASICGOL", "test-commit")
+            renderer.write(Path(tmp) / "docs")
+            page = (Path(tmp) / "docs" / "projeto" / "visao-geral.mdx").read_text(encoding="utf-8")
+        self.assertIn('<h1 align="center"><img src="https://github.com/havaianasdestruido/BASICGOL/raw/'
+                      'test-commit/docs/logo.png" alt="BASICGOL" width="120" /><br />BASICGOL</h1>', page)
+        self.assertIn('<p align="center">A legibilidade do BASIC e do Portugol, '
+                      'com a portabilidade de C11.</p>', page)
+        self.assertNotIn("&lt;h1", page)
+        self.assertNotIn("<img src=\"docs/logo.png\"", page)
+
     def test_saida_deterministica_e_check(self) -> None:
         """Dois builds dos mesmos insumos têm hashes iguais; --check detecta drift."""
         import json
