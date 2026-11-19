@@ -1412,7 +1412,7 @@ class Renderer:
         return "".join(out)
 
     def import_markdown(self, source_path: Path, target: str, title: str | None = None,
-                        document_key: str | None = None) -> None:
+                        document_key: str | None = None, alignment: bool = False) -> None:
         """Importa documento original ajustando título, links e sintaxe MDX."""
         text = source_path.read_text(encoding="utf-8")
         match = re.match(r"#\s+(.+)\n", text)
@@ -1420,34 +1420,95 @@ class Renderer:
         if match:
             text = text[match.end():].lstrip()
         text = self.rewrite_links(text, source_path.parent)
+        preserved: list[str] = []
+        if alignment:
+            text = self.centered_alignment(text, preserved, source_path.parent)
         text = self.escape_mdx(text)
+        for index, html in enumerate(preserved):
+            text = text.replace(f"@@BG-CENTRO-{index}@@", html)
         position = int(match.group(1)) if (match := re.match(r"(\d+)-", source_path.stem)) else None
         text += self.document_extra(document_key or source_path.stem, text)
-        self.page(target, title or heading, text, description=heading, position=position)
+        # Sem `# Título` na fonte (o README abre com a logo centralizada), a descrição
+        # sai do primeiro parágrafo de prosa, não do nome do arquivo.
+        summary = None
+        if not match:
+            summary = next((line.strip() for line in text.splitlines()
+                            if line.strip() and not line.lstrip().startswith(("<", "```", "|", ">", "@@BG-CENTRO"))),
+                           None)
+        self.page(target, title or heading, text, description=heading if match else summary,
+                  position=position)
 
-    def rewrite_links(self, text: str, base: Path) -> str:
-        """Reescreve links relativos para páginas importadas ou permalinks GitHub."""
+    def centered_alignment(self, text: str, preserved: list[str], target_dir: Path) -> str:
+        """Converte a centralização do README em HTML aceito pelo MDX.
+
+        Markdown puro não centraliza, então o README abre com `<h1 align="center">` e
+        `<p align="center">` (ou com o mesmo HTML dentro de um bloco `html`, que o
+        GitHub mostra como texto). Aqui esse HTML é reservado fora do escape de
+        `escape_mdx` — que existe para não deixar `<basicgol.h>` e `{ }` da prosa
+        virarem MDX —, as linhas do parágrafo são reunidas numa só, os elementos
+        vazios são auto-fechados e as URLs relativas apontam para o commit.
+        """
+        def keep(html: str) -> str:
+            """Guarda um bloco de HTML bruto e devolve o marcador que o preserva.
+
+            Elementos vazios viram auto-fechados (`<img ... />`): no MDX eles são
+            JSX de verdade, e um `<img>` sem fechamento derruba o build.
+            """
+            html = re.sub(r'(?s)(src|href)="(?!https?:|#|/)([^"]+)"', replace_attr, html)
+            html = re.sub(r"<(br|hr|img|source|wbr)(\s[^<>]*?)?\s*/?>",
+                          lambda m: f"<{m.group(1)}{(m.group(2) or '').rstrip()} />", html)
+            preserved.append(html)
+            return f"@@BG-CENTRO-{len(preserved) - 1}@@\n"
+
+        def replace_attr(match: re.Match) -> str:
+            """Reescreve `src`/`href` relativo como `rewrite_links` faria no Markdown."""
+            attribute, dest = match.group(1), match.group(2)
+            if attribute == "src":
+                try:
+                    relative = (target_dir / dest).resolve().relative_to(self.inv.root).as_posix()
+                except ValueError:
+                    return match.group(0)
+                return f'{attribute}="{self.repo_url}/raw/{self.commit}/{relative}"'
+            rewritten = self.source_link(dest, target_dir)
+            return f'{attribute}="{rewritten or dest}"'
+
+        def paragraph(match: re.Match) -> str:
+            """Reúne as linhas de um parágrafo centralizado num único <p align="center">."""
+            inner = " ".join(line.strip() for line in match.group(1).splitlines() if line.strip())
+            return keep(f'<p align="center">{inner}</p>') if inner else keep('<p align="center"></p>')
+
+        text = re.sub(r'(?ms)^```html\n(<p align="center">.*?</p>\n)```[ \t]*$', r"\1", text)
+        text = re.sub(r'(?ms)^<p align="center">[ \t]*\n(.*?)^</p>[ \t]*$', paragraph, text)
+        return re.sub(r'^(<h[1-6] align="center">.*?</h[1-6]>)[ \t]*$', lambda m: keep(m.group(1)), text, flags=re.M)
+
+    def source_link(self, dest: str, base: Path) -> str | None:
+        """Resolve um destino relativo para a página importada ou o permalink GitHub."""
+        if re.match(r"[a-z]+:|#|/", dest) or not dest:
+            return None
+        split = dest.split("#", 1)
+        path = (base / split[0]).resolve()
+        anchor = "#" + split[1] if len(split) > 1 else ""
         mapping = {}
-        for path in (self.inv.root / "docs").glob("*.md"):
-            mapping[path.resolve()] = "/projeto/" + path.stem
+        for doc in (self.inv.root / "docs").glob("*.md"):
+            mapping[doc.resolve()] = "/projeto/" + doc.stem
         mapping[(self.inv.root / "README.md").resolve()] = "/projeto/visao-geral"
         mapping[(self.inv.root / "tests" / "COBERTURA.md").resolve()] = "/testes/cobertura-versionada"
         mapping[(self.inv.root / "tests" / "README.md").resolve()] = "/testes/leiame-original"
+        if path in mapping:
+            return mapping[path] + anchor
+        try:
+            relative = path.relative_to(self.inv.root).as_posix()
+            return self.gh(relative) + anchor
+        except ValueError:
+            return None
+
+    def rewrite_links(self, text: str, base: Path) -> str:
+        """Reescreve links Markdown relativos para páginas importadas ou permalinks GitHub."""
         def replace(match: re.Match) -> str:
             """Resolve um link Markdown individual contra o mapa de documentos/fontes."""
             label, dest = match.group(1), match.group(2)
-            if re.match(r"[a-z]+:|#|/", dest):
-                return match.group(0)
-            split = dest.split("#", 1)
-            path = (base / split[0]).resolve()
-            anchor = "#" + split[1] if len(split) > 1 else ""
-            if path in mapping:
-                return f"[{label}]({mapping[path]}{anchor})"
-            try:
-                relative = path.relative_to(self.inv.root).as_posix()
-                return f"[{label}]({self.gh(relative)}{anchor})"
-            except ValueError:
-                return match.group(0)
+            rewritten = self.source_link(dest, base)
+            return f"[{label}]({rewritten})" if rewritten else match.group(0)
         return re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", replace, text)
 
     def escape_mdx(self, text: str) -> str:
@@ -1484,7 +1545,7 @@ class Renderer:
             label = title.group(1) if title else path.stem
             body.append(f"- [{label}](/{target})\n")
         self.import_markdown(self.inv.root / "README.md", "projeto/visao-geral", title="Visão geral · README",
-                             document_key="visao-geral")
+                             document_key="visao-geral", alignment=True)
         body.append("- [Visão geral · README](/projeto/visao-geral)\n")
         body.append(self.faq(
             "Perguntas frequentes sobre os documentos normativos e históricos do projeto.",

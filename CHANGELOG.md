@@ -16,6 +16,16 @@
 - `playground/README.md` e `playground/ATRIBUICOES.md` (licenças de wasm-clang/
   LLVM, wasi-libc, Ace, xterm.js, Font Awesome, Montserrat e Ubuntu Mono).
 
+### Changed
+- `README.md`: enxugado para o essencial (logo centralizada, início rápido, os dois
+  caminhos M0/M1, estado de compatibilidade, estrutura do repositório, documentação,
+  testes e as limitações do dia a dia). Relatórios de fase, detalhes por compilador e
+  instruções de MSVC/MinGW continuam nos documentos de `docs/`.
+- `docs/logo.png` (e `website/static/img/logo.png`, mesma arte) para a logo do README.
+- Gerador do site: o bloco centralizado do README (`<h1 align="center">`, `<p
+  align="center">`) deixa de ser escapado, tem as linhas reunidas e as URLs relativas
+  resolvidas para o commit; imagens públicas e externas viram links crus.
+
 ### Fixed
 - `playground/tools/shim.c`: `long double` (`BG_REAL_LONGO`) e `%zu` no `printf`
   da wasi-libc de 2019. As funções `v*` não são substituídas (recursão).

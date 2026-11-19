@@ -182,7 +182,7 @@ nos três conversores (`inteiro`, `natural`, `real`).
 
 Foi **correção**, não supressão: as opções "ligar `-Wno-cast-qual`" e "adicionar
 `-Wno-cast-qual` só neste arquivo" foram descartadas por contrariarem a regra do
-projeto (§2 do [README](../README.md)).
+projeto (§2 de [04 — Restrições e decisões](04-restricoes-e-decisoes.md)).
 
 ---
 
