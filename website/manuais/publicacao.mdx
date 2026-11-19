@@ -74,6 +74,7 @@ site: compara a saída determinística com os artefatos locais. O build de produ
 
 ```bash
 cd website
+npm run playground:prepare
 npm run build
 npm run serve
 ```
@@ -281,3 +282,16 @@ hashes, e é isso que `--check` compara.
 python3 -m pip install -r tools/documentacao/requirements.txt
 cd website && npm ci && npm run build
 ```
+
+## Playground no GitHub Pages
+
+O menu **Playground** abre `/BASICGOL/playground/`. O build copia a interface,
+as dependências locais, as atribuições e o pacote do compilador para o mesmo
+artifact do site. Não há backend nem CDN em tempo de execução.
+
+Antes do primeiro build local, rode `npm run playground:prepare` em `website/`
+(requer `sh`, `curl`, `tar` e acesso ao GitHub). Repita após alterar a biblioteca
+ou os cabeçalhos. O workflow faz isso automaticamente antes de publicar em
+pushes para `main`; pull requests validam o build sem publicar.
+O comando `npm start` é apenas para a documentação; para testar o playground
+integrado, use `npm run build` e `npm run serve`.

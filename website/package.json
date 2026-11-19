@@ -4,6 +4,7 @@
   "private": true,
   "description": "Documentação viva do BASICGOL, gerada a partir do código e dos testes.",
   "scripts": {
+    "playground:prepare": "sh ../playground/tools/baixar-toolchain.sh && node ../playground/tools/empacotar-toolchain.js",
     "generate": "python3 ../tools/gerar_documentacao.py",
     "docs:check": "python3 ../tools/gerar_documentacao.py --check",
     "start": "python3 ../tools/gerar_documentacao.py && docusaurus start --host 0.0.0.0 --port 3000",

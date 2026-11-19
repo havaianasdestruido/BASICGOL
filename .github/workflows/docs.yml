@@ -1,11 +1,10 @@
 name: Documentação
 
 # Gera a referência a partir do código em todos os PRs e publica pushes.
-# O ramo da entrega está incluído para permitir a primeira publicação via Pages;
-# depois do merge, main continua publicando automaticamente.
+# O site e o playground são publicados juntos em pushes para main.
 on:
   push:
-    branches: [main, arena/37183924-basicgol]
+    branches: [main]
     paths:
       - 'include/**'
       - 'src/**'
@@ -13,6 +12,7 @@ on:
       - 'tests/**'
       - 'docs/**'
       - 'website/**'
+      - 'playground/**'
       - 'README.md'
       - 'llms.txt'
       - 'Makefile'
@@ -25,6 +25,7 @@ on:
       - 'tests/**'
       - 'docs/**'
       - 'website/**'
+      - 'playground/**'
       - 'README.md'
       - 'llms.txt'
       - 'Makefile'
@@ -83,12 +84,19 @@ jobs:
         working-directory: website
         run: npm run typecheck
 
+      - name: Preparar compilador do playground
+        working-directory: website
+        run: npm run playground:prepare
+
       - name: Build Docusaurus
         working-directory: website
         env:
           DOCS_URL: ${{ vars.DOCS_URL || 'https://havaianasdestruido.github.io' }}
           DOCS_BASE_URL: ${{ vars.DOCS_BASE_URL || format('/{0}/', github.event.repository.name) }}
         run: npm run build:only
+
+      - name: Verificar publicação do playground
+        run: node playground/tools/verificar-publicacao.cjs
 
       - name: Verificar publicação do llms.txt
         env:
