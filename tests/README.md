@@ -15,13 +15,17 @@ python3 tests/auditar_exemplos.py --cc gcc --flag=-std=c11 --basicgolc build/bas
 
 A suíte de linguagem usa `bash`, um compilador C11, `build/basicgolc` e
 `build/libbasicgol.a` (construídos por `make`). Os testes unitários da biblioteca
-são `tests/test_biblioteca.c`, executados por `tests/run_biblioteca.sh`. O conjunto
-completo também precisa de `ar`, `mktemp`, `diff` e Python 3 para a cobertura. Os
-runners criam diretórios temporários e os apagam ao terminar.
+são `tests/test_biblioteca.c`, executados por `tests/run_biblioteca.sh`. A workspace
+falsa (módulo opt-in `BG_USAR_WORKSPACE`) tem suíte própria: `tests/test_workspace.c`
+e `tests/run_workspace.sh`, que também compilam `tests/workspace_desligado.c` sem o
+macro para provar que o cabeçalho não declara API por padrão. O conjunto completo
+também precisa de `ar`, `mktemp`, `diff` e Python 3 para a cobertura. Os runners
+criam diretórios temporários e os apagam ao terminar.
 
 ```sh
 make test-biblioteca  # somente biblioteca modular
-make test             # linguagem M0/M1 + biblioteca
+make test-workspace   # workspace falsa (BG_USAR_WORKSPACE), 130 checks
+make test             # linguagem M0/M1 + biblioteca + workspace
 ```
 
 ## A ideia central: um caso, dois caminhos

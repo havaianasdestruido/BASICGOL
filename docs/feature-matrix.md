@@ -11,7 +11,8 @@
 | Estruturas | `VETOR`, `REGISTRO`, `ENUMERACAO`, funções, recursão | Disponível |
 | E/S | `ESCREVA*`, `LEIA*`, `ERRO`, `AFIRME` | Disponível |
 | Multi-arquivo | `EXTERNO`/`ESTATICO`, módulos, C puro junto de BG | Disponível |
-| Biblioteca padrão | caracteres, console, matemática, texto, utilidades | Disponível |
+| Biblioteca padrão | caracteres, console, matemática, texto, utilidades, sistema de arquivos | Disponível |
+| Workspace falsa | Disco simulado em memória, com persistência em arquivo e envio/download (opt-in: `BG_USAR_WORKSPACE`) | Opcional |
 | Interop C | Qualquer código C pode ser chamado/definido | Disponível |
 | IDE/syntax highlighting | Opcional, não incluído por padrão | Opcional |
 

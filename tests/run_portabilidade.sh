@@ -246,7 +246,8 @@ for i in "${!COMPILADORES[@]}"; do
 
     # cada cabeçalho público sozinho (autocontido)
     for h in basicgol.h basicgol/biblioteca.h basicgol/consola.h basicgol/texto.h \
-             basicgol/matematica.h basicgol/caractere.h basicgol/utilidades.h; do
+             basicgol/matematica.h basicgol/caractere.h basicgol/utilidades.h \
+             basicgol/filesystem.h basicgol/workspace.h; do
         printf '#include <%s>\nint main(void){return 0;}\n' "$h" > "$TMP/so.c"
         if tenta "$cc" -std=c11 $FLAGS_ESTRITAS -I "$INCLUDE" -o "$TMP/so" "$TMP/so.c" -lm; then
             ok "[$i] cabeçalho autocontido: <$h>"
@@ -349,7 +350,7 @@ for i in "${!COMPILADORES[@]}"; do
     cc="${cc#|}"
     CTAG="c${i}"
 
-    for fonte in "$RAIZ"/src/biblioteca/*.c "$RAIZ/tools/basicgolc.c"; do
+    for fonte in "$RAIZ"/src/biblioteca/*.c "$RAIZ"/src/workspace/*.c "$RAIZ/tools/basicgolc.c"; do
         base=$(basename "$fonte")
         if tenta "$cc" $AVISOS_PROJETO -I "$INCLUDE" -c -o "$TMP/aviso.o" "$fonte"; then
             ok "[$i] $base sem avisos no conjunto adotado"
@@ -401,7 +402,7 @@ for i in "${!COMPILADORES[@]}"; do
 
     # biblioteca + programas sob sanitizer
     if ! tenta "$cc" -std=c11 $SAN_FLAGS -I "$INCLUDE" -o "$TMP/fronteira.san" \
-             "$PORT/fronteira.c" "$RAIZ"/src/biblioteca/*.c -lm; then
+             "$PORT/fronteira.c" "$RAIZ"/src/biblioteca/*.c "$RAIZ"/src/workspace/*.c -lm; then
         falhou "[$i] compilar fronteira.c com sanitizers" "$(head -3 "$TMP/e" | tr '\n' ' ')"
     else
         if ASAN_OPTIONS=detect_leaks=1 "$TMP/fronteira.san" > "$TMP/san.out" 2> "$TMP/san.err"; then
@@ -413,7 +414,7 @@ for i in "${!COMPILADORES[@]}"; do
 
     for prog in precedencia controle entrada; do
         if ! tenta "$cc" -std=c11 $SAN_FLAGS -I "$INCLUDE" -o "$TMP/$prog.san" \
-                 "$PORT/$prog.c" "$RAIZ"/src/biblioteca/*.c -lm; then
+                 "$PORT/$prog.c" "$RAIZ"/src/biblioteca/*.c "$RAIZ"/src/workspace/*.c -lm; then
             falhou "[$i] compilar $prog.c com sanitizers" "$(head -3 "$TMP/e" | tr '\n' ' ')"
             continue
         fi
@@ -490,14 +491,14 @@ else
 
     # i386 (ILP32): compila E executa (estático, musl) — long/tamanho de 32 bits
     if tenta "$ZIG_BIN" cc -target x86-linux-musl -std=c11 $FLAGS_ESTRITAS -I "$INCLUDE" \
-             -o "$TMP/fronteira32" "$PORT_F" "$RAIZ"/src/biblioteca/*.c -lm \
+             -o "$TMP/fronteira32" "$PORT_F" "$RAIZ"/src/biblioteca/*.c "$RAIZ"/src/workspace/*.c -lm \
        && "$TMP/fronteira32" > "$TMP/f32.out" 2>&1; then
         ok "i386 (x86-linux-musl): fronteira.c compila e passa ($(cat "$TMP/f32.out"))"
     else
         falhou "i386 (x86-linux-musl)" "$(head -4 "$TMP/e" | tr '\n' ' ')"
     fi
     if ! tenta "$ZIG_BIN" cc -target x86-linux-musl -std=c11 $FLAGS_ESTRITAS -I "$INCLUDE" \
-               -o "$TMP/prec32" "$PORT_C" "$RAIZ"/src/biblioteca/*.c -lm; then
+               -o "$TMP/prec32" "$PORT_C" "$RAIZ"/src/biblioteca/*.c "$RAIZ"/src/workspace/*.c -lm; then
         falhou "i386: compilar precedencia.c" "$(head -4 "$TMP/e" | tr '\n' ' ')"
     elif "$TMP/prec32" > "$TMP/p32.out" 2>&1; then
         ok "i386: precedencia.c compila e passa"
@@ -506,7 +507,7 @@ else
     fi
 
     # aarch64 (LP64, char não assinado em AArch64 Linux): compila
-    for fonte in "$PORT_F" "$RAIZ"/src/biblioteca/*.c; do
+    for fonte in "$PORT_F" "$RAIZ"/src/biblioteca/*.c "$RAIZ"/src/workspace/*.c; do
         if ! tenta "$ZIG_BIN" cc -target aarch64-linux-gnu -std=c11 $FLAGS_ESTRITAS \
                  -I "$INCLUDE" -c -o "$TMP/a64.o" "$fonte"; then
             falhou "aarch64: compilar $(basename "$fonte")" "$(head -3 "$TMP/e" | tr '\n' ' ')"
@@ -517,13 +518,13 @@ else
 
     # x86_64-windows-gnu (MinGW-w64): compila E liga .exe (sem execução)
     if tenta "$ZIG_BIN" cc -target x86_64-windows-gnu -std=c11 $FLAGS_ESTRITAS -I "$INCLUDE" \
-             -o "$TMP/fronteira.exe" "$PORT_F" "$RAIZ"/src/biblioteca/*.c; then
+             -o "$TMP/fronteira.exe" "$PORT_F" "$RAIZ"/src/biblioteca/*.c "$RAIZ"/src/workspace/*.c; then
         ok "x86_64-windows-gnu (MinGW-w64): fronteira.exe compila e liga (sem execução)"
     else
         falhou "x86_64-windows-gnu" "$(head -4 "$TMP/e" | tr '\n' ' ')"
     fi
     if tenta "$ZIG_BIN" cc -target x86_64-windows-gnu -std=c11 $FLAGS_ESTRITAS -I "$INCLUDE" \
-             -o "$TMP/ola.exe" "$RAIZ/docs/exemplos/ola_mundo.c" "$RAIZ"/src/biblioteca/*.c; then
+             -o "$TMP/ola.exe" "$RAIZ/docs/exemplos/ola_mundo.c" "$RAIZ"/src/biblioteca/*.c "$RAIZ"/src/workspace/*.c; then
         ok "x86_64-windows-gnu: exemplo ola_mundo.exe compila e liga"
     else
         falhou "x86_64-windows-gnu: exemplo" "$(head -4 "$TMP/e" | tr '\n' ' ')"

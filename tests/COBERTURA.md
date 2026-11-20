@@ -115,7 +115,7 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | `POTENCIA` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/test_biblioteca.c`, `tests/portabilidade/fronteira.c`, `tests/portabilidade/precedencia.c` |
 | `PROCEDIMENTO` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h`, `tests/casos/03_controle/c03_senao_se/programa.c`, `tests/casos/07_multiarquivo/m01_modulos/comum.h` (+10) |
 | `PROSSIGA` | `tests/casos/08_aplicacao/app_acervo/principal.c`, `tests/casos/08_aplicacao/app_acervo/relatorio.c`, `tests/casos/03_controle/c30_repita_prossiga/programa.c`, `tests/casos/03_controle/c35_escolha_no_laco/programa.c` (+7) |
-| `RAIZ` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/run.sh`, `tests/run_msvc.sh`, `tests/run_matriz.sh` (+4) |
+| `RAIZ` | `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/run.sh`, `tests/run_msvc.sh`, `tests/run_matriz.sh` (+5) |
 | `REAL` | `tests/casos/02_basico/b03_real/programa.c`, `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/08_aplicacao/app_acervo/acervo.c`, `tests/casos/08_aplicacao/app_acervo/acervo.h` (+13) |
 | `REAL_CURTO` | `tests/casos/02_basico/b04_tipos/programa.c`, `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c`, `tests/casos/05_entrada_saida/i01_formatos/programa.c` (+2) |
 | `REAL_LONGO` | `tests/casos/09_tipos_expr/t02_reais/programa.c`, `tests/casos/09_tipos_expr/t15_leia_tipos/programa.c`, `tests/casos/05_entrada_saida/i01_formatos/programa.c`, `tests/casos/09_tipos_expr/t14_propriedades/programa.c` (+1) |
@@ -193,8 +193,11 @@ Todos os **117** nomes curtos aparecem em pelo menos um arquivo de teste.
 | Texto | `bg_tamanho_texto`, `bg_copia_texto`, `bg_junta_texto`, `bg_acrescenta_texto`, `bg_trecho_texto`, `bg_compara_texto`, `bg_texto_vazio`, `bg_formata_texto`, conversões texto/número | capacidades, sobreposição, NULL, texto vazio, truncamento, conversões inválidas e overflow |
 | Caractere | `bg_e_digito`, `bg_e_letra`, `bg_caractere_maiusculo`, `bg_caractere_minusculo` | ASCII, pontuação, limites e macros curtas |
 | Utilidades | `bg_inicia_sorteio`, `bg_sorteia_ate`, `bg_sorteia` | semente reproduzível, limites aceitos/rejeitados e intervalo de retorno |
+| Sistema de arquivos | `bg_fs_copy_file`, `bg_fs_make_temp`, `bg_fs_walk` | `tests/test_filesystem.c` (cópia, temporário, caminhada) e a suíte de portabilidade (cabeçalho autocontido) |
+| Workspace (opt-in) | `bg_ws_abrir`, `bg_ws_salvar`, `bg_ws_fechar`, `bg_ws_existe`, `bg_ws_eh_pasta`, `bg_ws_tamanho`, `bg_ws_listar`, `bg_ws_enviar_disco/bytes/texto`, `bg_ws_baixar_disco/bytes`, `bg_ws_remover`, `bg_ws_limpar` | `tests/test_workspace.c` + `tests/run_workspace.sh`: envio/download, normalização, conflitos de árvore, listagem, persistência (corrompida e falha de gravação) e limites |
 
 A biblioteca tem **230 verificações unitárias** e 30 verificações de integração/falha fatal; rode `make test-biblioteca`.
+A workspace falsa tem **130 verificações** e a prova de que o cabeçalho não declara API sem `BG_USAR_WORKSPACE`; rode `make test-workspace`.
 
 ## 5. Critérios de aceitação (Fases 2–5)
 

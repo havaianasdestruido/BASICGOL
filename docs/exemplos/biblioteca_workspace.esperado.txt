@@ -1,0 +1,7 @@
+conteudo:
+  pasta/ (pasta)
+  texto.txt (8 bytes)
+  pasta/bin.bin (5 bytes)
+  disco.txt (8 bytes)
+baixado: conteudo
+recarregado: pasta/bin.bin (5 bytes)

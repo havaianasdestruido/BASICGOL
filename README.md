@@ -97,10 +97,11 @@ O vocabulário é o de [`docs/11-matriz-compatibilidade.md`](docs/11-matriz-comp
 | Caminho | O que é |
 |---|---|
 | [`include/basicgol.h`](include/basicgol.h) | palavras-chave, tipos, aliases e macros `BG_*` |
-| [`include/basicgol/`](include/basicgol/) | headers modulares: console, matemática, texto, caractere, utilidades |
+| [`include/basicgol/`](include/basicgol/) | headers modulares: console, matemática, texto, caractere, utilidades, sistema de arquivos, workspace (opt-in) |
 | [`src/biblioteca/`](src/biblioteca/) | implementações C11 que formam `build/libbasicgol.a` |
+| [`src/workspace/`](src/workspace/) | workspace falsa com persistência (`BG_USAR_WORKSPACE`); fica fora de `src/biblioteca/` para o playground não compilá-la |
 | [`tools/basicgolc.c`](tools/basicgolc.c) | transpilador M1 (`PARA … FACA`, `REPITA … ATE`, avisos W-01…W-07) |
-| [`docs/`](docs/) | especificação, referência, compiladores, matriz de compatibilidade e 24 exemplos |
+| [`docs/`](docs/) | especificação, referência, compiladores, matriz de compatibilidade e 25 exemplos |
 | [`tests/`](tests/) | suíte M0/M1, testes da biblioteca, fuzz e matriz de portabilidade |
 | [`playground/`](playground/) | playground que compila e roda no navegador, sem servidor |
 | [`examples/integrations/`](examples/integrations/README.md) | 35 exemplos de interoperabilidade (C++, C#, Assembly, VB.NET, Emscripten) |

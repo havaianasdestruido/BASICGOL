@@ -4,6 +4,7 @@
 #   make biblioteca      compila build/libbasicgol.a
 #   make test            roda a suíte da linguagem e os testes da biblioteca
 #   make test-biblioteca roda os testes unitários dos módulos da biblioteca
+#   make test-workspace  roda os testes da workspace falsa (BG_USAR_WORKSPACE)
 #   make test-v          suíte completa, mostrando cada verificação aprovada
 #   make test-portabilidade  matriz de compiladores, avisos, sanitizers e alvos
 #   make test-sanitize   suíte completa sob ASan + UBSan (build-sanitize/)
@@ -23,12 +24,16 @@ BUILD    := build
 FERRAMENTA := $(BUILD)/basicgolc
 BIBLIOTECA := $(BUILD)/libbasicgol.a
 TESTE_BIBLIOTECA := $(BUILD)/test-biblioteca
-FONTES_BIBLIOTECA := $(sort $(wildcard src/biblioteca/*.c))
-OBJETOS_BIBLIOTECA := $(patsubst src/biblioteca/%.c,$(BUILD)/biblioteca/%.o,$(FONTES_BIBLIOTECA))
+TESTE_WORKSPACE  := $(BUILD)/test-workspace
+# `src/workspace/` fica fora de `src/biblioteca/` de propósito: o playground
+# compila esse diretório inteiro em cada programa, e a workspace falsa é opt-in
+# (BG_USAR_WORKSPACE) — lá ela não deve pesar nem rodar.
+FONTES_BIBLIOTECA := $(sort $(wildcard src/biblioteca/*.c) $(wildcard src/workspace/*.c))
+OBJETOS_BIBLIOTECA := $(patsubst src/%.c,$(BUILD)/%.o,$(FONTES_BIBLIOTECA))
 
-.PHONY: all biblioteca test test-v test-biblioteca smoke smoke-v exemplos cobertura \
-        limpar ajuda test-portabilidade test-portabilidade-v test-sanitize test-matriz fuzz \
-        test-checkout
+.PHONY: all biblioteca test test-v test-biblioteca test-workspace smoke smoke-v exemplos \
+        cobertura limpar ajuda test-portabilidade test-portabilidade-v test-sanitize \
+        test-matriz fuzz test-checkout
 
 all: $(FERRAMENTA) $(BIBLIOTECA)
 
@@ -36,7 +41,7 @@ $(FERRAMENTA): tools/basicgolc.c
 	@mkdir -p $(BUILD)
 	$(CC) $(CFLAGS) $(WARN) -o $@ tools/basicgolc.c
 
-$(BUILD)/biblioteca/%.o: src/biblioteca/%.c
+$(BUILD)/%.o: src/%.c
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) $(WARN) -I $(INCLUDE) -c -o $@ $<
 
@@ -50,18 +55,28 @@ biblioteca: $(BIBLIOTECA)
 $(TESTE_BIBLIOTECA): tests/test_biblioteca.c $(BIBLIOTECA)
 	$(CC) $(CFLAGS) $(WARN) -I $(INCLUDE) -o $@ $< $(BIBLIOTECA) -lm
 
+# A workspace falsa é opt-in por BG_USAR_WORKSPACE; o teste compila o próprio
+# macro (a implementação vai para o archive via src/workspace/).
+$(TESTE_WORKSPACE): tests/test_workspace.c $(BIBLIOTECA)
+	$(CC) $(CFLAGS) $(WARN) -DBG_USAR_WORKSPACE -I $(INCLUDE) -o $@ $< $(BIBLIOTECA) -lm
+
 # ------------------------------------------------------------------ testes
 
-test: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA)
+test: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA) $(TESTE_WORKSPACE)
 	@T_BASICGOLC="$(FERRAMENTA)" T_LIBRARY="$(BIBLIOTECA)" ./tests/run.sh
 	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
+	@./tests/run_workspace.sh "$(TESTE_WORKSPACE)"
 
-test-v: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA)
+test-v: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA) $(TESTE_WORKSPACE)
 	@T_BASICGOLC="$(FERRAMENTA)" T_LIBRARY="$(BIBLIOTECA)" ./tests/run.sh -v
 	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
+	@./tests/run_workspace.sh "$(TESTE_WORKSPACE)"
 
 test-biblioteca: $(TESTE_BIBLIOTECA)
 	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
+
+test-workspace: $(TESTE_WORKSPACE)
+	@./tests/run_workspace.sh "$(TESTE_WORKSPACE)"
 
 # smoke: suíte completa de compile-e-rodar (M0 + M1) e teste dos módulos.
 smoke: test

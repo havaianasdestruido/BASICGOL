@@ -9,6 +9,9 @@ Public headers live under `include/`. Include with `-I include`.
 - `include/basicgol/matematica.h` — math helpers.
 - `include/basicgol/texto.h` — text helpers.
 - `include/basicgol/utilidades.h` — utility helpers.
+- `include/basicgol/filesystem.h` — portable file copy, temp file and directory walk.
+- `include/basicgol/workspace.h` — optional in-memory workspace with persistence;
+  declare nothing unless `BG_USAR_WORKSPACE` is defined before the include.
 
 Link `build/libbasicgol.a` (or `.lib` on Windows) plus `-lm` where needed.
 Full per-symbol reference: docs/02-referencia.md and the generated site.
