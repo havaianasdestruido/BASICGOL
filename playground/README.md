@@ -113,7 +113,9 @@ Ryan Eberhardt (MIT): os mesmos nomes de classe (`topbar`, `sidebar`,
 `show-split`/`show-code-only`/`show-term-only`), a mesma topbar (engrenagem +
 Run) e o mesmo terminal (Ubuntu Mono 16px). O tema do Ace (TextMate) foi
 portado para CSS em `tema.css`, com as cores em variáveis — daí os temas
-Padrão/Monokai/Zenburn.
+Padrão, Monokai, Zenburn, Nord e Dracula. A primeira visita usa Padrão; a escolha
+no seletor fica salva em um cookie por um ano. `?theme=nord`, por exemplo,
+substitui a preferência só para aquela página.
 
 O que é do BASICGOL: os 22 exemplos de `docs/exemplos/` no seletor da sidebar,
 com a entrada de teste dourada já no terminal, e as dicas de erro (por

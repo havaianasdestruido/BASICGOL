@@ -206,6 +206,56 @@
   --editor-attribute-color: var(--bright-green);
 }
 
+:root[data-tema='nord'] {
+  --foreground-color: #eceff4;
+  --background-color: #2e3440;
+  --black: #242933;
+  --red: #bf616a;
+  --green: #a3be8c;
+  --yellow: #ebcb8b;
+  --blue: #81a1c1;
+  --magenta: #b48ead;
+  --cyan: #88c0d0;
+  --white: #d8dee9;
+  --bright-black: #434c5e;
+  --bright-red: #e38b95;
+  --bright-green: #b9d59f;
+  --bright-yellow: #f4d898;
+  --bright-blue: #9dbde0;
+  --bright-magenta: #cda7c6;
+  --bright-cyan: #9dd8df;
+  --bright-white: #eceff4;
+  --subtle-text-color: #a2aec2;
+  --scrollbar-color: #58667e;
+  --topbar-border-color: #64748e;
+  --topbar-disabled-color: #505b70;
+}
+
+:root[data-tema='dracula'] {
+  --foreground-color: #f8f8f2;
+  --background-color: #282a36;
+  --black: #21222c;
+  --red: #ff5555;
+  --green: #50fa7b;
+  --yellow: #f1fa8c;
+  --blue: #bd93f9;
+  --magenta: #ff79c6;
+  --cyan: #8be9fd;
+  --white: #f8f8f2;
+  --bright-black: #44475a;
+  --bright-red: #ff6e6e;
+  --bright-green: #69ff94;
+  --bright-yellow: #ffffaa;
+  --bright-blue: #caa9fa;
+  --bright-magenta: #ff92df;
+  --bright-cyan: #a4ffff;
+  --bright-white: #ffffff;
+  --subtle-text-color: #a1accd;
+  --scrollbar-color: #63677e;
+  --topbar-border-color: #706582;
+  --topbar-disabled-color: #555468;
+}
+
 /* ------------------------------------------------------------- tipografia */
 /* _typography.scss */
 
