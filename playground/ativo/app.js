@@ -171,8 +171,7 @@ function definirLayout(novo) {
 function aplicarTema(nome) {
   estado.tema = nome;
   document.documentElement.dataset.tema = nome;
-  terminal.definirPaleta(nome);
-  try { localStorage.setItem(CHAVE_TEMA, nome); } catch (e) { /* ok */ }
+  terminal.definirPaleta();
   const seletor = $('#theme-select');
   if (seletor) seletor.value = nome;
 }
@@ -430,8 +429,13 @@ function removerZip() {
 async function iniciar() {
   // Tema e layout salvos (ou ?theme=, como no original).
   const params = new URLSearchParams(location.search);
-  const tema = params.get('theme') || localStorage.getItem(CHAVE_TEMA) || 'padrao';
-  const temaValido = ['padrao', 'monokai', 'zenburn'].includes(tema) ? tema : 'padrao';
+  let salvo;
+  try {
+    const prefixo = CHAVE_TEMA + '=';
+    salvo = document.cookie.split(';').map(c => c.trim()).find(c => c.startsWith(prefixo))?.slice(prefixo.length);
+  } catch (e) { /* Cookies podem estar bloqueados no modo embutido. */ }
+  const tema = params.get('theme') || salvo;
+  const temaValido = Array.from($('#theme-select').options).some(op => op.value === tema) ? tema : 'padrao';
   // Layout: `?layout=code|term` (modo embutido do cplayground) manda mais que o
   // que ficou salvo, que manda mais que o padrão de tela dividida.
   estado.layout = params.get('layout') || localStorage.getItem(CHAVE_LAYOUT) || 'split';
@@ -503,7 +507,12 @@ async function iniciar() {
   montarExemplos();
 
   // --- sidebar
-  $('#theme-select').addEventListener('change', (e) => aplicarTema(e.target.value));
+  $('#theme-select').addEventListener('change', (e) => {
+    aplicarTema(e.target.value);
+    try {
+      document.cookie = `${CHAVE_TEMA}=${e.target.value}; Max-Age=31536000; SameSite=Lax`;
+    } catch (erro) { /* A troca também funciona sem cookies. */ }
+  });
   $('#input-include-file').addEventListener('change', aoEnviarZip);
   $('#btn-remove-uploaded-file').addEventListener('click', removerZip);
 

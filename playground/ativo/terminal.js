@@ -21,32 +21,16 @@
  * de entrada) e a interface avisa isso claramente.
  */
 
-const CORES_POR_PALETA = {
-  padrao: {
-    background: '#352e3c', foreground: '#d6dbd8', cursor: '#d6dbd8',
-    black: '#29282e', red: '#a63939', green: '#87a140', yellow: '#dba858',
-    blue: '#5b81a0', magenta: '#85678f', cyan: '#5e8d87', white: '#818890',
-    brightBlack: '#4f495f', brightRed: '#d85b7b', brightGreen: '#92c74d',
-    brightYellow: '#f0d974', brightBlue: '#7daad1', brightMagenta: '#b294bb',
-    brightCyan: '#87c6be', brightWhite: '#c5c8c6',
-  },
-  monokai: {
-    background: '#2c292d', foreground: '#fcfcfa', cursor: '#fcfcfa',
-    black: '#272822', red: '#f92672', green: '#a6e22e', yellow: '#75715e',
-    blue: '#66d9ef', magenta: '#ae81ff', cyan: '#a1efe4', white: '#f8f8f2',
-    brightBlack: '#75715e', brightRed: '#f92672', brightGreen: '#a6e22e',
-    brightYellow: '#e6db74', brightBlue: '#66d9ef', brightMagenta: '#ae81ff',
-    brightCyan: '#a1efe4', brightWhite: '#f9f8f5',
-  },
-  zenburn: {
-    background: '#3f3f3f', foreground: '#dcdccc', cursor: '#dcdccc',
-    black: '#4d4d4d', red: '#705050', green: '#60b48a', yellow: '#f0dfaf',
-    blue: '#506070', magenta: '#dc8cc3', cyan: '#8cd0d3', white: '#dcdccc',
-    brightBlack: '#709080', brightRed: '#dca3a3', brightGreen: '#c3bf9f',
-    brightYellow: '#e0cf9f', brightBlue: '#94bff3', brightMagenta: '#ec93d3',
-    brightCyan: '#93e0e3', brightWhite: '#ffffff',
-  },
-};
+function paletaAtual() {
+  const estilo = getComputedStyle(document.documentElement);
+  const cor = (nome) => estilo.getPropertyValue(`--${nome}`).trim();
+  const tema = { background: cor('background-color'), foreground: cor('foreground-color'), cursor: cor('foreground-color') };
+  for (const nome of ['black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white']) {
+    tema[nome] = cor(nome);
+    tema['bright' + nome[0].toUpperCase() + nome.slice(1)] = cor('bright-' + nome);
+  }
+  return tema;
+}
 
 const VERDE = '\x1b[92m';
 const AMARELO = '\x1b[93m';
@@ -71,7 +55,7 @@ export class Terminal {
       fontSize: 16,
       cursorBlink: true,
       convertEol: true,
-      theme: CORES_POR_PALETA.padrao,
+      theme: paletaAtual(),
       scrollback: 5000,
       allowProposedApi: true,
     });
@@ -103,8 +87,8 @@ export class Terminal {
     } catch (e) { /* painel escondido: o fit reclama, mas nada quebra */ }
   }
 
-  definirPaleta(nome) {
-    this.xterm.options.theme = CORES_POR_PALETA[nome] || CORES_POR_PALETA.padrao;
+  definirPaleta() {
+    this.xterm.options.theme = paletaAtual();
   }
 
   escrever(texto) {
