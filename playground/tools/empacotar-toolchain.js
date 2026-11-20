@@ -118,6 +118,10 @@ adicionar('src/shim.c', path.join(__dirname, 'shim.c'));
 // Compatibilidade da libc do playground (injetado com `-include`).
 adicionar('basicgol_playground.h', path.join(__dirname, 'basicgol_playground.h'));
 
+// Depurador opcional da página: só é injetado (também com `-include`, e só no
+// arquivo do usuário) quando o depurador está ligado — ele vem desligado.
+adicionar('basicgol_depurador.h', path.join(__dirname, 'basicgol_depurador.h'));
+
 // O `filesystem.c` da biblioteca chama funções de sistema de arquivos que não
 // existem na wasi-libc de 2019 usada aqui (mkstemp). O shim declara e responde
 // ENOSYS; compilar o arquivo é melhor do que sumir com ele: o resto do módulo
@@ -128,7 +132,8 @@ const versao = [
   `BASICGOL playground toolchain`,
   `clang/lld: binji/wasm-clang (LLVM 8.0.1, wasm32-unknown-wasi)`,
   `gerado: ${new Date().toISOString()}`,
-  `arquivos do repositório: include/, src/biblioteca/, src/shim.c, basicgol_playground.h`,
+  `arquivos do repositório: include/, src/biblioteca/, src/shim.c, basicgol_playground.h,`
+  + ` basicgol_depurador.h`,
   '',
 ].join('\n');
 const temporarioVersao = path.join(__dirname, '.VERSAO.txt');

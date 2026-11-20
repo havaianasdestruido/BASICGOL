@@ -113,8 +113,33 @@
             </label><br />
           </div>
 
+          <h3>Visualização</h3>
+          <label><input id="show-c" type="checkbox" aria-controls="generated-pane" /> Mostrar C gerado ao executar</label>
+
           <h3>Argumentos do programa</h3>
           <input type="text" id="runtime-args" value="" aria-label="Argumentos" />
+
+          <!-- Depurador: opcional e desligado por padrão. Ligado, o Run vira
+               Debug e o programa é compilado com os ganchos de depuração. -->
+          <h3>Depurador</h3>
+          <label for="debug-toggle">
+            <input id="debug-toggle" type="checkbox" />
+            Ativar o depurador
+          </label>
+          <p>
+            <small>
+              Desligado por padrão: o programa compila e roda como sempre.
+              Ligado, o Run vira <strong>Debug</strong> — o programa para na
+              primeira linha, mostra as variáveis e anda de passo em passo.
+              Clique no número da linha para marcar um ponto de parada.
+            </small>
+          </p>
+          <p id="debug-pontos" class="oculto"><small></small></p>
+          <p>
+            <small>
+              <a href="#" id="debug-limpar" class="oculto">Limpar os pontos de parada</a>
+            </small>
+          </p>
 
           <h3>Arquivos de apoio</h3>
           <p>
@@ -141,6 +166,8 @@
             <option value="padrao">Padrão</option>
             <option value="monokai">Monokai</option>
             <option value="zenburn">Zenburn</option>
+            <option value="nord">Nord</option>
+            <option value="dracula">Dracula</option>
           </select>
 
           <h3>Ferramentas</h3>
@@ -158,9 +185,35 @@
 
         <div class="code-container">
           <div id="editor"></div>
+          <section id="generated-pane" hidden>
+            <strong>C gerado · última execução</strong>
+            <pre id="generated-c">Pressione Run para gerar o C.</pre>
+          </section>
         </div>
 
         <div class="program-pane">
+          <!-- Painel do depurador: só aparece com o depurador ligado. -->
+          <div class="debug-pane oculto" id="debug-pane">
+            <div class="debug-barra">
+              <div role="button" class="debug-btn disabled" id="debug-continuar" tabindex="0" aria-label="Continuar">
+                <span class="glifo">&#9654;</span> Continuar<span class="tecla">F8</span>
+              </div>
+              <div role="button" class="debug-btn disabled" id="debug-passo" tabindex="0" aria-label="Passo">
+                <span class="glifo">&#8631;</span> Passo<span class="tecla">F10</span>
+              </div>
+              <div role="button" class="debug-btn disabled" id="debug-parar" tabindex="0" aria-label="Parar">
+                <span class="glifo">&#9632;</span> Parar<span class="tecla">shift+F5</span>
+              </div>
+              <span class="debug-estado" id="debug-estado"></span>
+            </div>
+            <div class="debug-conteudo">
+              <table class="debug-variaveis">
+                <tbody id="debug-variaveis"></tbody>
+              </table>
+              <p class="debug-vazio" id="debug-vazio"></p>
+            </div>
+          </div>
+
           <div class="terminal-container">
             <div id="terminal"></div>
           </div>

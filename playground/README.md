@@ -15,6 +15,7 @@ playground/
 │   ├── ferramentas.js         clang/lld no navegador (memfs + WASI + shim)
 │   ├── armazenamento.js       o programa WASI: argv, env, fd_read/write, memfs
 │   ├── terminal.js            xterm.js: entrada, roteiro, cores
+│   ├── depurador.js           depurador opcional (desligado por padrão)
 │   └── exemplos.js            os 22 exemplos (gerado de docs/exemplos/)
 ├── tools/                     scripts de manutenção e verificação
 ├── vendor/                    Ace, xterm.js, fontes e ícones (local)
@@ -52,17 +53,22 @@ node playground/tools/verificar.js --dourado
 # o código da página, importado como módulo ES (o mesmo que a aba carrega)
 node playground/tools/verificar-navegador.mjs --dourado
 
+# o depurador: a instrumentação não pode mudar a saída de nenhum exemplo
+node playground/tools/verificar-depurador.mjs
+
 # a página de verdade, num Chromium headless (precisa de um Chromium)
 BASICGOL_CHROMIUM=/usr/bin/chromium node playground/tools/verificar-pagina.mjs
 ```
 
 `verificar-pagina.mjs` é o teste de fumaça do que só a página prova: que o
 terminal mostra a saída, que a entrada interativa espera o Enter (JSPI), que o
-seletor de exemplos carrega a entrada de teste dourada e que não há erro de
-console. Ele mesmo serve a pasta, então não precisa de servidor à mão.
+seletor de exemplos carrega a entrada de teste dourada, que o depurador para,
+anda e mostra as variáveis, e que não há erro de console. Ele mesmo serve a
+pasta, então não precisa de servidor à mão. Qualquer Chrome/Chromium 137+
+serve; sem um instalado, `npm i @sparticuz/chromium` baixa um.
 
 Resultado atual: **22/22 exemplos idênticos** ao dourado nos três níveis, e as
-sete verificações da página passando (compilação ~1,9 s).
+18 verificações da página passando (compilação ~1,9 s).
 
 ## O que roda no navegador
 
@@ -105,6 +111,38 @@ embrulhado e o programa realmente **espera o Enter**, retomando na mesma
 instrução. Onde não tem, a entrada é digitada antes do Run e lida como um
 fluxo — a página avisa no terminal qual dos dois modos está valendo.
 
+### O depurador (`ativo/depurador.js`)
+
+Vem **desligado**. Ligado no interruptor da barra lateral (ou com `?debug=1`),
+o Run vira **Debug**: o programa para na primeira linha, mostra as variáveis
+visíveis e anda de passo em passo. Clicar no número da linha marca um ponto de
+parada; os pontos e o próprio interruptor ficam no `localStorage`.
+
+Não existe um `DWARF` para interpretar aqui, então o truque é mais simples:
+antes de compilar, `instrumentar()` insere no começo de cada linha executável
+
+```c
+if (bgdbg_abre(42)) { BGDBG_VAR("soma", soma); bgdbg_fecha(); }
+```
+
+A linha original continua logo depois, na mesma linha física — a numeração e as
+colunas dos erros do compilador não mudam. `tools/basicgol_depurador.h` (entra
+no pacote e é incluído só no `main.cc`, com `-include`) implementa essas
+funções: elas escrevem o quadro no **descritor 3** e leem 1 byte de resposta.
+`BGDBG_VAR` é um `_Generic`, então cada variável é impressa com o tipo certo.
+
+O descritor 3 é um canal livre e bidirecional: `armazenamento.js` trata
+`fd_read(3)` como o ponto de pausa (é ele que devolve a `Promise` que o JSPI
+suspende) e devolve `EBADF` quando o depurador está desligado — um `.wasm`
+salvo da página roda sem depurador em qualquer runtime WASI. O protocolo é
+texto: sai `l <linha>`, `v <nome> <tipo> <valor>`…, `e`; entra um byte,
+`c`ontinuar, `s` (passo), `x` (solta até o fim) ou `q`uit (sai com 130).
+
+Há um teto de 50 mil quadros por execução (~2 s): passado ele, o depurador
+solta o programa e avisa. Programas que a instrumentação não consegue mapear
+(um `for` quebrado em duas linhas, por exemplo) são detectados na compilação:
+a página recompila o código original e o roda sem depurador, avisando.
+
 ## Aparência
 
 A página segue o [cplayground](https://github.com/reberhardt7/cplayground) de
@@ -113,11 +151,14 @@ Ryan Eberhardt (MIT): os mesmos nomes de classe (`topbar`, `sidebar`,
 `show-split`/`show-code-only`/`show-term-only`), a mesma topbar (engrenagem +
 Run) e o mesmo terminal (Ubuntu Mono 16px). O tema do Ace (TextMate) foi
 portado para CSS em `tema.css`, com as cores em variáveis — daí os temas
-Padrão/Monokai/Zenburn.
+Padrão, Monokai, Zenburn, Nord e Dracula. A primeira visita usa Padrão; a escolha
+no seletor fica salva em um cookie por um ano. `?theme=nord`, por exemplo,
+substitui a preferência só para aquela página.
 
 O que é do BASICGOL: os 22 exemplos de `docs/exemplos/` no seletor da sidebar,
-com a entrada de teste dourada já no terminal, e as dicas de erro (por
-exemplo, lembrar que `PARA i DE 1 ATE 10` é do caminho M1).
+com a entrada de teste dourada já no terminal, as dicas de erro (por exemplo,
+lembrar que `PARA i DE 1 ATE 10` é do caminho M1) e o painel do depurador,
+que ocupa o topo da `program-pane` quando está ligado.
 
 ## Manutenção
 

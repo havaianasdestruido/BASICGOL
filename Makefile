@@ -24,6 +24,7 @@ BUILD    := build
 FERRAMENTA := $(BUILD)/basicgolc
 BIBLIOTECA := $(BUILD)/libbasicgol.a
 TESTE_BIBLIOTECA := $(BUILD)/test-biblioteca
+TESTE_FILESYSTEM := $(BUILD)/test-filesystem
 TESTE_WORKSPACE  := $(BUILD)/test-workspace
 # `src/workspace/` fica fora de `src/biblioteca/` de propósito: o playground
 # compila esse diretório inteiro em cada programa, e a workspace falsa é opt-in
@@ -31,9 +32,9 @@ TESTE_WORKSPACE  := $(BUILD)/test-workspace
 FONTES_BIBLIOTECA := $(sort $(wildcard src/biblioteca/*.c) $(wildcard src/workspace/*.c))
 OBJETOS_BIBLIOTECA := $(patsubst src/%.c,$(BUILD)/%.o,$(FONTES_BIBLIOTECA))
 
-.PHONY: all biblioteca test test-v test-biblioteca test-workspace smoke smoke-v exemplos \
-        cobertura limpar ajuda test-portabilidade test-portabilidade-v test-sanitize \
-        test-matriz fuzz test-checkout
+.PHONY: all biblioteca test test-v test-biblioteca test-filesystem test-workspace \
+        smoke smoke-v exemplos cobertura limpar ajuda test-portabilidade \
+        test-portabilidade-v test-sanitize test-matriz fuzz test-checkout
 
 all: $(FERRAMENTA) $(BIBLIOTECA)
 
@@ -55,6 +56,9 @@ biblioteca: $(BIBLIOTECA)
 $(TESTE_BIBLIOTECA): tests/test_biblioteca.c $(BIBLIOTECA)
 	$(CC) $(CFLAGS) $(WARN) -I $(INCLUDE) -o $@ $< $(BIBLIOTECA) -lm
 
+$(TESTE_FILESYSTEM): tests/test_filesystem.c $(BIBLIOTECA)
+	$(CC) $(CFLAGS) $(WARN) -I $(INCLUDE) -o $@ $< $(BIBLIOTECA) -lm
+
 # A workspace falsa é opt-in por BG_USAR_WORKSPACE; o teste compila o próprio
 # macro (a implementação vai para o archive via src/workspace/).
 $(TESTE_WORKSPACE): tests/test_workspace.c $(BIBLIOTECA)
@@ -62,18 +66,24 @@ $(TESTE_WORKSPACE): tests/test_workspace.c $(BIBLIOTECA)
 
 # ------------------------------------------------------------------ testes
 
-test: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA) $(TESTE_WORKSPACE)
+test: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA) $(TESTE_FILESYSTEM) $(TESTE_WORKSPACE)
 	@T_BASICGOLC="$(FERRAMENTA)" T_LIBRARY="$(BIBLIOTECA)" ./tests/run.sh
 	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
+	@./tests/run_filesystem.sh "$(TESTE_FILESYSTEM)"
 	@./tests/run_workspace.sh "$(TESTE_WORKSPACE)"
 
-test-v: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA) $(TESTE_WORKSPACE)
+test-v: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA) $(TESTE_FILESYSTEM) $(TESTE_WORKSPACE)
 	@T_BASICGOLC="$(FERRAMENTA)" T_LIBRARY="$(BIBLIOTECA)" ./tests/run.sh -v
 	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
+	@./tests/run_filesystem.sh "$(TESTE_FILESYSTEM)"
 	@./tests/run_workspace.sh "$(TESTE_WORKSPACE)"
 
-test-biblioteca: $(TESTE_BIBLIOTECA)
+test-biblioteca: $(TESTE_BIBLIOTECA) $(TESTE_FILESYSTEM)
 	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
+	@./tests/run_filesystem.sh "$(TESTE_FILESYSTEM)"
+
+test-filesystem: $(TESTE_FILESYSTEM)
+	@./tests/run_filesystem.sh "$(TESTE_FILESYSTEM)"
 
 test-workspace: $(TESTE_WORKSPACE)
 	@./tests/run_workspace.sh "$(TESTE_WORKSPACE)"
