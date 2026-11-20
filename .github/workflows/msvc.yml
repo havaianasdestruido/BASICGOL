@@ -77,6 +77,16 @@ jobs:
         shell: bash
         run: ./tests/run_biblioteca.sh build/test-biblioteca.exe
 
+      - name: testes de filesystem
+        shell: cmd
+        run: |
+          cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include tests\test_filesystem.c /Fo:build\test-filesystem.obj /Fe:build\test-filesystem.exe /link build\libbasicgol.lib
+          if errorlevel 1 exit /b 2
+
+      - name: rodar testes de filesystem
+        shell: bash
+        run: ./tests/run_filesystem.sh build/test-filesystem.exe
+
       - name: exemplos com saida dourada (M0 e M1)
         shell: bash
         run: ./tests/run_msvc.sh
