@@ -329,9 +329,14 @@ export class Ferramentas {
    * programa, o shim, o cabeçalho de compatibilidade, `<basicgol.h>`, a
    * biblioteca padrão e os arquivos enviados pelo usuário.
    */
-  _montarDisco(codigo, arquivosUsuario) {
+  _montarDisco(codigo, arquivosUsuario, depurar = false) {
     // `-Iinclude` faz `#include <basicgol/...>` procurar em include/basicgol.
     this._arquivo('main.cc', codigo);
+    // O depurador é opcional: o cabeçalho só vai para o disco (e só é
+    // injetado, mais abaixo, no arquivo do usuário) quando está ligado.
+    if (depurar) {
+      this._arquivo('basicgol_depurador.h', this._extrairDoPacote('basicgol_depurador.h'));
+    }
     this._arquivo('include/basicgol.h', this._extrairDoPacote('include/basicgol.h'));
     for (const nome of this._listarPacote('include/basicgol/')) {
       this._arquivo(`include/basicgol/${nome}`, this._extrairDoPacote(`include/basicgol/${nome}`));
@@ -430,12 +435,13 @@ export class Ferramentas {
    * @param {string[]} [o.flags]                flags extras (-Wall, -Werror, ...)
    * @param {string} [o.otimizacao]             -O0 .. -O3
    * @param {Array<{nome:string,bytes:Uint8Array}>} [o.arquivos]
+   * @param {boolean} [o.depurar]               injeta o cabeçalho do depurador
    * @param {(linha:string)=>void} [o.aoRegistrar] recebe o log do compilador
    * @returns {Promise<{sucesso:boolean, wasm?:Uint8Array, registro:string}>}
    */
   async compilar({
     codigo, flags = [], otimizacao = '-O2', arquivos = null,
-    deslocamentoLinhas = 0, aoRegistrar = () => {},
+    deslocamentoLinhas = 0, depurar = false, aoRegistrar = () => {},
   }) {
     await this.carregar();
     const registro = [];
@@ -459,7 +465,9 @@ export class Ferramentas {
       aoRegistrar(ajustada);
     };
 
-    const fontesBiblioteca = this._montarDisco(codigo, arquivos || this.arquivosUsuario);
+    const fontesBiblioteca = this._montarDisco(
+      codigo, arquivos || this.arquivosUsuario, depurar,
+    );
 
     const base = [
       '-cc1', '-emit-obj', '-disable-free',
@@ -477,13 +485,23 @@ export class Ferramentas {
     ];
     const extras = flags.filter((f) => f.startsWith('-W') || f === '-pedantic');
 
+    // O depurador entra só no arquivo do usuário: a biblioteca e o shim
+    // compilam exatamente como numa execução normal. `-Wno-uninitialized`
+    // cobre as leituras que a própria instrumentação faz (ela mostra o valor
+    // de uma variável antes da linha que a preenche).
+    const doUsuario = depurar
+      ? ['-include', 'basicgol_depurador.h', '-Wno-uninitialized']
+      : [];
+
     const fontes = ['main.cc', 'src/shim.c', ...fontesBiblioteca.map((f) => `src/biblioteca/${f}`)];
     const objetos = [];
     const t0 = performance.now();
     for (const fonte of fontes) {
       // Os objetos ficam no diretório corrente, com nome plano.
       const objeto = `${fonte.split('/').pop().replace(/[^a-zA-Z0-9._-]/g, '_')}.o`;
-      const r = await this._executar('clang', [...base, ...extras, '-o', objeto, '-x', 'c', fonte]);
+      const especificas = fonte === 'main.cc' ? doUsuario : [];
+      const r = await this._executar('clang',
+        [...base, ...extras, ...especificas, '-o', objeto, '-x', 'c', fonte]);
       registrar(r.saida.trimEnd());
       if (r.codigo !== 0) {
         registrar(`clang terminou com código ${r.codigo}`);

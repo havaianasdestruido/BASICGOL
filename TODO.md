@@ -31,7 +31,8 @@ Cool and necessary additions for building real codebases.
 - Formatter (bgfmt)
 - Linter (bglint)
 - LSP / editor support
-- Debugger hooks
+- Debugger hooks — done for the playground (`playground/ativo/depurador.js`,
+  off by default); still missing for native builds (gdb/lldb pretty-printers)
 - Profiler integration
 
 ## Runtime / platform

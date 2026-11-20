@@ -867,3 +867,135 @@ input[type='text'].inline {
 .terminal-container .xterm .xterm-viewport {
   background-color: transparent !important;
 }
+
+/* --------------------------------------------------------------- depurador */
+/* Extra do playground (o cplayground tem o botão Debug, mas não o depurador).
+   Tudo aqui só aparece com o depurador ligado — ele vem desligado. */
+
+/* Com o depurador ligado, o botão Run mostra a face "Debug" que já existia
+   escondida no verso do cartão. */
+body.depurando #run-btn .main-text .active {
+  transform: rotateX(180deg);
+  position: absolute;
+}
+
+body.depurando #run-btn .main-text .inactive {
+  transform: rotateX(0deg);
+  position: relative;
+}
+
+/* O painel divide o espaço com o terminal, sem esticar junto com ele. */
+.program-pane > .debug-pane {
+  flex: 0 0 auto;
+  max-height: 50%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-bottom: 1px solid var(--topbar-border-color);
+  font-size: 0.8rem;
+}
+
+.debug-barra {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px var(--pane-padding);
+  background-color: var(--accent-color);
+}
+
+.debug-btn {
+  padding: 4px 10px;
+  border-radius: 3px;
+  background-color: var(--topbar-bg-color);
+  color: var(--topbar-font-color);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background-color 0.2s ease-out;
+}
+
+.debug-btn:hover:not(.disabled) {
+  background-color: var(--topbar-border-color);
+}
+
+.debug-btn.disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.debug-btn .glifo {
+  margin-right: 4px;
+}
+
+.debug-btn .tecla {
+  margin-left: 6px;
+  font-size: 0.75em;
+  opacity: 0.7;
+}
+
+.debug-estado {
+  margin-left: auto;
+  padding-left: 10px;
+  color: var(--subtle-text-color);
+  font-family: var(--code-font);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.debug-conteudo {
+  overflow: auto;
+  padding: 6px var(--pane-padding) 10px;
+}
+
+.debug-variaveis {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--code-font);
+  font-size: 0.95rem;
+}
+
+.debug-variaveis td {
+  padding: 1px 6px 1px 0;
+  vertical-align: top;
+}
+
+.debug-variaveis .nome {
+  color: var(--bright-cyan);
+  white-space: nowrap;
+}
+
+.debug-variaveis .tipo {
+  color: var(--subtle-text-color);
+  white-space: nowrap;
+}
+
+.debug-variaveis .valor {
+  color: var(--bright-yellow);
+  width: 100%;
+  word-break: break-all;
+}
+
+.debug-vazio {
+  margin: 2px 0;
+  color: var(--subtle-text-color);
+}
+
+/* Ponto de parada no medianiz do editor e a linha onde o programa parou. */
+body.depurando .ace_gutter-cell {
+  cursor: pointer;
+}
+
+.ace-tm .ace_gutter-cell.ace_breakpoint {
+  color: var(--bright-white);
+  background-color: var(--red);
+  border-radius: 10px 0 0 10px;
+}
+
+.ace-tm .ace_marker-layer .linha-depuracao {
+  position: absolute;
+  z-index: 2;
+  background: rgba(240, 217, 116, 0.18);
+  border-left: 3px solid var(--bright-yellow);
+}
