@@ -216,7 +216,7 @@ function flagsSelecionadas() {
  * terminal: é o que permite tentar o fonte instrumentado e, se ele não
  * compilar, mostrar só os erros do programa original (ver `executar`).
  */
-async function compilarFonte(fonte, preparado, { depurar = false, guardar = false } = {}) {
+async function compilarFonte(fonte, preparado, { depurar = false, guardar = false, aoGerarC = null } = {}) {
   const guardado = [];
   try {
     const resultado = await ferramentas.compilar({
@@ -226,6 +226,7 @@ async function compilarFonte(fonte, preparado, { depurar = false, guardar = fals
       otimizacao: $('#compiler-optimization').value,
       arquivos: estado.arquivos,
       depurar,
+      aoGerarC,
       aoRegistrar: (linha) => (guardar ? guardado.push(linha) : registrarCompilacao(linha)),
     });
     return { ...resultado, guardado };
@@ -250,10 +251,19 @@ async function executar() {
 
   terminal.detalhe('compilando no navegador (clang → wasm-ld)…');
   const inicio = performance.now();
+
+  const mostrarC = $('#show-c').checked;
+  const previa = $('#generated-c');
+  previa.textContent = mostrarC ? 'Gerando C…' : 'Pressione Run para gerar o C.';
+
   let resultado = await compilarFonte(
     depurando ? instrumentada.fonte : preparado.fonte,
     preparado,
-    { depurar: depurando, guardar: depurando },
+    {
+      depurar: depurando,
+      guardar: depurando,
+      aoGerarC: mostrarC ? (c) => { previa.textContent = c; } : null,
+    },
   );
   if (depurando && resultado.sucesso) {
     // Compilou instrumentado: o log guardado (avisos) vai para o terminal.
@@ -270,10 +280,13 @@ async function executar() {
   }
 
   if (resultado.excecao) {
+    if (mostrarC) previa.textContent = 'Não foi possível gerar o C.';
     terminal.erro(`falha ao compilar: ${resultado.excecao.message}`);
     definirRodando(false);
     return;
   }
+
+  if (mostrarC && previa.textContent === 'Gerando C…') previa.textContent = 'Não foi possível gerar o C.';
   if (!resultado.sucesso) {
     for (const dica of dicasPara(codigo, resultado.registro)) {
       terminal.detalhe(`dica: ${dica}`);
@@ -739,6 +752,11 @@ async function iniciar() {
   montarExemplos();
 
   // --- sidebar
+  $('#show-c').addEventListener('change', (e) => {
+    $('#generated-pane').hidden = !e.target.checked;
+    $('.code-container').classList.toggle('com-previa', e.target.checked);
+    editor.resize();
+  });
   $('#theme-select').addEventListener('change', (e) => {
     aplicarTema(e.target.value);
     try {
