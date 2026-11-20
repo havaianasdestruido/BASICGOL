@@ -12,10 +12,13 @@ import { Ferramentas, prepararFonte, lerZip, dicasPara } from './ferramentas.js'
 import { Terminal, temJspi } from './terminal.js';
 import { criarWasiPrograma, DecodificadorSeguro } from './armazenamento.js';
 import { EXEMPLOS, acharExemplo } from './exemplos.js';
+import { Depurador, instrumentar, SAIDA_PARADO } from './depurador.js';
 
 const CHAVE_ARMAZENAMENTO = 'basicgol.playground.programa';
 const CHAVE_LAYOUT = 'basicgol.playground.layout';
 const CHAVE_TEMA = 'basicgol.playground.tema';
+const CHAVE_DEPURADOR = 'basicgol.playground.depurador';
+const CHAVE_PONTOS = 'basicgol.playground.pontos';
 
 const PROGRAMA_INICIAL = `// Bem-vindo ao playground BASICGOL!
 //
@@ -62,6 +65,8 @@ const $ = (seletor) => document.querySelector(seletor);
 let editor;
 let terminal;
 let ferramentas;
+let depurador;
+let marcadorLinha = null; // marcador Ace da linha onde o programa parou
 
 /* ------------------------------------------------------------------ ícones */
 
@@ -181,6 +186,7 @@ function aplicarTema(nome) {
 function definirRodando(rodando) {
   estado.rodando = rodando;
   $('#run-btn').classList.toggle('disabled', rodando);
+  if (depurador) desenharDepurador();
 }
 
 /* ------------------------------------------------------------------ execução */
@@ -205,6 +211,29 @@ function flagsSelecionadas() {
   return comAvisos ? [...avisos, '-Wall'] : avisos;
 }
 
+/**
+ * Uma passada do compilador. `guardar` segura o log em vez de escrevê-lo no
+ * terminal: é o que permite tentar o fonte instrumentado e, se ele não
+ * compilar, mostrar só os erros do programa original (ver `executar`).
+ */
+async function compilarFonte(fonte, preparado, { depurar = false, guardar = false } = {}) {
+  const guardado = [];
+  try {
+    const resultado = await ferramentas.compilar({
+      codigo: fonte,
+      deslocamentoLinhas: preparado.deslocamento,
+      flags: flagsSelecionadas(),
+      otimizacao: $('#compiler-optimization').value,
+      arquivos: estado.arquivos,
+      depurar,
+      aoRegistrar: (linha) => (guardar ? guardado.push(linha) : registrarCompilacao(linha)),
+    });
+    return { ...resultado, guardado };
+  } catch (e) {
+    return { sucesso: false, registro: '', guardado, excecao: e };
+  }
+}
+
 async function executar() {
   if (estado.rodando) return;
   definirRodando(true);
@@ -214,25 +243,37 @@ async function executar() {
   salvarPrograma(codigo);
   if (estado.arquivos.length) terminal.detalhe(`${estado.arquivos.length} arquivo(s) de apoio incluído(s).`);
 
+  const preparado = prepararFonte(codigo);
+  let depurando = depurador.ativo;
+  const instrumentada = depurando ? instrumentar(preparado.fonte) : null;
+  if (depurando) anunciarDepurador(instrumentada);
+
   terminal.detalhe('compilando no navegador (clang → wasm-ld)…');
   const inicio = performance.now();
-  const preparado = prepararFonte(codigo);
-  let resultado;
-  try {
-    resultado = await ferramentas.compilar({
-      codigo: preparado.fonte,
-      deslocamentoLinhas: preparado.deslocamento,
-      flags: flagsSelecionadas(),
-      otimizacao: $('#compiler-optimization').value,
-      arquivos: estado.arquivos,
-      aoRegistrar: (linha) => registrarCompilacao(linha),
-    });
-  } catch (e) {
-    terminal.erro(`falha ao compilar: ${e.message}`);
+  let resultado = await compilarFonte(
+    depurando ? instrumentada.fonte : preparado.fonte,
+    preparado,
+    { depurar: depurando, guardar: depurando },
+  );
+  if (depurando && resultado.sucesso) {
+    // Compilou instrumentado: o log guardado (avisos) vai para o terminal.
+    for (const linha of resultado.guardado) registrarCompilacao(linha);
+  } else if (depurando) {
+    // Pode ser o programa, pode ser a instrumentação: a única forma honesta
+    // de saber é compilar o original — e é o log dele que o usuário vê.
+    const semGanchos = await compilarFonte(preparado.fonte, preparado);
+    if (semGanchos.sucesso) {
+      terminal.destaque('não consegui instrumentar este programa; ele vai rodar sem o depurador.');
+      depurando = false;
+    }
+    resultado = semGanchos;
+  }
+
+  if (resultado.excecao) {
+    terminal.erro(`falha ao compilar: ${resultado.excecao.message}`);
     definirRodando(false);
     return;
   }
-
   if (!resultado.sucesso) {
     for (const dica of dicasPara(codigo, resultado.registro)) {
       terminal.detalhe(`dica: ${dica}`);
@@ -242,10 +283,14 @@ async function executar() {
     return;
   }
   terminal.detalhe(`compilado em ${((performance.now() - inicio) / 1000).toFixed(2)}s`);
-  await executarWasm(resultado.wasm);
+  await executarWasm(resultado.wasm, {
+    depurando,
+    deslocamento: preparado.deslocamento,
+    linhasValidas: instrumentada ? instrumentada.linhas : null,
+  });
 }
 
-async function executarWasm(wasm) {
+async function executarWasm(wasm, { depurando = false, deslocamento = 0, linhasValidas = null } = {}) {
   // Com JSPI, fd_read pode devolver Promise e o programa "espera" o Enter.
   // Sem JSPI, a entrada é digitada de antemão e lida como um fluxo (roteiro).
   let interativo = temJspi();
@@ -276,11 +321,18 @@ async function executarWasm(wasm) {
     },
   };
 
+  if (depurando) {
+    depurador.iniciar({ deslocamento, podePausar: interativo, linhasValidas });
+  }
+
   const argumentos = ($('#runtime-args').value || '').trim().split(/\s+/).filter(Boolean);
   const imports = criarWasiPrograma({
     obterMemoria: () => memoria,
     io,
     argv: ['programa', ...argumentos],
+    // O descritor 3 é o canal do depurador; sem ele, o programa instrumentado
+    // percebe o BADF e se desliga sozinho.
+    depuracao: depurando ? depurador.canal() : null,
   });
 
   if (interativo) {
@@ -348,9 +400,188 @@ async function executarWasm(wasm) {
 
   const ms = Math.round(performance.now() - inicio);
   terminal.escreverCru('\r\n');
-  if (codigoSaida === 0) terminal.detalhe(`[o programa terminou em ${ms} ms]`);
-  else terminal.detalhe(`[o programa terminou com código ${codigoSaida} em ${ms} ms]`);
+  if (depurando && depurador.pedidoParar && codigoSaida === SAIDA_PARADO) {
+    terminal.detalhe(`[o depurador encerrou o programa em ${ms} ms]`);
+  } else if (codigoSaida === 0) {
+    terminal.detalhe(`[o programa terminou em ${ms} ms]`);
+  } else {
+    terminal.detalhe(`[o programa terminou com código ${codigoSaida} em ${ms} ms]`);
+  }
+  if (depurando) {
+    const quantas = depurador.eventos;
+    if (depurador.aviso) terminal.destaque(`depurador: ${depurador.aviso}`);
+    terminal.detalhe(`depurador: ${quantas} linha(s) percorrida(s).`);
+    depurador.encerrar();
+  }
   definirRodando(false);
+}
+
+/* --------------------------------------------------------------- depurador */
+
+/** Diz no terminal, antes de compilar, o que esperar desta execução. */
+function anunciarDepurador(instrumentada) {
+  const pontos = depurador.pontos.size;
+  terminal.detalhe(pontos
+    ? `depurador ligado: ${pontos} ponto(s) de parada em ${instrumentada.linhas.length} `
+      + 'linha(s) instrumentada(s).'
+    : `depurador ligado: sem pontos de parada, o programa para na primeira das `
+      + `${instrumentada.linhas.length} linha(s) instrumentada(s).`);
+  if (!temJspi()) {
+    terminal.destaque('sem JSPI neste navegador o programa não consegue congelar: '
+      + 'o depurador só registra as linhas e os valores (sem parar).');
+  }
+}
+
+/** Aplica o interruptor: painel, face do botão Run e medianiz do editor. */
+function aplicarDepurador() {
+  const ligado = depurador.ativo;
+  document.body.classList.toggle('depurando', ligado);
+  $('#debug-pane').classList.toggle('oculto', !ligado);
+  $('#debug-toggle').checked = ligado;
+  try { localStorage.setItem(CHAVE_DEPURADOR, ligado ? '1' : '0'); } catch (e) { /* ok */ }
+  desenharDepurador();
+  // O painel toma espaço do terminal: o xterm precisa refazer as contas.
+  setTimeout(() => terminal.centralizar(), 60);
+}
+
+/** Linha onde o programa parou, destacada no editor. */
+function desenharMarcador() {
+  if (marcadorLinha !== null) {
+    editor.session.removeMarker(marcadorLinha);
+    marcadorLinha = null;
+  }
+  if (!depurador.estaParado()) return;
+  const { Range } = window.ace.require('ace/range');
+  const linha = Math.max(0, depurador.linha - 1);
+  marcadorLinha = editor.session.addMarker(
+    new Range(linha, 0, linha, 1), 'linha-depuracao', 'fullLine',
+  );
+  editor.scrollToLine(linha, true, true, () => {});
+}
+
+/** Pontos de parada no medianiz (a verdade está em `depurador.pontos`). */
+function desenharPontos() {
+  editor.session.clearBreakpoints();
+  if (!depurador.ativo) return;
+  for (const linha of depurador.pontos) editor.session.setBreakpoint(linha - 1, 'ace_breakpoint');
+  const quantos = depurador.pontos.size;
+  const aviso = $('#debug-pontos');
+  aviso.classList.toggle('oculto', quantos === 0);
+  aviso.firstElementChild.textContent = quantos === 1
+    ? '1 ponto de parada marcado.'
+    : `${quantos} pontos de parada marcados.`;
+  $('#debug-limpar').classList.toggle('oculto', quantos === 0);
+}
+
+function desenharVariaveis() {
+  const corpo = $('#debug-variaveis');
+  const vazio = $('#debug-vazio');
+  corpo.textContent = '';
+  const lista = depurador.variaveis;
+  if (!lista.length) {
+    vazio.classList.remove('oculto');
+    vazio.textContent = depurador.estaParado()
+      ? 'nenhuma variável visível nesta linha ainda.'
+      : 'as variáveis aparecem quando o programa parar.';
+    return;
+  }
+  vazio.classList.add('oculto');
+  for (const variavel of lista) {
+    const linha = document.createElement('tr');
+    for (const [classe, texto] of [['nome', variavel.nome], ['tipo', variavel.tipo],
+      ['valor', variavel.valor]]) {
+      const celula = document.createElement('td');
+      celula.className = classe;
+      celula.textContent = texto;
+      linha.appendChild(celula);
+    }
+    corpo.appendChild(linha);
+  }
+}
+
+/** Redesenha tudo que depende do estado do depurador (chamado por `aoMudar`). */
+function desenharDepurador() {
+  const parado = depurador.estaParado();
+  $('#debug-continuar').classList.toggle('disabled', !parado);
+  $('#debug-passo').classList.toggle('disabled', !parado);
+  $('#debug-parar').classList.toggle('disabled', !parado && !estado.rodando);
+
+  let texto;
+  if (parado) texto = `parado na linha ${depurador.linha}`;
+  else if (estado.rodando) {
+    texto = depurador.eventos ? `executando — linha ${depurador.linha}` : 'executando';
+  } else if (depurador.pontos.size) texto = `${depurador.pontos.size} ponto(s) de parada`;
+  else texto = 'pressione Debug para começar';
+  if (depurador.aviso) texto = `${texto} · ${depurador.aviso}`;
+  $('#debug-estado').textContent = texto;
+
+  desenharVariaveis();
+  desenharMarcador();
+  desenharPontos();
+}
+
+function salvarPontos() {
+  try {
+    localStorage.setItem(CHAVE_PONTOS, JSON.stringify([...depurador.pontos]));
+  } catch (e) { /* modo privado: segue sem persistir */ }
+}
+
+function carregarPontos() {
+  try {
+    const salvos = JSON.parse(localStorage.getItem(CHAVE_PONTOS) || '[]');
+    if (Array.isArray(salvos)) {
+      for (const linha of salvos) {
+        if (Number.isInteger(linha) && linha > 0) depurador.pontos.add(linha);
+      }
+    }
+  } catch (e) { /* lixo no armazenamento: começa sem pontos */ }
+}
+
+/** Botão Parar: encerra o programa, mesmo se ele estiver esperando o teclado. */
+function pararDepuracao() {
+  if (!estado.rodando) return;
+  depurador.parar();
+  if (terminal.emEdicao && terminal.aguardando) {
+    const pendente = terminal.aguardando;
+    terminal.emEdicao = false;
+    terminal.aguardando = null;
+    pendente(new Uint8Array(0)); // EOF: solta a leitura para o programa sair
+  }
+}
+
+/** Liga os botões do painel, o interruptor e os cliques no medianiz. */
+function montarDepurador() {
+  depurador = new Depurador({ aoMudar: () => desenharDepurador() });
+  carregarPontos();
+  try {
+    depurador.ativo = localStorage.getItem(CHAVE_DEPURADOR) === '1';
+  } catch (e) { /* sem armazenamento: desligado, como o padrão */ }
+  if (new URLSearchParams(location.search).get('debug') === '1') depurador.ativo = true;
+
+  $('#debug-toggle').addEventListener('change', (evento) => {
+    depurador.definirAtivo(evento.target.checked);
+    aplicarDepurador();
+  });
+  $('#debug-continuar').addEventListener('click', () => depurador.continuar());
+  $('#debug-passo').addEventListener('click', () => depurador.passo());
+  $('#debug-parar').addEventListener('click', () => pararDepuracao());
+  $('#debug-limpar').addEventListener('click', (evento) => {
+    evento.preventDefault();
+    depurador.limparPontos();
+    salvarPontos();
+  });
+
+  // Clicar no número da linha marca/desmarca um ponto de parada.
+  editor.on('guttermousedown', (evento) => {
+    if (!depurador.ativo) return;
+    const alvo = evento.domEvent.target;
+    if (!alvo.className || !String(alvo.className).includes('ace_gutter-cell')) return;
+    depurador.alternarPonto(evento.getDocumentPosition().row + 1);
+    salvarPontos();
+    evento.stop();
+  });
+
+  aplicarDepurador();
 }
 
 /* ---------------------------------------------------------------- exemplos */
@@ -475,6 +706,7 @@ async function iniciar() {
 
   aplicarTema(temaValido);
   aplicarLayout();
+  montarDepurador();
 
   ferramentas = new Ferramentas({
     aoProgredir: ({ mensagem }) => {
@@ -535,6 +767,22 @@ async function iniciar() {
       definirLayout(estado.layout === 'code' ? 'split' : 'code');
       return;
     }
+    // --- depurador (só com ele ligado; F9 marca o ponto de parada)
+    if (!depurador.ativo) return;
+    if (evento.key === 'F8') {
+      evento.preventDefault();
+      depurador.continuar();
+    } else if (evento.key === 'F10') {
+      evento.preventDefault();
+      depurador.passo();
+    } else if (evento.key === 'F9') {
+      evento.preventDefault();
+      depurador.alternarPonto(editor.getCursorPosition().row + 1);
+      salvarPontos();
+    } else if (evento.key === 'F5' && evento.shiftKey) {
+      evento.preventDefault();
+      pararDepuracao();
+    }
   });
 
   // Ajusta o editor/terminal quando a janela muda de tamanho.
@@ -554,6 +802,8 @@ window.__basicgol = {
   get terminal() { return terminal; },
   get ferramentas() { return ferramentas; },
   get estado() { return estado; },
+  get depurador() { return depurador; },
   executar,
   acharExemplo,
+  instrumentar,
 };

@@ -175,8 +175,16 @@ export function criarImportsMemfs({ obterMemoria, obterMemfs, aoEscrever, aoLoga
  * `io.ler(bytes)` pode devolver uma Promise: é assim que o `LEIA` espera a
  * digitação no terminal. Quando não há entrada disponível, fd_read devolve 0
  * bytes — o que é EOF para a libc — então o programa termina em vez de travar.
+ *
+ * `depuracao` é opcional e, quando existe, abre o **descritor 3** como canal
+ * do depurador: o programa instrumentado escreve ali o quadro de cada linha e
+ * lê um byte de comando (ver `depurador.js`). Sem ele, o descritor 3 responde
+ * BADF — que é o que faz o programa instrumentado desligar o depurador
+ * sozinho fora da página.
  */
-export function criarWasiPrograma({ obterMemoria, io, argv = ['programa'], ambiente = {}, aoSair }) {
+export function criarWasiPrograma({
+  obterMemoria, io, argv = ['programa'], ambiente = {}, aoSair, depuracao = null,
+}) {
   const dv = () => new DataView(obterMemoria().buffer);
   const u8 = (o, n) => new Uint8Array(obterMemoria().buffer, o, n);
   const sair = (codigo) => {
@@ -280,6 +288,18 @@ export function criarWasiPrograma({ obterMemoria, io, argv = ['programa'], ambie
       return 0;
     },
     fd_write: (fd, iovs, quantidade, escritoEm) => {
+      if (fd === 3 && depuracao) {
+        const v = dv();
+        let total = 0;
+        for (let i = 0; i < quantidade; i += 1) {
+          const buf = v.getUint32(iovs + i * 8, true);
+          const tam = v.getUint32(iovs + i * 8 + 4, true);
+          depuracao.escrever(u8(buf, tam).slice());
+          total += tam;
+        }
+        v.setUint32(escritoEm, total, true);
+        return 0;
+      }
       if (fd > 2) return BS.BADF;
       const v = dv();
       let total = 0;
@@ -293,8 +313,8 @@ export function criarWasiPrograma({ obterMemoria, io, argv = ['programa'], ambie
       return 0;
     },
     fd_read: (fd, iovs, quantidade, lidoEm) => {
-      if (fd > 2) return BS.BADF;
-      if (fd !== 0) { dv().setUint32(lidoEm, 0, true); return 0; }
+      if (fd > 3 || (fd === 3 && !depuracao)) return BS.BADF;
+      if (fd !== 0 && fd !== 3) { dv().setUint32(lidoEm, 0, true); return 0; }
       const v = dv();
       const pedacos = [];
       let queremos = 0;
@@ -315,10 +335,10 @@ export function criarWasiPrograma({ obterMemoria, io, argv = ['programa'], ambie
         v.setUint32(lidoEm, Math.min(chunk.length, queremos), true);
         return 0;
       };
-      const resultado = io.ler(queremos);
+      const resultado = fd === 3 ? depuracao.ler(queremos) : io.ler(queremos);
       if (resultado && typeof resultado.then === 'function') {
-        // Espera o terminal: a instância é suspensa e retomada quando o
-        // usuário apertar Enter (JSPI — ver app.js).
+        // Espera o terminal (ou o botão do depurador): a instância é suspensa
+        // e retomada quando a Promise resolver (JSPI — ver app.js).
         return resultado.then(entregar);
       }
       return entregar(resultado || new Uint8Array(0));
