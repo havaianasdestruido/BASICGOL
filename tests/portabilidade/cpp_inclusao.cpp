@@ -11,6 +11,7 @@
  * Compilar: c++ -std=c++17 -Wall -Wextra -Werror -I include \
  *              tests/portabilidade/cpp_inclusao.cpp build/libbasicgol.a -lm
  */
+#define BG_USAR_WORKSPACE
 #include <basicgol/biblioteca.h>
 
 #include <cstdio>
@@ -21,6 +22,7 @@ int main()
     char destino[8] = {0};
     double valor = 0.0;
     unsigned sorteado = 99u;
+    size_t tamanho = 0;
 
     if (!bg_e_digito('5') || bg_e_letra('5')) {
         return 1;
@@ -41,6 +43,17 @@ int main()
         return 1;
     }
     if (bg_tamanho_texto("abcd") != 4u) {
+        return 1;
+    }
+    /* a workspace falsa também é cabeçalho de módulo: tem de compilar em C++ */
+    if (!bg_ws_abrir(nullptr)) {
+        return 1;
+    }
+    if (!bg_ws_enviar_texto("cpp.txt", "cpp")
+        || !bg_ws_tamanho("cpp.txt", &tamanho) || tamanho != 3u) {
+        return 1;
+    }
+    if (!bg_ws_fechar()) {
         return 1;
     }
     std::printf("cpp: ok\n");

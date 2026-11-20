@@ -3,7 +3,7 @@
 A biblioteca padrão reúne utilidades pequenas para os programas BASICGOL e para C
 comum. O núcleo é **C11 portátil**, divide-se por responsabilidade e usa `stdio`,
 `string`, `stdlib` e `math` da plataforma em vez de duplicá-los. Os headers são
-independentes; `<basicgol/biblioteca.h>` agrega os cinco módulos. `<basicgol.h>` também
+independentes; `<basicgol/biblioteca.h>` agrega os módulos portáteis. `<basicgol.h>` também
 os inclui e preserva os nomes de linguagem (`COPIA_TEXTO`, `LEIA_INTEIRO`, `ABS` etc.).
 
 ## 1. Módulos e arquivos
@@ -15,7 +15,9 @@ os inclui e preserva os nomes de linguagem (`COPIA_TEXTO`, `LEIA_INTEIRO`, `ABS`
 | Texto | `basicgol/texto.h` | `src/biblioteca/texto.c` | operações limitadas sobre strings C e conversões numéricas |
 | Caractere | `basicgol/caractere.h` | `src/biblioteca/caractere.c` | classificação e mudança de caixa ASCII |
 | Utilidades | `basicgol/utilidades.h` | `src/biblioteca/utilidades.c` | semente e sorteio com PRNG próprio (xorshift64*) portável |
-| Agregado | `basicgol/biblioteca.h` | — | inclui os cinco headers portáteis e informa a versão 1.0.0 |
+| Sistema de arquivos | `basicgol/filesystem.h` | `src/biblioteca/filesystem.c` | cópia, arquivo temporário e caminhada em árvore, portáveis |
+| Workspace (OPCIONAL) | `basicgol/workspace.h` | `src/workspace/workspace.c` | workspace falsa em memória, com persistência em arquivo, envio e download |
+| Agregado | `basicgol/biblioteca.h` | — | inclui os headers portáteis e informa a versão 1.1.0 |
 
 Inclua somente o módulo necessário ou use o agregado:
 
@@ -148,6 +150,48 @@ plataforma C11. Ele é previsível e global ao processo; **não** é criptográf
 adequado para tokens/segurança e não promete independência entre threads. A rejeição em
 `bg_sorteia_ate` remove o viés de módulo supondo amostras uniformes dos 32 bits de estado.
 
+### 3.6 Workspace falsa (OPCIONAL) — `basicgol/workspace.h`
+
+Módulo **desligado por padrão**: o cabeçalho só declara a API se `BG_USAR_WORKSPACE`
+for definido antes do `#include`. Sem o macro, nada existe para o programa; com o
+macro, uma workspace só passa a existir depois de `bg_ws_abrir`. A implementação vai
+para o archive, então ligar não exige rebuild nem flag extra.
+
+É um disco simulado em memória — pastas e arquivos — que pode ser salvo em um
+arquivo único (cabeçalho `BGWS1`, conteúdo em base64) e recarregado por
+`bg_ws_abrir`. Serve para programas que precisam de arquivos sem tocar o sistema de
+arquivos de verdade e para manter um "workspace" que sobrevive ao processo.
+
+A implementação mora em `src/workspace/workspace.c`, fora de `src/biblioteca/`, porque
+o playground compila esse diretório inteiro em cada programa: a workspace é opt-in e
+não deve pesar (nem rodar) onde não foi pedida. O Makefile soma `src/workspace/*.c` ao
+archive.
+
+| Função | Parâmetros | Retorno |
+|---|---|---|
+| `bg_ws_abrir(arquivo)` | caminho real do snapshot; `NULL` ou `""` = só memória | `true` e workspace vazia (snapshot ausente) ou carregada; `false` se já há workspace aberta, se o snapshot está corrompido ou sem memória |
+| `bg_ws_salvar()` | — | grava o snapshot atômico (temporário + `rename`); `false` sem workspace, sem arquivo ou em falha de E/S |
+| `bg_ws_fechar()` | — | grava (se houver arquivo) e libera; `false` se a gravação falha (o estado é liberado mesmo assim) |
+| `bg_ws_esta_aberta()` | — | `true` se há workspace aberta |
+| `bg_ws_caminho_persistencia(destino, capacidade)` | buffer e capacidade | copia o caminho do snapshot (`""` quando só memória); `false` se não aberta ou não couber |
+| `bg_ws_existe(caminho)` | caminho virtual | `true` se existe arquivo ou pasta (a raiz sempre existe) |
+| `bg_ws_eh_pasta(caminho)` | caminho virtual | `true` se é pasta |
+| `bg_ws_tamanho(caminho, bytes)` | caminho e `size_t *` | tamanho do arquivo; `false` (sem alterar `*bytes`) se não aberta, não existe ou é pasta |
+| `bg_ws_listar(pasta, cb, ctx)` | pasta, callback `(caminho, eh_pasta, ctx)` e contexto | anuncia a pasta e, em profundidade, pastas e arquivos (pastas antes, por descoberta); `false` se a pasta não existe ou o callback interrompe |
+| `bg_ws_enviar_disco(caminho_real, caminho_ws)` | arquivo do disco e nome virtual | **upload**: lê o disco em binário e guarda na workspace, substituindo; `false` em disco ilegível ou nome inválido |
+| `bg_ws_enviar_bytes(caminho_ws, dados, bytes)` | nome virtual, buffer e tamanho | guarda bytes (`NULL` com 0 = arquivo vazio; `NULL` com > 0 falha) |
+| `bg_ws_enviar_texto(caminho_ws, texto)` | nome virtual e string | atalho de `bg_ws_enviar_bytes` (`NULL` = vazio) |
+| `bg_ws_baixar_disco(caminho_ws, caminho_real)` | nome virtual e caminho do disco | **download**: grava o arquivo da workspace no disco real, substituindo |
+| `bg_ws_baixar_bytes(caminho_ws, saida, capacidade, copiados)` | nome virtual, buffer, capacidade e `size_t *` | copia até `capacidade` bytes e devolve quantos copiou; `false` se não existe |
+| `bg_ws_remover(caminho, recursivo)` | caminho virtual e flag | remove arquivo; pasta só com `recursivo` true; `""` com `true` esvazia tudo |
+| `bg_ws_limpar()` | — | esvazia a workspace |
+
+Caminhos virtuais são normalizados para `/` (a raiz é `""` ou `"/"`), recusam `..`
+e `:` e não distinguem `./a` de `a`. A workspace aceita até 4096 arquivos e 64 MiB
+de dados. O estado é global ao processo e **não** é thread-safe; dois processos
+compartilhando o mesmo snapshot não são coordenados. O snapshot é escrito em
+`<caminho>.tmp` e renomeado, então uma gravação que falha não corrompe o anterior.
+
 ## 4. Nomes da linguagem e compatibilidade
 
 `<basicgol.h>` mantém os helpers didáticos e os aliases `BG_*`/nomes curtos descritos
@@ -158,11 +202,13 @@ literal e agora devolvem o booleano da escrita. `LEIA_TEXTO`, `LEIA_INTEIRO` e
 sendo os da biblioteca C.
 
 O único módulo de compilador opcional continua sendo `BG_USAR_EXTENSOES` em
-`basicgol.h` (GCC/Clang); ele é independente da biblioteca padrão. **Não há helpers
-específicos de plataforma nesta versão.** Por isso não há dependência de POSIX,
-Windows, `unistd.h` ou `windows.h`, nem headers de plataforma no agregado. Uma futura
-extensão de plataforma deve ter header e implementação separados, não incluídos pelo
-core portátil.
+`basicgol.h` (GCC/Clang); ele é independente da biblioteca padrão. Na biblioteca, o
+módulo opt-in é a **workspace falsa** (`BG_USAR_WORKSPACE`, §3.6): o cabeçalho é
+incluído pelo agregado, mas não declara nada sem o macro, e uma workspace só existe
+depois de `bg_ws_abrir`. **Não há helpers específicos de plataforma nesta versão.**
+Por isso não há dependência de POSIX, Windows, `unistd.h` ou `windows.h`, nem headers
+de plataforma no agregado. Uma futura extensão de plataforma deve ter header e
+implementação separados, não incluídos pelo core portátil.
 
 ## 5. Compilação e dependências
 
@@ -216,7 +262,7 @@ cc -std=c11 -Wall -Wextra -I include programa.gerado.c \
 
 ## 6. Demonstrações e testes
 
-Os exemplos `docs/exemplos/biblioteca_{consola,matematica,texto,caractere,utilidades}.c`
+Os exemplos `docs/exemplos/biblioteca_{consola,matematica,texto,caractere,utilidades,workspace}.c`
 demonstram um programa pequeno por módulo. Eles são compilados e executados com
 entradas/saídas douradas pela suíte regular.
 
@@ -225,6 +271,12 @@ terminadores LF/CRLF, EOF, NUL embutido, limites e sobreposição de buffers, co
 válidas/inválidas/fora de faixa, ASCII, limites matemáticos, sequência aleatória,
 entradas inválidas e diagnósticos fatais. `make test-biblioteca` executa os 230 checks
 unitários e os casos de integração em processos separados para as rotinas fatais.
+
+A workspace falsa tem suíte própria: `tests/test_workspace.c` cobre envio (disco e
+memória), download (disco e memória), normalização e recusa de caminhos, conflitos de
+árvore, listagem, remoção, persistência (inclusive snapshot corrompido e falha de
+gravação) e os limites de arquivos/bytes. `make test-workspace` executa os 130 checks
+e confirma que, sem `BG_USAR_WORKSPACE`, o cabeçalho não declara API.
 
 Consulte [`tests/README.md`](../tests/README.md) para a suíte completa. A licença é
 Apache-2.0, igual à do restante do repositório.

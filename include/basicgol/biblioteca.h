@@ -6,7 +6,7 @@
 #define BASICGOL_BIBLIOTECA_H
 
 #define BG_BIBLIOTECA_VERSAO_MAIOR    1
-#define BG_BIBLIOTECA_VERSAO_MENOR    0
+#define BG_BIBLIOTECA_VERSAO_MENOR    1
 #define BG_BIBLIOTECA_VERSAO_CORRECAO 0
 
 #include <basicgol/caractere.h>
@@ -15,5 +15,6 @@
 #include <basicgol/texto.h>
 #include <basicgol/utilidades.h>
 #include <basicgol/filesystem.h>
+#include <basicgol/workspace.h>
 
 #endif /* BASICGOL_BIBLIOTECA_H */

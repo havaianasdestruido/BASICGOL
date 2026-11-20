@@ -22,20 +22,26 @@ const ORIGEM = path.join(RAIZ, 'docs', 'exemplos');
 const DESTINO = path.join(RAIZ, 'playground', 'ativo', 'exemplos.js');
 
 /**
- * Programas que o playground não consegue compilar — e por quê.
+ * Programas que o playground não consegue usar — e por quê.
  *
- * Ambos são perfil M1: usam a forma "açucarada" do laço (`PARA i DE 1 ATE 5
- * FACA`), que exige o transpilador `basicgolc`. No perfil M0 — que é o que
- * este playground compila, só com as macros de <basicgol.h> — o laço contado
- * é escrito `PARA (i, 1, 5) { ... }` (ver docs/exemplos/tabuada.c).
+ * Os dois primeiros são perfil M1: usam a forma "açucarada" do laço (`PARA i DE
+ * 1 ATE 5 FACA`), que exige o transpilador `basicgolc`. No perfil M0 — que é o
+ * que este playground compila, só com as macros de <basicgol.h> — o laço
+ * contado é escrito `PARA (i, 1, 5) { ... }` (ver docs/exemplos/tabuada.c).
  *
  * O playground avisa isso na interface quando alguém tenta usar a forma M1:
  * o erro do compilador aponta a macro e a linha, e é a mesma mensagem que o
  * `make` daria fora do navegador.
+ *
+ * O da workspace falsa é o caso contrário: ele compila, mas não roda. O
+ * playground não tem disco (o memfs só atende as ferramentas), então não há
+ * como criar o snapshot que o exemplo grava e recarrega. Aqui no repositório
+ * ele é verificado pela suíte normal (`make test` / `make exemplos`).
  */
 const EXCLUIDOS = new Map([
   ['controle_para_acucar.c', 'perfil M1 (PARA i DE ... FACA exige basicgolc)'],
   ['para_contado.c', 'perfil M1 (PARA i DE ... FACA exige basicgolc)'],
+  ['biblioteca_workspace.c', 'precisa de disco real (o playground não tem)'],
 ]);
 
 /** "// adivinha.c — REPITA/ATE_QUE, ..." -> "Adivinha: REPITA/ATE_QUE, ..." */

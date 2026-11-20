@@ -55,6 +55,7 @@ jobs:
         shell: cmd
         run: |
           if not exist build\biblioteca mkdir build\biblioteca
+          if not exist build\workspace mkdir build\workspace
           for %%f in (src\biblioteca\*.c) do (
             cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include /c %%f /Fo:build\biblioteca\ > build\biblioteca\cl.log 2>&1
             if errorlevel 1 (
@@ -62,7 +63,17 @@ jobs:
               exit /b 2
             )
           )
-          lib /nologo /OUT:build\libbasicgol.lib build\biblioteca\*.obj
+          rem a workspace falsa (opt-in) tambem entra no archive: os exemplos e
+          rem a documentacao dependem dela, e o cabecalho so declara API com
+          rem BG_USAR_WORKSPACE — a implementacao, nao.
+          for %%f in (src\workspace\*.c) do (
+            cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include /c %%f /Fo:build\workspace\ > build\workspace\cl.log 2>&1
+            if errorlevel 1 (
+              for /f "usebackq delims=" %%i in ("build\workspace\cl.log") do echo ::error::%%i
+              exit /b 2
+            )
+          )
+          lib /nologo /OUT:build\libbasicgol.lib build\biblioteca\*.obj build\workspace\*.obj
 
       - name: testes unitarios da biblioteca (test_biblioteca)
         shell: cmd
@@ -86,6 +97,35 @@ jobs:
       - name: rodar testes de filesystem
         shell: bash
         run: ./tests/run_filesystem.sh build/test-filesystem.exe
+
+      # A workspace falsa e opt-in: o teste compila o proprio macro. Aqui nao da
+      # para usar tests/run_workspace.sh (ele recompila o caso "desligado" com
+      # `cc`, que nao existe neste runner); os dois passos abaixo espelham as
+      # mesmas duas verificacoes.
+      - name: testes da workspace (BG_USAR_WORKSPACE)
+        shell: cmd
+        run: |
+          cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /DBG_USAR_WORKSPACE /I include tests\test_workspace.c /Fo:build\test-workspace.obj /Fe:build\test-workspace.exe /link build\libbasicgol.lib > build\test_workspace.log 2>&1
+          if errorlevel 1 (
+            for /f "usebackq delims=" %%i in ("build\test_workspace.log") do echo ::error::%%i
+            exit /b 2
+          )
+
+      - name: rodar testes da workspace
+        shell: bash
+        run: |
+          ./build/test-workspace.exe | tr -d '\r' | grep -Eq '^workspace: [0-9]+ verificacoes aprovadas$'
+
+      - name: workspace desligada por padrao (sem BG_USAR_WORKSPACE)
+        shell: cmd
+        run: |
+          rem tem que compilar: sem o macro o cabecalho existe, mas nao declara API
+          cl /nologo /TC /std:c11 /W4 /WX /D_CRT_SECURE_NO_WARNINGS /D_CRT_NONSTDC_NO_WARNINGS /I include tests\workspace_desligado.c /Fo:build\workspace_desligado.obj /Fe:build\workspace_desligado.exe > build\workspace_desligado.log 2>&1
+          if errorlevel 1 (
+            for /f "usebackq delims=" %%i in ("build\workspace_desligado.log") do echo ::error::%%i
+            exit /b 2
+          )
+          echo ok: sem BG_USAR_WORKSPACE o cabecalho nao declara API
 
       - name: exemplos com saida dourada (M0 e M1)
         shell: bash

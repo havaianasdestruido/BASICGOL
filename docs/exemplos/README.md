@@ -1,11 +1,12 @@
 # Exemplos BASICGOL
 
-Vinte e quatro programas completos, escritos com construtores definidos na
+Vinte e cinco programas completos, escritos com construtores definidos na
 [especificação](../01-especificacao.md), na
 [referência de tipos e expressões](../06-tipos-e-expressoes.md) e na
-[biblioteca padrão](../09-biblioteca-padrao.md). Os cinco exemplos `biblioteca_*.c`
-demonstram, um por arquivo, os módulos de console, matemática, texto, caractere e
-utilidades. Os programas servem a três propósitos:
+[biblioteca padrão](../09-biblioteca-padrao.md). Os seis exemplos `biblioteca_*.c`
+demonstram, um por arquivo, os módulos de console, matemática, texto, caractere,
+utilidades e a workspace falsa (opt-in por `BG_USAR_WORKSPACE`). Os programas
+servem a três propósitos:
 
 1. **Documentação executável** — cada exemplo demonstra um conjunto de construtores.
 2. **Especificação por exemplos** — se um exemplo não compilar, a especificação está
@@ -82,12 +83,17 @@ Compilados com GCC 12.2, `-std=c11 -Wall -Wextra -Wformat=2 -Wvla -Werror`: **ze
 | `biblioteca_texto.c` | M0 + M1 | cópia, acréscimo, trecho, comprimento e conversão de texto para inteiro | ok | ok |
 | `biblioteca_caractere.c` | M0 + M1 | classificação ASCII e conversão de caixa | ok | ok |
 | `biblioteca_utilidades.c` | M0 + M1 | semente explícita e `bg_sorteia_ate` com PRNG próprio (xorshift64*) | ok | ok |
+| `biblioteca_workspace.c` | M0 + M1 | workspace falsa opt-in: `bg_ws_enviar_texto`/`enviar_bytes`/`enviar_disco`, `listar`, `baixar_disco`, snapshot `BGWS1` recarregado | ok | ok |
 
-Os 24 exemplos compilam sem avisos com `-std=c11 -Wall -Wextra -Wformat=2 -Wvla
+Os 25 exemplos compilam sem avisos com `-std=c11 -Wall -Wextra -Wformat=2 -Wvla
 -Werror` e produzem exatamente a saída registrada — nos dois perfis, exceto
-`para_contado.c` e `controle_para_acucar.c`, que são M1 puros por desenho. Os cinco
+`para_contado.c` e `controle_para_acucar.c`, que são M1 puros por desenho. Os seis
 programas `biblioteca_*.c` exercitam os headers modulares e são ligados à biblioteca
 estática. A suíte verifica os dois caminhos a cada `make test`.
+
+`biblioteca_workspace.c` fica de fora do seletor do playground (é o único exemplo
+que grava em disco de verdade; lá não há disco) — a exclusão está registrada em
+`playground/tools/gerar-exemplos.js`, e o exemplo é verificado pela suíte normal.
 
 A validação também forçou três ajustes de contrato, registrados em
 [04 §6](../04-restricoes-e-decisoes.md): o contrato de `LEIA_TEXTO` (C-20, corrigido duas
