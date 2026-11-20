@@ -23,12 +23,13 @@ BUILD    := build
 FERRAMENTA := $(BUILD)/basicgolc
 BIBLIOTECA := $(BUILD)/libbasicgol.a
 TESTE_BIBLIOTECA := $(BUILD)/test-biblioteca
+TESTE_FILESYSTEM := $(BUILD)/test-filesystem
 FONTES_BIBLIOTECA := $(sort $(wildcard src/biblioteca/*.c))
 OBJETOS_BIBLIOTECA := $(patsubst src/biblioteca/%.c,$(BUILD)/biblioteca/%.o,$(FONTES_BIBLIOTECA))
 
 .PHONY: all biblioteca test test-v test-biblioteca smoke smoke-v exemplos cobertura \
         limpar ajuda test-portabilidade test-portabilidade-v test-sanitize test-matriz fuzz \
-        test-checkout
+        test-checkout test-filesystem
 
 all: $(FERRAMENTA) $(BIBLIOTECA)
 
@@ -50,18 +51,27 @@ biblioteca: $(BIBLIOTECA)
 $(TESTE_BIBLIOTECA): tests/test_biblioteca.c $(BIBLIOTECA)
 	$(CC) $(CFLAGS) $(WARN) -I $(INCLUDE) -o $@ $< $(BIBLIOTECA) -lm
 
+$(TESTE_FILESYSTEM): tests/test_filesystem.c $(BIBLIOTECA)
+	$(CC) $(CFLAGS) $(WARN) -I $(INCLUDE) -o $@ $< $(BIBLIOTECA) -lm
+
 # ------------------------------------------------------------------ testes
 
-test: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA)
+test: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA) $(TESTE_FILESYSTEM)
 	@T_BASICGOLC="$(FERRAMENTA)" T_LIBRARY="$(BIBLIOTECA)" ./tests/run.sh
 	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
+	@./tests/run_filesystem.sh "$(TESTE_FILESYSTEM)"
 
-test-v: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA)
+test-v: $(FERRAMENTA) $(BIBLIOTECA) $(TESTE_BIBLIOTECA) $(TESTE_FILESYSTEM)
 	@T_BASICGOLC="$(FERRAMENTA)" T_LIBRARY="$(BIBLIOTECA)" ./tests/run.sh -v
 	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
+	@./tests/run_filesystem.sh "$(TESTE_FILESYSTEM)"
 
-test-biblioteca: $(TESTE_BIBLIOTECA)
+test-biblioteca: $(TESTE_BIBLIOTECA) $(TESTE_FILESYSTEM)
 	@./tests/run_biblioteca.sh "$(TESTE_BIBLIOTECA)"
+	@./tests/run_filesystem.sh "$(TESTE_FILESYSTEM)"
+
+test-filesystem: $(TESTE_FILESYSTEM)
+	@./tests/run_filesystem.sh "$(TESTE_FILESYSTEM)"
 
 # smoke: suíte completa de compile-e-rodar (M0 + M1) e teste dos módulos.
 smoke: test

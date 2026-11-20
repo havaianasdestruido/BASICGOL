@@ -15,12 +15,14 @@ python3 tests/auditar_exemplos.py --cc gcc --flag=-std=c11 --basicgolc build/bas
 
 A suíte de linguagem usa `bash`, um compilador C11, `build/basicgolc` e
 `build/libbasicgol.a` (construídos por `make`). Os testes unitários da biblioteca
-são `tests/test_biblioteca.c`, executados por `tests/run_biblioteca.sh`. O conjunto
-completo também precisa de `ar`, `mktemp`, `diff` e Python 3 para a cobertura. Os
+são `tests/test_biblioteca.c`, executados por `tests/run_biblioteca.sh`, e
+`tests/test_filesystem.c`, executados por `tests/run_filesystem.sh` em um
+diretório temporário isolado. O conjunto completo também precisa de `ar`, `mktemp`, `diff` e Python 3 para a cobertura. Os
 runners criam diretórios temporários e os apagam ao terminar.
 
 ```sh
-make test-biblioteca  # somente biblioteca modular
+make test-biblioteca  # biblioteca modular, incluindo filesystem
+make test-filesystem  # somente filesystem, em diretório temporário isolado
 make test             # linguagem M0/M1 + biblioteca
 ```
 
