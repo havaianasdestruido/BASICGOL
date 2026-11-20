@@ -441,7 +441,10 @@ export class Ferramentas {
    */
   async compilar({
     codigo, flags = [], otimizacao = '-O2', arquivos = null,
-    deslocamentoLinhas = 0, depurar = false, aoRegistrar = () => {},
+    deslocamentoLinhas = 0,
+    depurar = false,
+    aoGerarC = null,
+    aoRegistrar = () => {},
   }) {
     await this.carregar();
     const registro = [];
@@ -470,7 +473,7 @@ export class Ferramentas {
     );
 
     const base = [
-      '-cc1', '-emit-obj', '-disable-free',
+      '-cc1', '-disable-free',
       '-isysroot', '',
       ...CABECALHOS.flatMap((d) => ['-internal-isystem', d]),
       '-ferror-limit', '19',
@@ -493,6 +496,21 @@ export class Ferramentas {
       ? ['-include', 'basicgol_depurador.h', '-Wno-uninitialized']
       : [];
 
+    if (aoGerarC) {
+      const r = await this._executar('clang', [...base, ...extras, '-E', '-o', 'main.i', '-x', 'c', 'main.cc']);
+      if (r.codigo === 0) {
+        // Os marcadores do clang separam o programa das declarações dos cabeçalhos.
+        let noPrograma = false;
+        const linhas = new TextDecoder().decode(this._lerArquivo('main.i')).split('\n');
+        aoGerarC(linhas.filter((linha) => {
+          const marca = /^# \d+ "([^"]+)"/.exec(linha);
+          if (!marca) return noPrograma;
+          noPrograma = marca[1] === 'main.cc';
+          return false;
+        }).join('\n').trim());
+      }
+    }
+
     const fontes = ['main.cc', 'src/shim.c', ...fontesBiblioteca.map((f) => `src/biblioteca/${f}`)];
     const objetos = [];
     const t0 = performance.now();
@@ -501,7 +519,7 @@ export class Ferramentas {
       const objeto = `${fonte.split('/').pop().replace(/[^a-zA-Z0-9._-]/g, '_')}.o`;
       const especificas = fonte === 'main.cc' ? doUsuario : [];
       const r = await this._executar('clang',
-        [...base, ...extras, ...especificas, '-o', objeto, '-x', 'c', fonte]);
+        [...base, '-emit-obj', ...extras, ...especificas, '-o', objeto, '-x', 'c', fonte]);
       registrar(r.saida.trimEnd());
       if (r.codigo !== 0) {
         registrar(`clang terminou com código ${r.codigo}`);

@@ -113,6 +113,9 @@
             </label><br />
           </div>
 
+          <h3>Visualização</h3>
+          <label><input id="show-c" type="checkbox" aria-controls="generated-pane" /> Mostrar C gerado ao executar</label>
+
           <h3>Argumentos do programa</h3>
           <input type="text" id="runtime-args" value="" aria-label="Argumentos" />
 
@@ -182,6 +185,10 @@
 
         <div class="code-container">
           <div id="editor"></div>
+          <section id="generated-pane" hidden>
+            <strong>C gerado · última execução</strong>
+            <pre id="generated-c">Pressione Run para gerar o C.</pre>
+          </section>
         </div>
 
         <div class="program-pane">

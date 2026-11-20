@@ -999,3 +999,11 @@ body.depurando .ace_gutter-cell {
   background: rgba(240, 217, 116, 0.18);
   border-left: 3px solid var(--bright-yellow);
 }
+.code-container.com-previa #editor { bottom: 45%; }
+#generated-pane {
+  position: absolute;
+  inset: 55% var(--pane-padding) var(--pane-padding);
+  overflow: auto;
+  border-top: 1px solid var(--topbar-border-color);
+  padding-top: .5rem;
+}
