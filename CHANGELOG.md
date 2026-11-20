@@ -53,6 +53,12 @@
   resolvidas para o commit; imagens públicas e externas viram links crus.
 
 ### Fixed
+- `src/workspace/workspace.c`: a segunda gravação no mesmo snapshot falhava no
+  Windows. A CRT da Microsoft recusa `rename` quando o destino já existe, e
+  `bg_ws_fechar` devolvia `false` — o exemplo `biblioteca_workspace.c` saía com
+  código 1 no MinGW. No Windows a substituição agora usa
+  `MoveFileExA(..., MOVEFILE_REPLACE_EXISTING)`, que é atômica como o `rename`
+  do POSIX.
 - `playground/tools/shim.c`: `long double` (`BG_REAL_LONGO`) e `%zu` no `printf`
   da wasi-libc de 2019. As funções `v*` não são substituídas (recursão).
 

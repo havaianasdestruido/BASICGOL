@@ -24,6 +24,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #ifndef BG_USAR_WORKSPACE
 #define BG_USAR_WORKSPACE
 #endif
@@ -721,9 +725,19 @@ static bool grava_no_disco(struct bg_ws *w, const char *caminho)
         goto fim;
     }
     f = NULL;
+#ifdef _WIN32
+    /* No Windows, `rename` da CRT recusa substituir um arquivo existente
+     * (EPERM); MoveFileEx com MOVEFILE_REPLACE_EXISTING faz a substituição
+     * atômica que o POSIX já dá de graça. Sem isso a segunda gravação no
+     * mesmo snapshot falhava — e `bg_ws_fechar` devolvia false. */
+    if (MoveFileExA(temporario, caminho, MOVEFILE_REPLACE_EXISTING) == 0) {
+        goto fim;
+    }
+#else
     if (rename(temporario, caminho) != 0) {
         goto fim;
     }
+#endif
     ok = true;
 fim:
     if (f != NULL) {
